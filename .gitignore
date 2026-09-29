@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+
+# IDE
+.idea/
+
+# Packaging
+build/
+dist/
+*.spec
+!/Tibia Mirror.spec
