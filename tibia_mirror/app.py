@@ -65,16 +65,16 @@ from tibia_mirror.ui.controls.dialogs import (
     TimerDialog,
     key_combo_name,
 )
-from tibia_mirror.ui.mirrors_page import (
+from tibia_mirror.ui.overlay.mirror import MirrorLook, MirrorWindow
+from tibia_mirror.ui.overlay.selector import RegionSelector
+from tibia_mirror.ui.panel.mirrors_page import (
     MirrorsActions,
     ProfileActions,
     RegionActions,
     region_count,
 )
-from tibia_mirror.ui.overlay.mirror import MirrorLook, MirrorWindow
-from tibia_mirror.ui.overlay.selector import RegionSelector
-from tibia_mirror.ui.panel import ControlPanel
-from tibia_mirror.ui.settings_page import SettingValue
+from tibia_mirror.ui.panel.panel import ControlPanel
+from tibia_mirror.ui.panel.settings_page import SettingValue
 from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.instance import SingleInstance
 from tibia_mirror.winapi.rawinput import InputWatcher

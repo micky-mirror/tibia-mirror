@@ -156,7 +156,7 @@ These are deliberate and must stay true:
 | Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/settings.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
 | Text | `i18n.py`, `about.py` |
 | Mirrors | `ui/overlay/mirror.py`, `ui/overlay/badge.py`, `ui/overlay/selector.py`, `ui/overlay/loupe.py` |
-| Panel | `ui/panel.py`, `ui/nav.py`, and the pages: `ui/mirrors_page.py`, `ui/settings_page.py`, `ui/shortcuts_page.py`, `ui/about_page.py` |
+| Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, and the pages: `ui/panel/mirrors_page.py`, `ui/panel/settings_page.py`, `ui/panel/shortcuts_page.py`, `ui/panel/about_page.py` |
 | Widgets | `ui/controls/widgets.py`, `ui/controls/menu.py`, `ui/controls/dialogs.py`, `ui/controls/tooltip.py`, `ui/controls/slider.py` |
 | Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/animation.py`, `ui/base/images.py`, `ui/base/text.py`, `ui/base/windows.py` |
 

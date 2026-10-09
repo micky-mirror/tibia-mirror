@@ -324,9 +324,11 @@ tibia_mirror/
     instance.py         one copy at a time
     sounds.py           timer alert sounds
   assets/icon.ico       the app icon
-  ui/                   control panel and its pages, mirror window,
-                        selection overlay and magnifier, dialogs,
-                        custom widgets, shape rendering, themes
+  ui/                   everything drawn with Tk
+    base/               themes, display scaling, shape rendering, helpers
+    controls/           custom widgets, menus, slider, tooltips, dialogs
+    overlay/            mirror window, timer badge, selection overlay, magnifier
+    panel/              control panel, its menu rail and pages
 tests/                  unit tests for the non-GUI modules
 docs/                   architecture, images
 ```
