@@ -1,4 +1,11 @@
-"""The Tibia window the app mirrors: which window it is and where its client area is."""
+"""The Tibia window.
+
+Game remembers which window is Tibia and where its client area is.
+The client area is the inside of the window, where the game is drawn.
+It does not include the title bar or the borders.
+
+Game only reads information about the window. It never changes the window.
+"""
 
 from __future__ import annotations
 

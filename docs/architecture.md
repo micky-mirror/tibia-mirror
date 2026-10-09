@@ -34,9 +34,10 @@ The app never receives the game's image: it only tells Windows which part of Tib
 The app knows Tibia only from what Windows shows every program about any window, as the taskbar and Alt+Tab do: its title, whether it's minimized, and where it is, so the mirrors can follow it.
 To make sure the window is really Tibia, it also reads the program's file path, using the lowest access level Windows offers (`PROCESS_QUERY_LIMITED_INFORMATION`), which gives no access to the game's memory.
 
-- **`App`** (`app.py`) holds the runtime state (the Tibia window, the active profile, the settings) and wires the pieces together.
+- **`App`** (`app.py`) holds the runtime state (the active profile, the settings, the timers) and wires the pieces together.
   It runs a few timers on Tk's event loop (the "polls") and reacts to the panel's buttons.
 - **Services** (`services/`) are the pieces cut out of the App, each owning one part of the running app.
+  `Game` (`services/game.py`) knows the Tibia window: it finds it, reads its client area, and notices when it moves, changes size or closes.
   `Mirrors` (`services/mirrors.py`) owns the mirror windows: it creates and closes them, reconnects them after Tibia restarts, and passes changes on to all of them.
   A service never imports the App.
 - **The UI** (`ui/`) is a pure view: it draws what the App gives it and calls back into the App.
@@ -74,6 +75,8 @@ Reading the program's path uses the lowest access level Windows offers (`PROCESS
 - Until Tibia is found, the panel shows "Waiting for Tibia..." and the App retries every second.
 - When Tibia closes, the mirrors keep their settings and reconnect to the new window once Tibia starts again.
 - A minimized Tibia has no client area, so mirrors wait until it's restored.
+- `Game` (`services/game.py`) remembers the window and its client area.
+  The App asks it what changed and decides what to do.
 
 ## When mirrors show
 
