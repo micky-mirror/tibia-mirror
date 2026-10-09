@@ -34,12 +34,15 @@ The app never receives the game's image: it only tells Windows which part of Tib
 The app knows Tibia only from what Windows shows every program about any window, as the taskbar and Alt+Tab do: its title, whether it's minimized, and where it is, so the mirrors can follow it.
 To make sure the window is really Tibia, it also reads the program's file path, using the lowest access level Windows offers (`PROCESS_QUERY_LIMITED_INFORMATION`), which gives no access to the game's memory.
 
-- **`App`** (`app.py`) holds the runtime state (the settings, the timers) and wires the pieces together.
+- **`App`** (`app.py`) wires the pieces together.
+  It holds only a little state of its own, for example if a region is being selected and if all mirrors are hidden.
   It runs a few timers on Tk's event loop (the "polls") and reacts to the panel's buttons.
 - **Services** (`services/`) are the pieces cut out of the App, each owning one part of the running app.
   `ActiveProfile` (`services/active_profile.py`) is the profile that is open now: it saves and loads its file, finds unsaved changes, and does rename, duplicate and delete.
   `Game` (`services/game.py`) knows the Tibia window: it finds it, reads its client area, and notices when it moves, changes size or closes.
   `Mirrors` (`services/mirrors.py`) owns the mirror windows: it creates and closes them, reconnects them after Tibia restarts, and passes changes on to all of them.
+  `RunningTimers` (`services/running_timers.py`) starts the timers, remembers who is logged in, and pauses and continues the timers at logout and login.
+  `SettingsStore` (`services/settings_store.py`) holds the settings: other classes read them there and change them with `update()`.
   A service never imports the App.
 - **The UI** (`ui/`) is a pure view: it draws what the App gives it and calls back into the App.
 - **Pure logic** (geometry, regions, profiles, settings, timers, visibility, rendering) has no Windows or Tk code, so it is unit-tested.
@@ -99,6 +102,8 @@ Clicks and key presses come from Windows **Raw Input** (`winapi/rawinput.py`), w
 - A key starts the timers bound to exactly that combination, but only while Tibia is in front.
 - A key combination does one thing only: the hide-all key and timer keys can't clash.
 - The pure timer logic (what the badge shows, key matching, paused progress) is in `core/timers.py`.
+- `RunningTimers` (`services/running_timers.py`) uses that logic on the mirrors.
+  The App tells it about clicks, keys, logins and logouts, and plays the sounds it returns.
 
 **Pause while logged out**: the App reads the logged-in character from Tibia's window title ("Tibia - Name").
 Running timers' start times are kept in memory; at logout they become paused progress in `settings.json`, per character and per mirror id, and continue at the next login.
@@ -113,6 +118,7 @@ Running timers' start times are kept in memory; at logout they become paused pro
   The App asks it to save, load, rename, duplicate or delete, and shows the result in the panel.
 - **Settings** (`core/settings.py`) are saved to `settings.json` shortly after each change.
   Bad or unknown values fall back to defaults, so a hand-edited file never stops the app from starting.
+  `SettingsStore` (`services/settings_store.py`) holds them while the app runs, and tells the App after each change, so the App can save the file.
 - **Profile per character** (`core/characters.py`) links character names to profiles in `settings.json`.
   A login switches profiles through the same "save changes first?" flow as switching by hand, and waits while a dialog is open.
 
