@@ -77,3 +77,18 @@ class ActiveProfile:
                 self._store.save(self.name, mirrors)
         self.mark_saved(mirrors)
         return mirrors
+
+    def rename(self, new_name: str) -> None:
+        """Rename the profile file, and use the new name from now on.
+
+        If the file cannot be renamed, this raises OSError. Then the name stays the same.
+        """
+        self._store.rename(self.name, new_name)
+        self.name = new_name
+
+    def delete(self) -> None:
+        """Delete the profile file. If that fails, this raises OSError.
+
+        After this call the profile has no file, so the caller must open another profile.
+        """
+        self._store.delete(self.name)

@@ -775,22 +775,21 @@ class App:
         self._open_profile(name)
 
     def _rename_profile(self, name: str) -> None:
-        if name == self.profile.name:
+        old_name = self.profile.name
+        if name == old_name:
             return
         try:
-            self.store.rename(self.profile.name, name)
+            self.profile.rename(name)
         except OSError:
             self.page.set_status(tr("Could not rename profile"), "error")
             return
-        self._set_links(
-            characters.rename_profile(self.settings.characters, self.profile.name, name)
-        )
+        self._set_links(characters.rename_profile(self.settings.characters, old_name, name))
         self._set_active_profile(name)
 
     def _delete_profile(self) -> None:
         self._cancel("_autosave_job")
         try:
-            self.store.delete(self.profile.name)
+            self.profile.delete()
         except OSError:
             self.page.set_status(tr("Could not delete profile"), "error")
             return

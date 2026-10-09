@@ -16,6 +16,9 @@ class BrokenStore(ProfileStore):
     def save(self, name, saved):
         raise OSError("disk full")
 
+    def rename(self, old, new):
+        raise OSError("disk full")
+
 
 @pytest.fixture
 def store(tmp_path):
@@ -90,3 +93,24 @@ def test_load_gives_ids_to_old_mirrors_and_writes_them_to_the_file(profile, stor
     assert mirrors[0].id
     assert store.load("Knight") == mirrors
     assert not profile.has_unsaved(mirrors)
+
+
+def test_rename_moves_the_file_and_changes_the_name(profile, store):
+    profile.save([CD])
+    profile.rename("Paladin")
+    assert profile.name == "Paladin"
+    assert store.names() == ["Paladin"]
+    assert not profile.has_unsaved([CD])
+
+
+def test_a_failed_rename_keeps_the_old_name(tmp_path):
+    profile = ActiveProfile(BrokenStore(tmp_path), "Knight")
+    with pytest.raises(OSError, match="disk full"):
+        profile.rename("Paladin")
+    assert profile.name == "Knight"
+
+
+def test_delete_removes_the_file(profile, store):
+    profile.save([CD])
+    profile.delete()
+    assert store.names() == []
