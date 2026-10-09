@@ -1,7 +1,7 @@
 import time
 
-from tibia_mirror import win32
-from tibia_mirror.rawinput import InputWatcher
+from tibia_mirror.winapi import win32
+from tibia_mirror.winapi.rawinput import InputWatcher
 
 SHIFT, CTRL, A = 0xA0, 0x11, 0x41
 

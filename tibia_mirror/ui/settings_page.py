@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TypedDict
 
-from tibia_mirror import win32
 from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.core.settings import Settings
 from tibia_mirror.core.timers import KeyCombo
@@ -21,6 +20,7 @@ from tibia_mirror.ui.render import ButtonStyle, button_pixels
 from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.slider import SliderDrawing
 from tibia_mirror.ui.widgets import KeyField, ScrollList, SegmentedDrawing
+from tibia_mirror.winapi import win32
 
 SWITCH_MS = 120
 

@@ -7,7 +7,6 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from tibia_mirror import dwm, win32
 from tibia_mirror.config import (
     COLOR_BORDER,
     FRAME_COLORS,
@@ -35,13 +34,14 @@ from tibia_mirror.core.regions import (
     size_key,
 )
 from tibia_mirror.core.timers import TimerSettings, badge_text, is_done
-from tibia_mirror.dwm import Thumbnail
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.animation import Tween
 from tibia_mirror.ui.badge import TimerBadge
 from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.windows import keep_open
+from tibia_mirror.winapi import dwm, win32
+from tibia_mirror.winapi.dwm import Thumbnail
 
 
 @dataclass(frozen=True)

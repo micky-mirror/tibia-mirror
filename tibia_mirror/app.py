@@ -13,7 +13,7 @@ from tkinter import filedialog
 from types import TracebackType
 from typing import Any
 
-from tibia_mirror import dwm, errors, i18n, sounds, win32
+from tibia_mirror import errors, i18n
 from tibia_mirror.config import (
     APP_ID,
     ATTACH_POLL_MS,
@@ -54,9 +54,6 @@ from tibia_mirror.core.timers import (
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
-from tibia_mirror.instance import SingleInstance
-from tibia_mirror.rawinput import InputWatcher
-from tibia_mirror.tibia import find_tibia_window
 from tibia_mirror.ui import scale, theme
 from tibia_mirror.ui.dialogs import (
     CharactersDialog,
@@ -78,6 +75,10 @@ from tibia_mirror.ui.mirrors_page import (
 from tibia_mirror.ui.panel import ControlPanel
 from tibia_mirror.ui.selector import RegionSelector
 from tibia_mirror.ui.settings_page import SettingValue
+from tibia_mirror.winapi import dwm, sounds, win32
+from tibia_mirror.winapi.instance import SingleInstance
+from tibia_mirror.winapi.rawinput import InputWatcher
+from tibia_mirror.winapi.tibia import find_tibia_window
 
 
 def _nothing() -> None:

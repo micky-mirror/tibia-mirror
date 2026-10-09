@@ -64,7 +64,7 @@ For a new size, `regions.guess_layout` makes a proportional first guess; adjusti
 
 ## Finding Tibia
 
-`tibia.py` looks for a window whose title starts with "Tibia" and whose program is `...\Tibia\bin\client.exe`.
+`winapi/tibia.py` looks for a window whose title starts with "Tibia" and whose program is `...\Tibia\bin\client.exe`.
 The title alone isn't enough: other windows (an editor, the app's own panel) can contain "Tibia" too.
 Reading the program's path uses the lowest access level Windows offers (`PROCESS_QUERY_LIMITED_INFORMATION`), which gives no access to the game's memory.
 
@@ -82,7 +82,7 @@ Mirrors should show while the player is looking at Tibia (`core/visibility.py`):
 
 ## Input and timers
 
-Clicks and key presses come from Windows **Raw Input** (`rawinput.py`), which only observes: it can't block, change or send input.
+Clicks and key presses come from Windows **Raw Input** (`winapi/rawinput.py`), which only observes: it can't block, change or send input.
 
 > [!WARNING]
 > Raw Input messages arrive inside Tk's event loop, and calling Tk from there crashes Python.
@@ -128,7 +128,7 @@ The panel is plain Tk, made to look modern without third-party packages:
 
 ## Startup, data and errors
 
-1. **One copy at a time** (`instance.py`): a named mutex marks the running copy.
+1. **One copy at a time** (`winapi/instance.py`): a named mutex marks the running copy.
    A second copy signals it to show its panel, and quits before touching any data.
 2. **Error log** (`errors.py`): the `.exe` has no console, so errors and crashes go to `error.log`, which is trimmed once it's large.
    If the app can't even open its panel, a message box names the log.
@@ -151,8 +151,8 @@ These are deliberate and must stay true:
 
 | Area | Files |
 |---|---|
-| App and startup | `app.py`, `main.py`, `instance.py`, `errors.py`, `config.py` |
-| Windows and Tibia | `win32.py` (all Win32 calls), `dwm.py`, `tibia.py`, `rawinput.py`, `sounds.py` |
+| App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
+| Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
 | Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/settings.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
 | Text | `i18n.py`, `about.py` |
 | Mirrors | `ui/mirror.py`, `ui/badge.py`, `ui/selector.py`, `ui/loupe.py` |
@@ -163,7 +163,7 @@ These are deliberate and must stay true:
 ## Conventions
 
 - State lives on `App`; UI classes get callbacks, never globals.
-- Every Win32 function is declared once, with its argument and return types, in `win32.py` or `dwm.py`.
+- Every Win32 function is declared once, with its argument and return types, in `winapi/win32.py` or `winapi/dwm.py`.
 - Pure modules stay free of Win32 and Tk, so they stay testable.
 - Every extra window says what a close request (Alt+F4) means: dialogs cancel, menus close, mirrors and badges ignore it (`ui/windows.py`); a test checks each one.
 - Everything is type-annotated and `mypy --strict` passes.

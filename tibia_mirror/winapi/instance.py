@@ -5,7 +5,7 @@ The first copy holds a named mutex. A later copy signals a named event and quits
 the first one sees it on its next poll and brings its panel to the front.
 """
 
-from tibia_mirror import win32
+from tibia_mirror.winapi import win32
 
 
 class SingleInstance:

@@ -7,10 +7,10 @@ import ctypes
 import sys
 from ctypes import wintypes
 
-from tibia_mirror import win32
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.handles import Hwnd
-from tibia_mirror.win32 import RECT
+from tibia_mirror.winapi import win32
+from tibia_mirror.winapi.win32 import RECT
 
 dwmapi = ctypes.windll.dwmapi
 

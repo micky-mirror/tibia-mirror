@@ -3,9 +3,9 @@
 import tkinter as tk
 import tkinter.font as tkfont
 
-from tibia_mirror import win32
 from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.windows import keep_open
+from tibia_mirror.winapi import win32
 
 # It sits over the game, not the panel, so its colours are the same in both themes.
 BADGE_BG = "#11111b"

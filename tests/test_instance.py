@@ -1,6 +1,6 @@
 import uuid
 
-from tibia_mirror.instance import SingleInstance
+from tibia_mirror.winapi.instance import SingleInstance
 
 
 def unique_name():

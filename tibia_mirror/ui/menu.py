@@ -8,13 +8,13 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from functools import partial
 
-from tibia_mirror import dwm, win32
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.images import photo
 from tibia_mirror.ui.render import ButtonStyle, button_pixels, outlined_pixels
 from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.text import elide
+from tibia_mirror.winapi import dwm, win32
 
 # Segoe MDL2 Assets code points (FONT_ICON).
 GLYPH_CHECK = "\ue73e"

@@ -8,7 +8,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from functools import partial
 
-from tibia_mirror import dwm, sounds, win32
 from tibia_mirror.config import MAX_NAME_LENGTH, TIMER_SOUNDS
 from tibia_mirror.core import characters
 from tibia_mirror.core.characters import Links
@@ -28,6 +27,7 @@ from tibia_mirror.ui.widgets import (
     SegmentedDrawing,
     TextField,
 )
+from tibia_mirror.winapi import dwm, sounds, win32
 
 # Sizes at 100% display scaling, scaled with px() where used.
 WIDTH = 340

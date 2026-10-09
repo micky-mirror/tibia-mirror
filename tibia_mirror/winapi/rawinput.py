@@ -14,9 +14,9 @@ from ctypes import wintypes
 from functools import partial
 from typing import Any
 
-from tibia_mirror import win32
 from tibia_mirror.config import INPUT_POLL_MS
 from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.winapi import win32
 
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
