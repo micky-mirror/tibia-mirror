@@ -452,7 +452,7 @@ class App:
             return
         path = Path(chosen)
         # Files from before layouts need the game's client area to be read.
-        client = self._current_client() if self.game.hwnd is not None else None
+        client = self.game.current_client() if self.game.hwnd is not None else None
         try:
             saved = regions.load(path, client)
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
@@ -635,7 +635,7 @@ class App:
         game = self._require_game()
         if game is None:
             return None
-        client = self._current_client()
+        client = self.game.current_client()
         if client is None:
             self.page.set_status(tr("Restore Tibia first"), "error")
             return None
@@ -806,7 +806,7 @@ class App:
         if self._require_client() is None or self._needs_load:
             return
         try:
-            saved = self.store.load(source, self._current_client())
+            saved = self.store.load(source, self.game.current_client())
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             self.page.set_status(tr("Profile file is invalid"), "error")
             return
@@ -951,7 +951,7 @@ class App:
         self.mirrors.clear()
         self._needs_load = False
         try:
-            saved = self.store.load(self.profile, self._current_client())
+            saved = self.store.load(self.profile, self.game.current_client())
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             self._saved_snapshot = regions.snapshot([])
             self._show_regions()
@@ -1011,26 +1011,11 @@ class App:
         self._show_regions()
         self._changed()
 
-    def _read_client(self) -> Rect | None:
-        """The game's client area now, or None while it has none (Tibia minimized or gone)."""
-        game = self.game.hwnd
-        if game is None or win32.is_minimized(game):
-            return None
-        client = win32.client_rect(game)
-        return client if client.w > 0 and client.h > 0 else None
-
-    def _current_client(self) -> Rect | None:
-        """The game's client area: read fresh, or as last seen while Tibia is minimized."""
-        client = self._read_client()
-        if client is not None:
-            self.game.client = client
-        return self.game.client
-
     def _track_client(self) -> None:
         """Keep mirrors on the game's client area as it moves or changes size."""
         if self.game.hwnd is None:
             return
-        old, client = self.game.client, self._read_client()
+        old, client = self.game.client, self.game.read_client()
         if client is None or client == old:
             return
         self.game.client = client
@@ -1077,7 +1062,7 @@ class App:
         center = (on_screen.x + on_screen.w // 2, on_screen.y + on_screen.h // 2)
         bounds = win32.work_area_at(center)
         x, y = place_beside(on_screen, rect.w, rect.h, bounds, scale.px(NEW_MIRROR_GAP))
-        client = self._current_client()
+        client = self.game.current_client()
         if client is None:  # Tibia was minimized or closed while the name was typed
             self.page.set_status(tr("Could not mirror"), "error")
             self._return_to_panel()
@@ -1117,7 +1102,7 @@ class App:
             return
         # Mirrors are laid out on the game's client area, which a minimized
         # Tibia does not have: wait until it is restored.
-        client = self._current_client()
+        client = self.game.current_client()
         if client is None:
             self._show_connection()
             self._show_regions()
