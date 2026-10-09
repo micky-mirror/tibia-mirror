@@ -5,6 +5,7 @@ from __future__ import annotations
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.winapi import win32
+from tibia_mirror.winapi.tibia import find_tibia_window
 
 
 class Game:
@@ -25,3 +26,29 @@ class Game:
         if client is not None:
             self.client = client
         return self.client
+
+    def find(self) -> Hwnd | None:
+        """Return Tibia's window, or None if Tibia is not running.
+
+        If the window is not known yet, look for it now and remember it.
+        """
+        if self.hwnd is None:
+            self.hwnd = find_tibia_window()
+        return self.hwnd
+
+    def check_closed(self) -> bool:
+        """Return True one time, when Tibia has just closed, and forget its window.
+
+        There are three cases:
+        - Tibia was never found (hwnd is None): return False. Nothing was open, so nothing closed.
+        - Tibia is running: return False.
+        - Tibia was running and its window is gone: forget the window and return True.
+
+        After True, hwnd is None again. So the next call returns False,
+        and find() starts to look for Tibia again.
+        """
+        if self.hwnd is None or win32.is_window(self.hwnd):
+            return False
+        self.hwnd = None
+        self.client = None
+        return True

@@ -80,7 +80,6 @@ from tibia_mirror.ui.panel.settings_page import SettingValue
 from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.instance import SingleInstance
 from tibia_mirror.winapi.rawinput import InputWatcher
-from tibia_mirror.winapi.tibia import find_tibia_window
 
 
 def _nothing() -> None:
@@ -1094,9 +1093,7 @@ class App:
         return True
 
     def _attach_poll(self) -> None:
-        if self.game.hwnd is None:
-            self.game.hwnd = find_tibia_window()
-        game = self.game.hwnd
+        game = self.game.find()
         if game is None:
             self.root.after(ATTACH_POLL_MS, self._attach_poll)
             return
@@ -1146,10 +1143,8 @@ class App:
 
     def _check_game(self) -> None:
         """Notice Tibia closing: detach the mirrors and wait for it to come back."""
-        if self.game.hwnd is None or win32.is_window(self.game.hwnd):
+        if not self.game.check_closed():
             return
-        self.game.hwnd = None
-        self.game.client = None
         if self._selector is not None and self._selector.overlay.winfo_exists():
             self._selector.cancel()  # it was selecting from the closed window
         self.mirrors.detach()

@@ -1,6 +1,7 @@
 import pytest
 
 from tibia_mirror.core.geometry import Rect
+from tibia_mirror.services import game as game_module
 from tibia_mirror.services.game import Game
 from tibia_mirror.winapi import win32
 
@@ -55,3 +56,40 @@ def test_current_client_remembers_the_area_while_minimized(game, window):
     window["minimized"] = True
     assert game.read_client() is None
     assert game.current_client() == AREA
+
+
+def test_find_looks_for_tibia_until_it_is_running(monkeypatch):
+    running = {"hwnd": None}
+    monkeypatch.setattr(game_module, "find_tibia_window", lambda: running["hwnd"])
+    game = Game()
+    assert game.find() is None
+    running["hwnd"] = HWND
+    assert game.find() == HWND
+    assert game.hwnd == HWND
+
+
+def test_find_keeps_the_window_it_already_has(game, monkeypatch):
+    def search_again():
+        raise AssertionError("searched although the window is known")
+
+    monkeypatch.setattr(game_module, "find_tibia_window", search_again)
+    assert game.find() == HWND
+
+
+def test_check_closed_is_false_before_tibia_is_found():
+    assert not Game().check_closed()
+
+
+def test_check_closed_is_false_while_tibia_runs(game, monkeypatch):
+    monkeypatch.setattr(win32, "is_window", lambda hwnd: True)
+    assert not game.check_closed()
+    assert game.hwnd == HWND
+
+
+def test_check_closed_forgets_a_window_that_is_gone(game, monkeypatch):
+    game.current_client()
+    monkeypatch.setattr(win32, "is_window", lambda hwnd: False)
+    assert game.check_closed()
+    assert game.hwnd is None
+    assert game.client is None
+    assert not game.check_closed()
