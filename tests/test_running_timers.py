@@ -2,28 +2,35 @@ from dataclasses import replace
 
 import pytest
 
+from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.timers import TimerSettings
 from tibia_mirror.services.running_timers import RunningTimers
 from tibia_mirror.services.settings_store import SettingsStore
 
 PAUSING = TimerSettings(enabled=True, alert=60, direction="down")
 PLAIN = replace(PAUSING, offline_pause=False)
+REGION = Rect(0, 0, 10, 10)
 
 
 class FakeMirror:
-    """Stands in for a mirror window: it has an id and a timer, and records its start."""
+    """Stands in for a mirror window: it has an id, a timer and a region, and records calls."""
 
-    def __init__(self, mirror_id, timer):
+    def __init__(self, mirror_id, timer, rect=REGION):
         self.id = mirror_id
         self.timer = timer
+        self.rect = rect
         self.started = None
         self.restored = None
+        self.alert_now = False  # what the next tick_timer() returns
 
     def start_timer(self, at):
         self.started = at
 
     def restore_timer(self, now, started=None, paused=None):
         self.restored = (now, started, paused)
+
+    def tick_timer(self, now):
+        return self.alert_now
 
 
 @pytest.fixture
@@ -154,3 +161,45 @@ def test_after_a_logout_every_mirror_shows_its_paused_progress(timers, mirrors):
     timers.started_at = {"m1": 4.0}
     timers.set_online(None, 10.0)
     assert mirror.restored == (10.0, None, 6.0)
+
+
+def test_a_click_starts_the_timer_whose_region_was_clicked(timers, mirrors):
+    clicked = FakeMirror("m1", PLAIN, Rect(0, 0, 10, 10))
+    other = FakeMirror("m2", PLAIN, Rect(100, 100, 10, 10))
+    mirrors.extend([clicked, other])
+    timers.click("left", 5, 5, 3.0)
+    assert clicked.started == 3.0
+    assert other.started is None
+
+
+def test_a_click_with_the_wrong_button_starts_nothing(timers, mirrors):
+    mirror = FakeMirror("m1", replace(PLAIN, button="right"))
+    mirrors.append(mirror)
+    timers.click("left", 5, 5, 3.0)
+    assert mirror.started is None
+    timers.click("right", 5, 5, 4.0)
+    assert mirror.started == 4.0
+
+
+def test_a_timer_that_is_off_is_not_started(timers, mirrors):
+    mirror = FakeMirror("m1", replace(PLAIN, enabled=False, key=70))
+    mirrors.append(mirror)
+    timers.click("left", 5, 5, 3.0)
+    timers.key(70, (), 3.0)
+    assert mirror.started is None
+
+
+def test_a_key_starts_the_timers_that_use_it(timers, mirrors):
+    uses_key = FakeMirror("m1", replace(PLAIN, key=70))
+    other_key = FakeMirror("m2", replace(PLAIN, key=71))
+    mirrors.extend([uses_key, other_key])
+    timers.key(70, (), 3.0)
+    assert uses_key.started == 3.0
+    assert other_key.started is None
+
+
+def test_tick_returns_the_sounds_of_the_timers_that_just_finished(timers, mirrors):
+    finished, running = FakeMirror("m1", PLAIN), FakeMirror("m2", PLAIN)
+    finished.alert_now = True
+    mirrors.extend([finished, running])
+    assert timers.tick(1.0) == [PLAIN.sound]

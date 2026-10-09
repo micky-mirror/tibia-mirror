@@ -39,10 +39,8 @@ from tibia_mirror.core.profiles import ProfileStore, copy_name, name_error
 from tibia_mirror.core.timers import (
     KeyCombo,
     TimerSettings,
-    button_matches,
     combo_matches,
     key_clashes,
-    key_matches,
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
@@ -1068,14 +1066,7 @@ class App:
             return
         if win32.toplevel_at(x, y) != self.game.hwnd:
             return  # another window at that spot got the click
-        client_x, client_y = x - self.game.client.x, y - self.game.client.y
-        for mirror in self.mirrors:
-            if (
-                mirror.timer.enabled
-                and button_matches(mirror.timer, button)
-                and mirror.rect.contains(client_x, client_y)
-            ):
-                self.timers.start(mirror, at)
+        self.timers.click(button, x - self.game.client.x, y - self.game.client.y, at)
 
     def _on_key(self, vk: int, modifiers: tuple[str, ...]) -> None:
         """A key went down: with Tibia in front, the hide-all key or the timers bound to it."""
@@ -1086,18 +1077,13 @@ class App:
         if combo_matches(self.settings.current.hide_all_combo, vk, modifiers):
             self._toggle_all_hidden()
             return
-        now = time.monotonic()
-        for mirror in self.mirrors:
-            if mirror.timer.enabled and key_matches(mirror.timer, vk, modifiers):
-                self.timers.start(mirror, now)
+        self.timers.key(vk, modifiers, time.monotonic())
 
     # Each poll schedules its next run first, so an error in one run cannot stop it for good.
     def _timer_poll(self) -> None:
         self.root.after(TIMER_TICK_MS, self._timer_poll)
-        now = time.monotonic()
-        for mirror in self.mirrors:
-            if mirror.tick_timer(now):
-                sounds.play(mirror.timer.sound)
+        for sound in self.timers.tick(time.monotonic()):
+            sounds.play(sound)
 
     def _visibility_poll(self) -> None:
         self.root.after(VISIBILITY_POLL_MS, self._visibility_poll)

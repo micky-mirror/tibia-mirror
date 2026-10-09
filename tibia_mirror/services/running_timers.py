@@ -9,7 +9,14 @@ so RunningTimers reads and changes it there.
 
 from __future__ import annotations
 
-from tibia_mirror.core.timers import Pauses, pauses_of, with_pauses, without_mirrors
+from tibia_mirror.core.timers import (
+    Pauses,
+    button_matches,
+    key_matches,
+    pauses_of,
+    with_pauses,
+    without_mirrors,
+)
 from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.services.settings_store import SettingsStore
 from tibia_mirror.ui.overlay.mirror import MirrorWindow
@@ -104,3 +111,27 @@ class RunningTimers:
             mirror.restore_timer(now, paused=pauses.get(mirror.id))
         else:
             mirror.restore_timer(now)
+
+    def click(self, button: str, x: int, y: int, at: float) -> None:
+        """A mouse button was pressed on the game.
+
+        `x` and `y` are the point inside the client area of the game.
+        Start every timer that this button starts, if its region has this point.
+        """
+        for mirror in self._mirrors:
+            timer = mirror.timer
+            if timer.enabled and button_matches(timer, button) and mirror.rect.contains(x, y):
+                self.start(mirror, at)
+
+    def key(self, vk: int, modifiers: tuple[str, ...], at: float) -> None:
+        """A key was pressed while the game was in front. Start every timer that uses this key."""
+        for mirror in self._mirrors:
+            if mirror.timer.enabled and key_matches(mirror.timer, vk, modifiers):
+                self.start(mirror, at)
+
+    def tick(self, now: float) -> list[str]:
+        """Update every timer.
+
+        Return the sounds to play: one for each timer that reached its alert time just now.
+        """
+        return [mirror.timer.sound for mirror in self._mirrors if mirror.tick_timer(now)]
