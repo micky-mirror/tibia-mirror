@@ -271,7 +271,7 @@ class App:
         except OSError:
             self.page.set_status(tr("Save failed"), "error")
             return False
-        self.profile.saved_snapshot = regions.snapshot(saved)
+        self.profile.mark_saved(saved)
         self._changed()
         if not quiet:
             self.page.set_status(
@@ -688,10 +688,7 @@ class App:
             self.page.set_status(tr("Could not save settings"), "error")
 
     def _unsaved(self) -> bool:
-        return (
-            regions.snapshot(mirror.to_saved() for mirror in self.mirrors)
-            != self.profile.saved_snapshot
-        )
+        return self.profile.has_unsaved(mirror.to_saved() for mirror in self.mirrors)
 
     def _changed(self) -> None:
         """Call after anything that may change what Save would write."""
@@ -740,7 +737,7 @@ class App:
         # Loaded by _attach_poll once Tibia is running and not minimized.
         self.mirrors.clear()
         self.profile.needs_load = True
-        self.profile.saved_snapshot = regions.snapshot([])
+        self.profile.mark_saved([])
         self._show_regions()
         self._changed()
 
@@ -767,7 +764,7 @@ class App:
             return
         self._cancel("_autosave_job")
         if loaded:
-            self.profile.saved_snapshot = regions.snapshot(saved)
+            self.profile.mark_saved(saved)
         self._set_active_profile(name)
         self._changed()
 
@@ -955,7 +952,7 @@ class App:
         try:
             saved = self.store.load(self.profile.name, self.game.current_client())
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
-            self.profile.saved_snapshot = regions.snapshot([])
+            self.profile.mark_saved([])
             self._show_regions()
             self.page.set_status(tr("Profile file is invalid"), "error")
             self._changed()
@@ -966,7 +963,7 @@ class App:
             # finding their mirrors. If that fails, the next Save writes them.
             with contextlib.suppress(OSError):
                 self.store.save(self.profile.name, saved)
-        self.profile.saved_snapshot = regions.snapshot(saved)
+        self.profile.mark_saved(saved)
         failed = sum(not self._create_mirror(e) for e in saved)
         self._show_regions()
         if failed:
