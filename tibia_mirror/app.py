@@ -120,7 +120,6 @@ class App:
         )
         self.game_hwnd: Hwnd | None = None
         self._client: Rect | None = None  # the game's client area on screen
-        self.mirrors = Mirrors()
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title
@@ -161,6 +160,9 @@ class App:
         self.root.configure(bg=theme.BG)
         self.root.attributes("-topmost", self.settings.panel_on_top)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
+        self.mirrors = Mirrors(
+            self.root, on_remove=self.remove_mirror, on_changed=lambda _mirror: self._changed()
+        )
         self._panel_actions = MirrorsActions(
             add=self.add_region,
             save=self.save,
@@ -1105,19 +1107,9 @@ class App:
         game, client = self.game_hwnd, self._client
         if game is None or client is None:
             return False
-        try:
-            mirror = MirrorWindow(
-                self.root,
-                game,
-                saved,
-                client,
-                self._look(),
-                on_remove=self.remove_mirror,
-                on_changed=lambda _mirror: self._changed(),
-            )
-        except OSError:
+        mirror = self.mirrors.add(saved, game, client, self._look())
+        if mirror is None:
             return False
-        self.mirrors.append(mirror)
         self._sync_timer(mirror, time.monotonic())
         return True
 

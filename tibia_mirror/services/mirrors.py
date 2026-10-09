@@ -2,13 +2,26 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+import tkinter as tk
+from collections.abc import Callable, Iterator
 
-from tibia_mirror.ui.overlay.mirror import MirrorWindow
+from tibia_mirror.core.geometry import Rect
+from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.core.regions import SavedRegion
+from tibia_mirror.ui.overlay.mirror import MirrorLook, MirrorWindow
 
 
 class Mirrors:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        root: tk.Misc,
+        on_remove: Callable[[MirrorWindow], None],
+        on_changed: Callable[[MirrorWindow], None],
+    ) -> None:
+        self._root = root
+        # Handed to every window, which calls them on a right-click remove or after a drag.
+        self._on_remove = on_remove
+        self._on_changed = on_changed
         self._items: list[MirrorWindow] = []
 
     def __iter__(self) -> Iterator[MirrorWindow]:
@@ -20,8 +33,24 @@ class Mirrors:
     def __contains__(self, mirror: object) -> bool:
         return mirror in self._items
 
-    def append(self, mirror: MirrorWindow) -> None:
+    def add(
+        self, saved: SavedRegion, game: Hwnd, client: Rect, look: MirrorLook
+    ) -> MirrorWindow | None:
+        """Show a mirror of `saved` on `game`; None if DWM refuses."""
+        try:
+            mirror = MirrorWindow(
+                self._root,
+                game,
+                saved,
+                client,
+                look,
+                on_remove=self._on_remove,
+                on_changed=self._on_changed,
+            )
+        except OSError:
+            return None
         self._items.append(mirror)
+        return mirror
 
     def remove(self, mirror: MirrorWindow) -> None:
         """Take `mirror` out and close its window with a fade."""
