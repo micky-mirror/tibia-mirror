@@ -24,7 +24,13 @@ class Mirrors:
         self._items.append(mirror)
 
     def remove(self, mirror: MirrorWindow) -> None:
-        self._items.remove(mirror)
+        """Take `mirror` out and close its window with a fade."""
+        if mirror in self._items:
+            self._items.remove(mirror)
+        mirror.fade_out_and_destroy()
 
     def clear(self) -> None:
+        """Close every window at once, without the fade."""
+        for mirror in self._items:
+            mirror.destroy()
         self._items.clear()

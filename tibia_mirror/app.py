@@ -285,10 +285,8 @@ class App:
 
     # ---- region card actions ------------------------------------------------
     def remove_mirror(self, mirror: MirrorWindow) -> None:
-        if mirror in self.mirrors:
-            self.mirrors.remove(mirror)
+        self.mirrors.remove(mirror)
         self._forget_timer(mirror)
-        mirror.fade_out_and_destroy()
         self._show_regions()
         self._changed()
 
@@ -740,7 +738,7 @@ class App:
             self._load_mirrors()
             return
         # Loaded by _attach_poll once Tibia is running and not minimized.
-        self._clear_mirrors()
+        self.mirrors.clear()
         self._needs_load = True
         self._saved_snapshot = regions.snapshot([])
         self._show_regions()
@@ -814,7 +812,7 @@ class App:
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             self.page.set_status(tr("Profile file is invalid"), "error")
             return
-        self._clear_mirrors()
+        self.mirrors.clear()
         failed = sum(not self._create_mirror(e) for e in saved)
         self._show_regions()
         if failed:
@@ -952,7 +950,7 @@ class App:
     def _load_mirrors(self) -> None:
         """Replace the mirrors with the active profile as saved on disk."""
         self._cancel("_autosave_job")
-        self._clear_mirrors()
+        self.mirrors.clear()
         self._needs_load = False
         try:
             saved = self.store.load(self.profile, self._current_client())
@@ -1122,11 +1120,6 @@ class App:
         self.mirrors.append(mirror)
         self._sync_timer(mirror, time.monotonic())
         return True
-
-    def _clear_mirrors(self) -> None:
-        for mirror in self.mirrors:
-            mirror.destroy()
-        self.mirrors.clear()
 
     def _attach_poll(self) -> None:
         if self.game_hwnd is None:
