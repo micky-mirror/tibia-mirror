@@ -161,7 +161,7 @@ These are deliberate and must stay true:
 | Area | Files |
 |---|---|
 | App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
-| Services | `services/active_profile.py`, `services/game.py`, `services/mirrors.py`, `services/running_timers.py` |
+| Services | `services/active_profile.py`, `services/game.py`, `services/mirrors.py`, `services/running_timers.py`, `services/settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
 | Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/settings.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
 | Text | `i18n.py`, `about.py` |

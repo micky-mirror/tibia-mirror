@@ -33,7 +33,7 @@ from tibia_mirror.config import (
     VISIBILITY_POLL_MS,
     ZOOM_RANGE,
 )
-from tibia_mirror.core import characters, regions, settings
+from tibia_mirror.core import characters, regions
 from tibia_mirror.core.characters import Links
 from tibia_mirror.core.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
 from tibia_mirror.core.handles import Hwnd
@@ -57,6 +57,7 @@ from tibia_mirror.services.active_profile import LOAD_ERRORS, ActiveProfile
 from tibia_mirror.services.game import Game
 from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.services.running_timers import RunningTimers
+from tibia_mirror.services.settings_store import SettingsStore
 from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.ui.controls.dialogs import (
     CharactersDialog,
@@ -111,14 +112,17 @@ class App:
         self._instance = instance
         self.store = ProfileStore(profiles_dir)
         self.store.ensure_one()
-        self.settings_file = settings_file
-        self.settings = settings.load(settings_file)
+        self.settings = SettingsStore(settings_file)
         names = self.store.names()
         # Windows file names ignore case, so match the remembered profile the same way.
         self.profile = ActiveProfile(
             self.store,
             next(
-                (name for name in names if name.casefold() == self.settings.profile.casefold()),
+                (
+                    name
+                    for name in names
+                    if name.casefold() == self.settings.current.profile.casefold()
+                ),
                 names[0],
             ),
         )
@@ -126,7 +130,7 @@ class App:
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title
-        self.timers = RunningTimers(self.settings.last_character or None)
+        self.timers = RunningTimers(self.settings.current.last_character or None)
         self._selecting = False
         # Hidden with the hide-all key; each mirror keeps its own hidden flag too.
         # Not remembered across starts.
@@ -141,8 +145,8 @@ class App:
         self.root = _Root()
         # Pixel sizes follow the display scaling from here on, as the fonts do.
         scale.init(self.root)
-        theme.use(self.settings.theme)
-        i18n.use(self.settings.language)
+        theme.use(self.settings.current.theme)
+        i18n.use(self.settings.current.language)
         self.root.title("Tibia Mirror")
         # -default: every window of the app gets it, the dialogs too. Called
         # through tk.call because tkinter's stubs leave iconbitmap() untyped.
@@ -150,7 +154,7 @@ class App:
         self.root.minsize(scale.px(PANEL_MIN_SIZE[0]), scale.px(PANEL_MIN_SIZE[1]))
         self._panel_area = self._place_panel()
         self.root.configure(bg=theme.BG)
-        self.root.attributes("-topmost", self.settings.panel_on_top)
+        self.root.attributes("-topmost", self.settings.current.panel_on_top)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.mirrors = Mirrors(
             self.root, on_remove=self.remove_mirror, on_changed=lambda _mirror: self._changed()
@@ -185,7 +189,7 @@ class App:
         )
         self._build_panel()
         self.panel_hwnd = win32.toplevel_hwnd(self.root)
-        dwm.set_dark_title_bar(self.panel_hwnd, self.settings.theme == "dark")
+        dwm.set_dark_title_bar(self.panel_hwnd, self.settings.current.theme == "dark")
         self._keep_panel_on_screen()
         # Every widget carries the root in its bindtags: _panel_moved filters by widget.
         self.root.bind("<Configure>", self._panel_moved, add="+")
@@ -198,7 +202,7 @@ class App:
         """
         min_size = (scale.px(PANEL_MIN_SIZE[0]), scale.px(PANEL_MIN_SIZE[1]))
         frame = scale.px(PANEL_FRAME)
-        saved = self.settings.panel_rect
+        saved = self.settings.current.panel_rect
         if saved is None:
             area = win32.work_area_at((0, 0))
             size = (scale.px(PANEL_SIZE[0]), scale.px(PANEL_SIZE[1]))
@@ -228,7 +232,7 @@ class App:
         if e.widget is not self.root or self.root.state() != "normal":
             return
         rect = (self.root.winfo_x(), self.root.winfo_y(), e.width, e.height)
-        if rect != self.settings.panel_rect:
+        if rect != self.settings.current.panel_rect:
             self._update_settings(panel_rect=rect)
 
     def run(self) -> None:
@@ -314,7 +318,7 @@ class App:
                 center,
                 on_ok=lambda settings: self._set_mirror_timer(mirror, settings),
                 on_cancel=_nothing,
-                reserved=self.settings.hide_all_combo,
+                reserved=self.settings.current.hide_all_combo,
             )
 
     def _set_mirror_timer(self, mirror: MirrorWindow, settings: TimerSettings) -> None:
@@ -489,7 +493,7 @@ class App:
         CharactersDialog(
             self.root,
             self.profile.name,
-            self.settings.characters,
+            self.settings.current.characters,
             self._panel_center(),
             on_change=self._set_links,
         )
@@ -526,16 +530,16 @@ class App:
         self._update_settings(**{key: value})
         # Read back from the settings, where each value has its own type.
         if key == "autosave":
-            self.page.set_autosave(self.settings.autosave)
+            self.page.set_autosave(self.settings.current.autosave)
             self._changed()
         elif key in ("mirror_frame", "fades", "rounded_corners", "frame_tint"):
             self.mirrors.set_look(self._look())
         elif key == "panel_on_top":
-            self.root.attributes("-topmost", self.settings.panel_on_top)
+            self.root.attributes("-topmost", self.settings.current.panel_on_top)
         elif key in ("theme", "language"):
             # After the click that chose it has finished with the old widgets.
             self.root.after_idle(self._restyle)
-        elif key == "profile_per_character" and self.settings.profile_per_character:
+        elif key == "profile_per_character" and self.settings.current.profile_per_character:
             if self._character is not None:
                 self._open_character_profile(self._character)
         return None
@@ -587,7 +591,7 @@ class App:
         self._show_all_hidden()
 
     def _show_all_hidden(self) -> None:
-        combo = self.settings.hide_all_combo
+        combo = self.settings.current.hide_all_combo
         self.panel.set_all_hidden(
             key_combo_name(combo) if self._all_hidden and combo is not None else None
         )
@@ -596,11 +600,11 @@ class App:
     def _build_panel(self, page: str = "mirrors") -> None:
         """Build the panel in the current theme and fill it from the App's state."""
         self.panel = ControlPanel(
-            self.root, self.settings, self._panel_actions, self.set_setting, page=page
+            self.root, self.settings.current, self._panel_actions, self.set_setting, page=page
         )
         self.page = self.panel.mirrors
         self.page.set_profiles(self.store.names(), self.profile.name)
-        self.page.set_autosave(self.settings.autosave)
+        self.page.set_autosave(self.settings.current.autosave)
         self._show_regions()
         self._show_connection()
         self._show_all_hidden()
@@ -608,10 +612,10 @@ class App:
 
     def _restyle(self) -> None:
         """Apply the theme and language settings: rebuild the panel on the same page."""
-        theme.use(self.settings.theme)
-        i18n.use(self.settings.language)
+        theme.use(self.settings.current.theme)
+        i18n.use(self.settings.current.language)
         self.root.configure(bg=theme.BG)
-        dwm.set_dark_title_bar(self.panel_hwnd, self.settings.theme == "dark")
+        dwm.set_dark_title_bar(self.panel_hwnd, self.settings.current.theme == "dark")
         page = self.panel.page
         self.panel.destroy()
         self._build_panel(page)
@@ -643,10 +647,10 @@ class App:
 
     def _look(self) -> MirrorLook:
         return MirrorLook(
-            frame=self.settings.mirror_frame,
-            fade_ms=FADE_MS if self.settings.fades else 0,
-            rounded=self.settings.rounded_corners,
-            tint=self.settings.frame_tint,
+            frame=self.settings.current.mirror_frame,
+            fade_ms=FADE_MS if self.settings.current.fades else 0,
+            rounded=self.settings.current.rounded_corners,
+            tint=self.settings.current.frame_tint,
         )
 
     def _schedule(self, attr: str, delay_ms: int, callback: Callable[[], object]) -> None:
@@ -670,12 +674,12 @@ class App:
     ) -> None:
         # replace() checks the names; each value's type is the caller's to get right.
         fields: dict[str, Any] = changes
-        self.settings = replace(self.settings, **fields)
+        self.settings.current = replace(self.settings.current, **fields)
         self._schedule("_settings_job", SETTINGS_SAVE_DELAY_MS, self._save_settings)
 
     def _save_settings(self) -> None:
         try:
-            settings.save(self.settings_file, self.settings)
+            self.settings.save()
         except OSError:
             self.page.set_status(tr("Could not save settings"), "error")
 
@@ -686,7 +690,7 @@ class App:
         """Call after anything that may change what Save would write."""
         unsaved = self._unsaved()
         self.page.set_unsaved(unsaved)
-        if unsaved and self.settings.autosave:
+        if unsaved and self.settings.current.autosave:
             self._schedule("_autosave_job", AUTOSAVE_DELAY_MS, lambda: self.save(quiet=True))
 
     def _resolve_unsaved(self, question: str, then: Callable[[], None]) -> None:
@@ -694,7 +698,7 @@ class App:
 
         With auto-save on they are saved silently; otherwise the user chooses.
         """
-        if not self._unsaved() or (self.settings.autosave and self.save(quiet=True)):
+        if not self._unsaved() or (self.settings.current.autosave and self.save(quiet=True)):
             then()
             return
 
@@ -768,7 +772,7 @@ class App:
         except OSError:
             self.page.set_status(tr("Could not rename profile"), "error")
             return
-        self._set_links(characters.rename_profile(self.settings.characters, old_name, name))
+        self._set_links(characters.rename_profile(self.settings.current.characters, old_name, name))
         self._show_active_profile()
 
     def _delete_profile(self) -> None:
@@ -778,7 +782,9 @@ class App:
         except OSError:
             self.page.set_status(tr("Could not delete profile"), "error")
             return
-        self._set_links(characters.drop_profile(self.settings.characters, self.profile.name))
+        self._set_links(
+            characters.drop_profile(self.settings.current.characters, self.profile.name)
+        )
         self._open_profile(self.store.names()[0])
 
     def _set_links(self, links: Links) -> None:
@@ -815,7 +821,7 @@ class App:
             self._timers_online(character)
         if character == self._character:
             return
-        wanted = character is not None and self.settings.profile_per_character
+        wanted = character is not None and self.settings.current.profile_per_character
         # Switching would pull the mirrors from under a selection or an open
         # dialog, so it waits for them; the login is only noted once handled.
         if wanted and (self._selecting or self._dialog_open()):
@@ -828,7 +834,7 @@ class App:
     def _timers_online(self, character: str | None) -> None:
         """A character logged in or out (None): pause or continue its timers."""
         now = time.monotonic()
-        pauses = self.settings.timer_pauses
+        pauses = self.settings.current.timer_pauses
         if self.timers.online is not None:
             elapsed = {
                 mirror_id: now - start for mirror_id, start in self.timers.started_at.items()
@@ -844,9 +850,9 @@ class App:
                 for mirror_id, seconds in pauses_of(pauses, character).items()
             }
             pauses = with_pauses(pauses, character, {})
-        if pauses != self.settings.timer_pauses:
+        if pauses != self.settings.current.timer_pauses:
             self._update_settings(timer_pauses=pauses)
-        if (self.timers.last_online or "") != self.settings.last_character:
+        if (self.timers.last_online or "") != self.settings.current.last_character:
             self._update_settings(last_character=self.timers.last_online or "")
         for mirror in self.mirrors:
             self._sync_timer(mirror, now)
@@ -858,7 +864,9 @@ class App:
         if self.timers.online is not None:
             mirror.restore_timer(now, started=self.timers.started_at.get(mirror.id))
         elif self.timers.last_online is not None:
-            paused = pauses_of(self.settings.timer_pauses, self.timers.last_online).get(mirror.id)
+            paused = pauses_of(self.settings.current.timer_pauses, self.timers.last_online).get(
+                mirror.id
+            )
             mirror.restore_timer(now, paused=paused)
         else:
             mirror.restore_timer(now)
@@ -873,8 +881,8 @@ class App:
     def _forget_timer(self, mirror: MirrorWindow) -> None:
         """Drop a timer's progress, for every character: it was removed or set up anew."""
         self.timers.started_at.pop(mirror.id, None)
-        pauses = without_mirrors(self.settings.timer_pauses, {mirror.id})
-        if pauses != self.settings.timer_pauses:
+        pauses = without_mirrors(self.settings.current.timer_pauses, {mirror.id})
+        if pauses != self.settings.current.timer_pauses:
             self._update_settings(timer_pauses=pauses)
 
     def _dialog_open(self) -> bool:
@@ -891,7 +899,7 @@ class App:
         Unsaved changes are resolved first, as when switching by hand.
         """
         names = self.store.names()
-        links = self.settings.characters
+        links = self.settings.current.characters
         linked = characters.profile_of(links, character)
         target = next(
             (name for name in names if linked and name.casefold() == linked.casefold()), None
@@ -910,7 +918,7 @@ class App:
                 except OSError:
                     self.page.set_status(tr("Could not create profile"), "error")
                     return
-            self._set_links(characters.link(self.settings.characters, character, name))
+            self._set_links(characters.link(self.settings.current.characters, character, name))
             self._open_for(character, name, created=not exists)
 
         if exists and name == self.profile.name:
@@ -1044,7 +1052,7 @@ class App:
             regions.SavedRegion(
                 name,
                 {regions.size_key(client.w, client.h): layout},
-                self.settings.new_opacity,
+                self.settings.current.new_opacity,
             )
         )
         self._show_regions()
@@ -1140,7 +1148,7 @@ class App:
             return
         # A clash can still come in with a profile (imported, or set up before
         # the key was chosen): hiding wins, and the Timer dialog points it out.
-        if combo_matches(self.settings.hide_all_combo, vk, modifiers):
+        if combo_matches(self.settings.current.hide_all_combo, vk, modifiers):
             self._toggle_all_hidden()
             return
         now = time.monotonic()
