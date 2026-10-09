@@ -45,7 +45,6 @@ from tibia_mirror.core.timers import (
     key_matches,
     pauses_of,
     with_pauses,
-    without_mirrors,
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
@@ -126,7 +125,7 @@ class App:
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title
-        self.timers = RunningTimers(self.settings.current.last_character or None)
+        self.timers = RunningTimers(self.settings)
         self._selecting = False
         # Hidden with the hide-all key; each mirror keeps its own hidden flag too.
         # Not remembered across starts.
@@ -278,7 +277,7 @@ class App:
     # ---- region card actions ------------------------------------------------
     def remove_mirror(self, mirror: MirrorWindow) -> None:
         self.mirrors.remove(mirror)
-        self._forget_timer(mirror)
+        self.timers.forget(mirror)
         self._show_regions()
         self._changed()
 
@@ -320,7 +319,7 @@ class App:
     def _set_mirror_timer(self, mirror: MirrorWindow, settings: TimerSettings) -> None:
         if mirror in self.mirrors and settings != mirror.timer:
             mirror.set_timer(settings)  # starts over, so any progress is gone
-            self._forget_timer(mirror)
+            self.timers.forget(mirror)
             self._sync_timer(mirror, time.monotonic())
             self._show_regions()  # the card's clock icon shows whether it is on
             self._changed()
@@ -863,20 +862,6 @@ class App:
         else:
             mirror.restore_timer(now)
 
-    def _start_timer(self, mirror: MirrorWindow, at: float) -> None:
-        if mirror.timer.pauses_offline:
-            if self.timers.online is None:
-                return  # it only counts while a character is logged in
-            self.timers.started_at[mirror.id] = at
-        mirror.start_timer(at)
-
-    def _forget_timer(self, mirror: MirrorWindow) -> None:
-        """Drop a timer's progress, for every character: it was removed or set up anew."""
-        self.timers.started_at.pop(mirror.id, None)
-        pauses = without_mirrors(self.settings.current.timer_pauses, {mirror.id})
-        if pauses != self.settings.current.timer_pauses:
-            self.settings.update(timer_pauses=pauses)
-
     def _dialog_open(self) -> bool:
         """Whether a modal dialog holds the grab.
 
@@ -1132,7 +1117,7 @@ class App:
                 and button_matches(mirror.timer, button)
                 and mirror.rect.contains(client_x, client_y)
             ):
-                self._start_timer(mirror, at)
+                self.timers.start(mirror, at)
 
     def _on_key(self, vk: int, modifiers: tuple[str, ...]) -> None:
         """A key went down: with Tibia in front, the hide-all key or the timers bound to it."""
@@ -1146,7 +1131,7 @@ class App:
         now = time.monotonic()
         for mirror in self.mirrors:
             if mirror.timer.enabled and key_matches(mirror.timer, vk, modifiers):
-                self._start_timer(mirror, now)
+                self.timers.start(mirror, now)
 
     # Each poll schedules its next run first, so an error in one run cannot stop it for good.
     def _timer_poll(self) -> None:
