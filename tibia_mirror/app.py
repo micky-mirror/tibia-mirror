@@ -54,6 +54,7 @@ from tibia_mirror.core.timers import (
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
+from tibia_mirror.services.game import Game
 from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.ui.controls.dialogs import (
@@ -118,8 +119,7 @@ class App:
             (name for name in names if name.casefold() == self.settings.profile.casefold()),
             names[0],
         )
-        self.game_hwnd: Hwnd | None = None
-        self._client: Rect | None = None  # the game's client area on screen
+        self.game = Game()
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title
@@ -452,7 +452,7 @@ class App:
             return
         path = Path(chosen)
         # Files from before layouts need the game's client area to be read.
-        client = self._current_client() if self.game_hwnd is not None else None
+        client = self._current_client() if self.game.hwnd is not None else None
         try:
             saved = regions.load(path, client)
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
@@ -574,7 +574,7 @@ class App:
         def timers(profile: str) -> list[tuple[str, TimerSettings]]:
             if profile == self.profile and not self._needs_load:
                 return [(mirror.name, mirror.timer) for mirror in self.mirrors]
-            return [(e.name, e.timer) for e in self.store.load(profile, self._client)]
+            return [(e.name, e.timer) for e in self.store.load(profile, self.game.client)]
 
         for profile in [
             self.profile,
@@ -626,9 +626,9 @@ class App:
 
     def _require_game(self) -> Hwnd | None:
         """Tibia's window, or None after telling the user to start it."""
-        if self.game_hwnd is None:
+        if self.game.hwnd is None:
             self.page.set_status(tr("Start Tibia first"), "error")
-        return self.game_hwnd
+        return self.game.hwnd
 
     def _require_client(self) -> tuple[Hwnd, Rect] | None:
         """Tibia's window and client area, or None after telling the user what's missing."""
@@ -732,7 +732,7 @@ class App:
         """Make `name` the active profile and show its mirrors (once Tibia is connected)."""
         self._cancel("_autosave_job")
         self._set_active_profile(name)
-        if self.game_hwnd is not None and self._client is not None:
+        if self.game.hwnd is not None and self.game.client is not None:
             self._load_mirrors()
             return
         # Loaded by _attach_poll once Tibia is running and not minimized.
@@ -827,7 +827,7 @@ class App:
 
     def _check_character(self) -> None:
         """Notice a character logging in: open its profile, if that setting is on."""
-        game = self.game_hwnd
+        game = self.game.hwnd
         title = win32.window_title(game) if game is not None else ""
         character = characters.character_in_title(title)
         if character != self._online:
@@ -1013,7 +1013,7 @@ class App:
 
     def _read_client(self) -> Rect | None:
         """The game's client area now, or None while it has none (Tibia minimized or gone)."""
-        game = self.game_hwnd
+        game = self.game.hwnd
         if game is None or win32.is_minimized(game):
             return None
         client = win32.client_rect(game)
@@ -1023,17 +1023,17 @@ class App:
         """The game's client area: read fresh, or as last seen while Tibia is minimized."""
         client = self._read_client()
         if client is not None:
-            self._client = client
-        return self._client
+            self.game.client = client
+        return self.game.client
 
     def _track_client(self) -> None:
         """Keep mirrors on the game's client area as it moves or changes size."""
-        if self.game_hwnd is None:
+        if self.game.hwnd is None:
             return
-        old, client = self._client, self._read_client()
+        old, client = self.game.client, self._read_client()
         if client is None or client == old:
             return
-        self._client = client
+        self.game.client = client
         self.mirrors.set_client(client)
         if old is not None and (client.w, client.h) != (old.w, old.h):
             self._show_regions()  # the cards show region sizes
@@ -1052,9 +1052,9 @@ class App:
 
     def _on_region_selected(self, rect: Rect) -> None:
         self._end_selection()
-        if self.game_hwnd is None:
+        if self.game.hwnd is None:
             return  # Tibia closed; closing it already cancels a selection
-        client_x, client_y = win32.client_origin(self.game_hwnd)
+        client_x, client_y = win32.client_origin(self.game.hwnd)
         on_screen = Rect(client_x + rect.x, client_y + rect.y, rect.w, rect.h)
         center = (on_screen.x + on_screen.w // 2, on_screen.y + on_screen.h // 2)
         NameDialog(
@@ -1099,7 +1099,7 @@ class App:
 
     def _create_mirror(self, saved: regions.SavedRegion) -> bool:
         """Show a mirror of `saved`; False if there is no game to mirror or DWM refuses."""
-        game, client = self.game_hwnd, self._client
+        game, client = self.game.hwnd, self.game.client
         if game is None or client is None:
             return False
         mirror = self.mirrors.add(saved, game, client, self._look())
@@ -1109,9 +1109,9 @@ class App:
         return True
 
     def _attach_poll(self) -> None:
-        if self.game_hwnd is None:
-            self.game_hwnd = find_tibia_window()
-        game = self.game_hwnd
+        if self.game.hwnd is None:
+            self.game.hwnd = find_tibia_window()
+        game = self.game.hwnd
         if game is None:
             self.root.after(ATTACH_POLL_MS, self._attach_poll)
             return
@@ -1133,16 +1133,16 @@ class App:
         """Refresh the region cards; before the profile is loaded, say what it waits for."""
         pending: str | None = None
         if self._needs_load:
-            if self.game_hwnd is None:
+            if self.game.hwnd is None:
                 pending = tr("This profile's mirrors appear once Tibia is running.")
             else:
                 pending = tr("This profile's mirrors appear once Tibia is restored.")
         self.page.show_regions(self.mirrors, pending)
 
     def _show_connection(self) -> None:
-        if self.game_hwnd is None:
+        if self.game.hwnd is None:
             state = "waiting"
-        elif self._client is None:
+        elif self.game.client is None:
             state = "minimized"
         else:
             state = "connected"
@@ -1161,10 +1161,10 @@ class App:
 
     def _check_game(self) -> None:
         """Notice Tibia closing: detach the mirrors and wait for it to come back."""
-        if self.game_hwnd is None or win32.is_window(self.game_hwnd):
+        if self.game.hwnd is None or win32.is_window(self.game.hwnd):
             return
-        self.game_hwnd = None
-        self._client = None
+        self.game.hwnd = None
+        self.game.client = None
         if self._selector is not None and self._selector.overlay.winfo_exists():
             self._selector.cancel()  # it was selecting from the closed window
         self.mirrors.detach()
@@ -1174,11 +1174,11 @@ class App:
 
     def _on_click(self, button: str, x: int, y: int, at: float) -> None:
         """A mouse button went down at (x, y): start the timers whose region it hit."""
-        if self.game_hwnd is None or self._client is None:
+        if self.game.hwnd is None or self.game.client is None:
             return
-        if win32.toplevel_at(x, y) != self.game_hwnd:
+        if win32.toplevel_at(x, y) != self.game.hwnd:
             return  # another window at that spot got the click
-        client_x, client_y = x - self._client.x, y - self._client.y
+        client_x, client_y = x - self.game.client.x, y - self.game.client.y
         for mirror in self.mirrors:
             if (
                 mirror.timer.enabled
@@ -1189,7 +1189,7 @@ class App:
 
     def _on_key(self, vk: int, modifiers: tuple[str, ...]) -> None:
         """A key went down: with Tibia in front, the hide-all key or the timers bound to it."""
-        if self.game_hwnd is None or win32.foreground_window() != self.game_hwnd:
+        if self.game.hwnd is None or win32.foreground_window() != self.game.hwnd:
             return
         # A clash can still come in with a profile (imported, or set up before
         # the key was chosen): hiding wins, and the Timer dialog points it out.
@@ -1229,8 +1229,8 @@ class App:
             )
         show = mirrors_should_show(
             self._last_external,
-            self.game_hwnd,
-            self.game_hwnd is not None and win32.is_minimized(self.game_hwnd),
+            self.game.hwnd,
+            self.game.hwnd is not None and win32.is_minimized(self.game.hwnd),
             self._selecting,
             self._all_hidden,
         )
