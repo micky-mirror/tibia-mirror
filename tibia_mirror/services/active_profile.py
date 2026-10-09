@@ -1,0 +1,123 @@
+"""The active profile.
+
+A profile is a saved set of mirrors. One profile is open at a time: the active profile.
+ActiveProfile remembers its name, what was last saved, and if its mirrors are loaded.
+"""
+
+from __future__ import annotations
+
+import contextlib
+from collections.abc import Iterable
+
+from tibia_mirror.core import regions
+from tibia_mirror.core.geometry import Rect
+from tibia_mirror.core.profiles import ProfileStore
+from tibia_mirror.core.regions import SavedRegion
+
+# The errors that reading a broken profile file can raise.
+LOAD_ERRORS = (OSError, ValueError, KeyError, TypeError, AttributeError)
+
+
+class ActiveProfile:
+    def __init__(self, store: ProfileStore, name: str) -> None:
+        self._store = store
+        self.name = name
+        # The profile as it was last saved or loaded. Used to find unsaved changes.
+        self._saved = regions.snapshot([])
+        # True until the mirrors of this profile are loaded. Loading needs Tibia.
+        # If Tibia restarts, the loaded mirrors stay, with their unsaved changes.
+        self.needs_load = True
+
+    def mark_saved(self, mirrors: Iterable[SavedRegion]) -> None:
+        """Remember `mirrors` as what is in the profile file now.
+
+        Call it after a save or a load. Pass an empty list if nothing is loaded.
+        """
+        self._saved = regions.snapshot(mirrors)
+
+    def has_unsaved(self, mirrors: Iterable[SavedRegion]) -> bool:
+        """Return True if `mirrors` are different from what was last saved or loaded.
+
+        Pass the mirrors that are on screen now.
+        """
+        return regions.snapshot(mirrors) != self._saved
+
+    def save(self, mirrors: Iterable[SavedRegion]) -> None:
+        """Write `mirrors` to the profile file, and remember them as saved.
+
+        If the file cannot be written, this raises OSError.
+        Then nothing is remembered, so the changes stay unsaved.
+        """
+        mirrors = list(mirrors)
+        self._store.save(self.name, mirrors)
+        self.mark_saved(mirrors)
+
+    def load(self, client: Rect | None) -> list[SavedRegion]:
+        """Read the mirrors from the profile file, and remember them as saved.
+
+        `client` is the client area of the game. Old profile files need it.
+        After this call needs_load is False, also when the file is broken.
+
+        If the file is broken, this raises one of LOAD_ERRORS.
+        Then an empty profile is remembered.
+
+        Mirrors from an old file have no id. They get one here, and the file is
+        written again with the ids. Paused timers find their mirror by this id.
+        If that write fails, it is not a problem: the next save writes the ids.
+        """
+        self.needs_load = False
+        try:
+            mirrors = self._store.load(self.name, client)
+        except LOAD_ERRORS:
+            self.mark_saved([])
+            raise
+        mirrors, missing_ids = regions.assign_ids(mirrors)
+        if missing_ids:
+            with contextlib.suppress(OSError):
+                self._store.save(self.name, mirrors)
+        self.mark_saved(mirrors)
+        return mirrors
+
+    def open(self, name: str) -> None:
+        """Make `name` the active profile. Its mirrors are not loaded yet.
+
+        After this call needs_load is True, and an empty profile is remembered.
+        Call load() next, when Tibia is running.
+        """
+        self.name = name
+        self.needs_load = True
+        self.mark_saved([])
+
+    def duplicate(self, new_name: str, mirrors: Iterable[SavedRegion]) -> None:
+        """Make a copy of this profile with a new name, and switch to the copy.
+
+        There are two cases:
+        - The mirrors are loaded: write `mirrors` to the new file. Pass the mirrors
+          that are on screen now, so unsaved changes go into the copy too.
+        - The mirrors are not loaded yet (needs_load is True): copy the profile file
+          as it is. `mirrors` is not used.
+
+        If the new file cannot be written, this raises OSError. Then nothing changes.
+        """
+        if self.needs_load:
+            self._store.copy(self.name, new_name)
+        else:
+            mirrors = list(mirrors)
+            self._store.save(new_name, mirrors)
+            self.mark_saved(mirrors)
+        self.name = new_name
+
+    def rename(self, new_name: str) -> None:
+        """Rename the profile file, and use the new name from now on.
+
+        If the file cannot be renamed, this raises OSError. Then the name stays the same.
+        """
+        self._store.rename(self.name, new_name)
+        self.name = new_name
+
+    def delete(self) -> None:
+        """Delete the profile file. If that fails, this raises OSError.
+
+        After this call the profile has no file, so the caller must open another profile.
+        """
+        self._store.delete(self.name)
