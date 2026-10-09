@@ -536,9 +536,7 @@ class App:
             self.page.set_autosave(self.settings.autosave)
             self._changed()
         elif key in ("mirror_frame", "fades", "rounded_corners", "frame_tint"):
-            look = self._look()
-            for mirror in self.mirrors:
-                mirror.set_look(look)
+            self.mirrors.set_look(self._look())
         elif key == "panel_on_top":
             self.root.attributes("-topmost", self.settings.panel_on_top)
         elif key in ("theme", "language"):
@@ -624,9 +622,7 @@ class App:
         page = self.panel.page
         self.panel.destroy()
         self._build_panel(page)
-        look = self._look()
-        for mirror in self.mirrors:
-            mirror.set_look(look)  # the mirror frame colour comes from the theme
+        self.mirrors.set_look(self._look())  # the mirror frame colour comes from the theme
 
     def _require_game(self) -> Hwnd | None:
         """Tibia's window, or None after telling the user to start it."""
@@ -1238,8 +1234,7 @@ class App:
             self._selecting,
             self._all_hidden,
         )
-        for mirror in self.mirrors:
-            mirror.set_visible(show)
+        self.mirrors.set_visible(show)
 
 
 def main() -> None:

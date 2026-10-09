@@ -83,3 +83,13 @@ class Mirrors:
         """Move every mirror along with the game's client area."""
         for mirror in self._items:
             mirror.set_client(client)
+
+    def set_look(self, look: MirrorLook) -> None:
+        """Redraw every mirror with a changed frame, fade, corner or tint setting."""
+        for mirror in self._items:
+            mirror.set_look(look)
+
+    def set_visible(self, show: bool) -> None:
+        """Tell every mirror whether the visibility rule wants it shown."""
+        for mirror in self._items:
+            mirror.set_visible(show)

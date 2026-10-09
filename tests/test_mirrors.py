@@ -40,6 +40,12 @@ class FakeMirror:
     def set_client(self, client):
         self.client = client
 
+    def set_look(self, look):
+        self.look = look
+
+    def set_visible(self, show):
+        self.visible = show
+
 
 @pytest.fixture
 def mirrors(monkeypatch):
@@ -123,3 +129,13 @@ def test_detach_and_set_client_reach_every_mirror(mirrors):
     mirrors.detach()
     assert first.attached is None
     assert second.attached is None
+
+
+def test_set_look_and_set_visible_reach_every_mirror(mirrors):
+    first = mirrors.add("first", GAME, CLIENT, LOOK)
+    second = mirrors.add("second", GAME, CLIENT, LOOK)
+    mirrors.set_look("new look")
+    assert first.look == second.look == "new look"
+    mirrors.set_visible(True)
+    assert first.visible
+    assert second.visible
