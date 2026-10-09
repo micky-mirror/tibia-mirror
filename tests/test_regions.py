@@ -14,7 +14,7 @@ from tibia_mirror.core import regions
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.regions import Layout, SavedRegion, guess_layout, next_default_name, size_key
 from tibia_mirror.core.timers import TimerSettings
-from tibia_mirror.ui.theme import FRAME_COLOR_HEX
+from tibia_mirror.ui.base.theme import FRAME_COLOR_HEX
 
 WINDOWED = size_key(1600, 900)
 CLIENT = Rect(100, 50, 1600, 900)  # the client area on screen

@@ -5,9 +5,9 @@ import tkinter as tk
 from dataclasses import dataclass
 
 from tibia_mirror.core.geometry import Box
-from tibia_mirror.ui import theme
-from tibia_mirror.ui.scale import px
-from tibia_mirror.ui.windows import keep_open
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.winapi import dwm, win32
 
 DELAY_MS = 500

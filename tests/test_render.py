@@ -1,4 +1,4 @@
-from tibia_mirror.ui.render import (
+from tibia_mirror.ui.base.render import (
     ButtonStyle,
     Margins,
     button_pixels,
@@ -161,7 +161,7 @@ def test_custom_widgets_do_not_overwrite_tkinter_internals():
 
     reserved = set(dir(tk.Canvas)) | set(dir(tk.Frame)) | {"_w", "_name", "children", "master"}
     clashes = []
-    for path in (pathlib.Path(__file__).parent.parent / "tibia_mirror" / "ui").glob("*.py"):
+    for path in (pathlib.Path(__file__).parent.parent / "tibia_mirror" / "ui").rglob("*.py"):
         for cls in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if not isinstance(cls, ast.ClassDef):
                 continue

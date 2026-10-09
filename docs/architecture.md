@@ -111,16 +111,16 @@ Running timers' start times are kept in memory; at logout they become paused pro
 
 The panel is plain Tk, made to look modern without third-party packages:
 
-- **Rounded, anti-aliased shapes and shadows** (buttons, cards, fields) are drawn in code in `ui/render.py` and cached.
+- **Rounded, anti-aliased shapes and shadows** (buttons, cards, fields) are drawn in code in `ui/base/render.py` and cached.
 - **Cards, the menu rail and settings groups** are drawn on one canvas each and hit-tested by position, for clean hover handling.
-- **Themes** (`ui/theme.py`): colours are read when a widget is drawn, never copied at import time.
+- **Themes** (`ui/base/theme.py`): colours are read when a widget is drawn, never copied at import time.
   Switching theme or language rebuilds the panel on the same page.
 - **Languages** (`i18n.py`): every user-facing text goes through `tr()`; a test fails if any has no Polish translation.
 - **Size and place**: the first time, the panel opens centred, tall enough for the whole Settings page, and shorter on small screens (pages scroll).
   After that it opens where it was last, its size shrunk to fit if needed (`panel_rect` in `settings.json`).
   If what it shows (title bar and inside) wouldn't be fully on a screen, for example after a monitor was unplugged, it opens centred instead.
   The check leaves out Windows' invisible resize borders, so a panel dragged against a screen edge stays there.
-- **Display scaling** (`ui/scale.py`): Tk scales fonts with Windows' display scaling, but not pixel sizes.
+- **Display scaling** (`ui/base/scale.py`): Tk scales fonts with Windows' display scaling, but not pixel sizes.
   So every size is written as its value at 100% and goes through `px()` where it is used, so boxes grow with their text.
   The scale is read once at startup from Tk, and the theme's button styles are built after it.
   Game coordinates (regions, mirror positions and sizes) never go through `px()`.
@@ -158,14 +158,14 @@ These are deliberate and must stay true:
 | Mirrors | `ui/mirror.py`, `ui/badge.py`, `ui/selector.py`, `ui/loupe.py` |
 | Panel | `ui/panel.py`, `ui/nav.py`, and the pages: `ui/mirrors_page.py`, `ui/settings_page.py`, `ui/shortcuts_page.py`, `ui/about_page.py` |
 | Widgets | `ui/widgets.py`, `ui/menu.py`, `ui/dialogs.py`, `ui/tooltip.py`, `ui/slider.py` |
-| Drawing | `ui/render.py`, `ui/theme.py`, `ui/scale.py`, `ui/animation.py`, `ui/images.py`, `ui/text.py` |
+| Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/animation.py`, `ui/base/images.py`, `ui/base/text.py`, `ui/base/windows.py` |
 
 ## Conventions
 
 - State lives on `App`; UI classes get callbacks, never globals.
 - Every Win32 function is declared once, with its argument and return types, in `winapi/win32.py` or `winapi/dwm.py`.
 - Pure modules stay free of Win32 and Tk, so they stay testable.
-- Every extra window says what a close request (Alt+F4) means: dialogs cancel, menus close, mirrors and badges ignore it (`ui/windows.py`); a test checks each one.
+- Every extra window says what a close request (Alt+F4) means: dialogs cancel, menus close, mirrors and badges ignore it (`ui/base/windows.py`); a test checks each one.
 - Everything is type-annotated and `mypy --strict` passes.
 - Names are spelled out (`mirror`, `profile`, `middle_y`).
   Short names are kept only where they're the usual convention: `e` for a Tk event, `x, y, w, h`, `x0, y0, x1, y1`, `i`, `lo, hi`, and the Windows terms `hwnd` and `vk`.

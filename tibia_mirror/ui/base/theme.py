@@ -8,8 +8,8 @@ Button styles are in pixels at the current display scaling: call use() after sca
 from dataclasses import replace
 from typing import TypedDict
 
-from tibia_mirror.ui.render import ButtonStyle
-from tibia_mirror.ui.scale import px
+from tibia_mirror.ui.base.render import ButtonStyle
+from tibia_mirror.ui.base.scale import px
 
 
 class Palette(TypedDict):

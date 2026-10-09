@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING
 
 from tibia_mirror.core.geometry import Box, Point
 from tibia_mirror.i18n import tr, tr_n
-from tibia_mirror.ui import theme
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.render import margins
+from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.menu import SEPARATOR, MenuItem, PopupMenu, ProfilePicker
-from tibia_mirror.ui.render import margins
-from tibia_mirror.ui.scale import px
-from tibia_mirror.ui.text import elide
 from tibia_mirror.ui.widgets import RaisedButton, RegionCard, ScrollList
 
 if TYPE_CHECKING:

@@ -14,11 +14,11 @@ from tibia_mirror.core.characters import Links
 from tibia_mirror.core.geometry import Point, Rect, region_error
 from tibia_mirror.core.timers import KeyCombo, TimerSettings, combo_name, key_clashes, parse_alert
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui import theme
-from tibia_mirror.ui.images import photo
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.images import photo
+from tibia_mirror.ui.base.render import margins, outlined_pixels
+from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.menu import DropdownField
-from tibia_mirror.ui.render import margins, outlined_pixels
-from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.widgets import (
     CheckBox,
     ChoiceBar,

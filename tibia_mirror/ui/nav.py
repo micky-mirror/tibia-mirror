@@ -7,10 +7,10 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui import theme
-from tibia_mirror.ui.images import photo
-from tibia_mirror.ui.render import ButtonStyle, button_pixels
-from tibia_mirror.ui.scale import px
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.images import photo
+from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
+from tibia_mirror.ui.base.scale import px
 
 
 @dataclass(frozen=True)

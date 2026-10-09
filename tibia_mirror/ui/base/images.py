@@ -2,7 +2,7 @@
 
 import tkinter as tk
 
-from tibia_mirror.ui.render import Pixels
+from tibia_mirror.ui.base.render import Pixels
 
 
 def photo(master: tk.Misc, rows: Pixels) -> tk.PhotoImage:

@@ -12,12 +12,12 @@ from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.core.settings import Settings
 from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui import theme
-from tibia_mirror.ui.animation import Tween
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.animation import Tween
+from tibia_mirror.ui.base.images import photo
+from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
+from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.dialogs import key_combo_name
-from tibia_mirror.ui.images import photo
-from tibia_mirror.ui.render import ButtonStyle, button_pixels
-from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.slider import SliderDrawing
 from tibia_mirror.ui.widgets import KeyField, ScrollList, SegmentedDrawing
 from tibia_mirror.winapi import win32

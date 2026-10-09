@@ -54,7 +54,7 @@ from tibia_mirror.core.timers import (
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
-from tibia_mirror.ui import scale, theme
+from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.ui.dialogs import (
     CharactersDialog,
     Choice,

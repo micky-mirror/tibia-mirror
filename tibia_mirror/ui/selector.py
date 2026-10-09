@@ -8,9 +8,9 @@ from collections.abc import Callable
 from tibia_mirror.config import MIN_SELECTION_SIDE
 from tibia_mirror.core.geometry import Point, Rect, nudged_point, overlay_to_client, rect_from_drag
 from tibia_mirror.core.handles import Hwnd
-from tibia_mirror.ui import theme
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.loupe import Loupe
-from tibia_mirror.ui.scale import px
 from tibia_mirror.winapi import win32
 
 # Arrow keys shift the selection's point this many pixels (with Shift, NUDGE_SHIFT times).

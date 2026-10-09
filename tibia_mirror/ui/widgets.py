@@ -13,13 +13,13 @@ from tibia_mirror.core.geometry import Box, Point, scroll_fraction, scroll_thumb
 from tibia_mirror.core.regions import clamp_opacity
 from tibia_mirror.core.timers import KeyCombo, clock
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui import theme
-from tibia_mirror.ui.images import photo
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.images import photo
+from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, margins, outlined_pixels
+from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.menu import SwatchPicker
-from tibia_mirror.ui.render import ButtonStyle, button_pixels, margins, outlined_pixels
-from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.slider import SliderDrawing
-from tibia_mirror.ui.text import elide
 from tibia_mirror.ui.tooltip import Tooltip
 
 

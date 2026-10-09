@@ -35,11 +35,11 @@ from tibia_mirror.core.regions import (
 )
 from tibia_mirror.core.timers import TimerSettings, badge_text, is_done
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui import theme
-from tibia_mirror.ui.animation import Tween
 from tibia_mirror.ui.badge import TimerBadge
-from tibia_mirror.ui.scale import px
-from tibia_mirror.ui.windows import keep_open
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.animation import Tween
+from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.winapi import dwm, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 

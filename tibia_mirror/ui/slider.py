@@ -4,10 +4,10 @@ import tkinter as tk
 from dataclasses import replace
 
 from tibia_mirror.core.geometry import slider_value, slider_x
-from tibia_mirror.ui import theme
-from tibia_mirror.ui.images import photo
-from tibia_mirror.ui.render import ButtonStyle, button_pixels, margins
-from tibia_mirror.ui.scale import px
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.images import photo
+from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, margins
+from tibia_mirror.ui.base.scale import px
 
 
 class SliderDrawing:
