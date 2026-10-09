@@ -6,11 +6,9 @@ import os
 import time
 import tkinter as tk
 from collections.abc import Callable
-from dataclasses import replace
 from pathlib import Path
 from tkinter import filedialog
 from types import TracebackType
-from typing import Any
 
 from tibia_mirror import errors, i18n
 from tibia_mirror.config import (
@@ -38,10 +36,8 @@ from tibia_mirror.core.characters import Links
 from tibia_mirror.core.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.core.profiles import ProfileStore, copy_name, name_error
-from tibia_mirror.core.settings import PanelRect
 from tibia_mirror.core.timers import (
     KeyCombo,
-    Pauses,
     TimerSettings,
     button_matches,
     combo_matches,
@@ -112,7 +108,7 @@ class App:
         self._instance = instance
         self.store = ProfileStore(profiles_dir)
         self.store.ensure_one()
-        self.settings = SettingsStore(settings_file)
+        self.settings = SettingsStore(settings_file, self._settings_changed)
         names = self.store.names()
         # Windows file names ignore case, so match the remembered profile the same way.
         self.profile = ActiveProfile(
@@ -233,7 +229,7 @@ class App:
             return
         rect = (self.root.winfo_x(), self.root.winfo_y(), e.width, e.height)
         if rect != self.settings.current.panel_rect:
-            self._update_settings(panel_rect=rect)
+            self.settings.update(panel_rect=rect)
 
     def run(self) -> None:
         self._input.start(self.root)
@@ -527,7 +523,7 @@ class App:
         """Apply a changed setting; returns why the hide-all key was refused, or None."""
         if key == "hide_all":
             return self._set_hide_all_key(value if isinstance(value, tuple) else None)
-        self._update_settings(**{key: value})
+        self.settings.update(**{key: value})
         # Read back from the settings, where each value has its own type.
         if key == "autosave":
             self.page.set_autosave(self.settings.current.autosave)
@@ -558,7 +554,7 @@ class App:
                 profile=profile,
             )
         vk, modifiers = combo or (None, ())
-        self._update_settings(hide_all_key=vk, hide_all_modifiers=modifiers)
+        self.settings.update(hide_all_key=vk, hide_all_modifiers=modifiers)
         if combo is None and self._all_hidden:
             self._toggle_all_hidden()  # no key left to bring them back
         else:
@@ -669,12 +665,8 @@ class App:
             self.root.after_cancel(job)
             setattr(self, attr, None)
 
-    def _update_settings(
-        self, **changes: SettingValue | tuple[str, ...] | Links | Pauses | PanelRect
-    ) -> None:
-        # replace() checks the names; each value's type is the caller's to get right.
-        fields: dict[str, Any] = changes
-        self.settings.current = replace(self.settings.current, **fields)
+    def _settings_changed(self) -> None:
+        """The settings changed: write settings.json a short moment later."""
         self._schedule("_settings_job", SETTINGS_SAVE_DELAY_MS, self._save_settings)
 
     def _save_settings(self) -> None:
@@ -721,7 +713,7 @@ class App:
     def _show_active_profile(self) -> None:
         """Show the active profile in the panel, and save its name in the settings."""
         self.page.set_profiles(self.store.names(), self.profile.name)
-        self._update_settings(profile=self.profile.name)
+        self.settings.update(profile=self.profile.name)
 
     def _open_profile(self, name: str) -> None:
         """Make `name` the active profile and show its mirrors (once Tibia is connected)."""
@@ -788,7 +780,7 @@ class App:
         self._open_profile(self.store.names()[0])
 
     def _set_links(self, links: Links) -> None:
-        self._update_settings(characters=links)
+        self.settings.update(characters=links)
 
     def _copy_mirrors_from(self, source: str) -> None:
         """Replace the mirrors on screen with `source`'s as saved, as an unsaved change."""
@@ -851,9 +843,9 @@ class App:
             }
             pauses = with_pauses(pauses, character, {})
         if pauses != self.settings.current.timer_pauses:
-            self._update_settings(timer_pauses=pauses)
+            self.settings.update(timer_pauses=pauses)
         if (self.timers.last_online or "") != self.settings.current.last_character:
-            self._update_settings(last_character=self.timers.last_online or "")
+            self.settings.update(last_character=self.timers.last_online or "")
         for mirror in self.mirrors:
             self._sync_timer(mirror, now)
 
@@ -883,7 +875,7 @@ class App:
         self.timers.started_at.pop(mirror.id, None)
         pauses = without_mirrors(self.settings.current.timer_pauses, {mirror.id})
         if pauses != self.settings.current.timer_pauses:
-            self._update_settings(timer_pauses=pauses)
+            self.settings.update(timer_pauses=pauses)
 
     def _dialog_open(self) -> bool:
         """Whether a modal dialog holds the grab.
