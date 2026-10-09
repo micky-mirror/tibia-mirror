@@ -10,7 +10,7 @@ For the details, follow the file names into the code.
 flowchart LR
     Tibia["Tibia window"] -->|"previewed by"| DWM["Windows<br>window previews (DWM)"]
     DWM -->|"live preview"| Mirrors["Mirror windows<br>+ timer badges"]
-    App["App (app.py)<br>owns all state"] -->|"which part, where"| DWM
+    App["App (app.py)<br>wires it all together"] -->|"which part, where"| DWM
     Tibia -.->|"public window info<br>(read only)"| App
     Raw["Windows<br>Raw Input"] -.->|"clicks and keys<br>(observe only)"| App
     App <-->|"draws / button callbacks"| Panel["Control panel"]
@@ -34,8 +34,11 @@ The app never receives the game's image: it only tells Windows which part of Tib
 The app knows Tibia only from what Windows shows every program about any window, as the taskbar and Alt+Tab do: its title, whether it's minimized, and where it is, so the mirrors can follow it.
 To make sure the window is really Tibia, it also reads the program's file path, using the lowest access level Windows offers (`PROCESS_QUERY_LIMITED_INFORMATION`), which gives no access to the game's memory.
 
-- **`App`** (`app.py`) owns all state: the Tibia window, the mirrors, the active profile and the settings.
+- **`App`** (`app.py`) holds the runtime state (the Tibia window, the active profile, the settings) and wires the pieces together.
   It runs a few timers on Tk's event loop (the "polls") and reacts to the panel's buttons.
+- **Services** (`services/`) are the pieces cut out of the App, each owning one part of the running app.
+  `Mirrors` (`services/mirrors.py`) owns the mirror windows: it creates and closes them, reconnects them after Tibia restarts, and passes changes on to all of them.
+  A service never imports the App.
 - **The UI** (`ui/`) is a pure view: it draws what the App gives it and calls back into the App.
 - **Pure logic** (geometry, regions, profiles, settings, timers, visibility, rendering) has no Windows or Tk code, so it is unit-tested.
 
@@ -163,7 +166,9 @@ These are deliberate and must stay true:
 
 ## Conventions
 
-- State lives on `App`; UI classes get callbacks, never globals.
+- State lives on `App` and its services; UI classes get callbacks, never globals.
+- Imports point one way: `app.py` -> `services/` -> `ui/` and `winapi/` -> `core/`.
+  Inside `ui/`, `panel/` and `overlay/` may use `controls/` and `base/`, and `base/` uses none of them.
 - Every Win32 function is declared once, with its argument and return types, in `winapi/win32.py` or `winapi/dwm.py`.
 - Pure modules stay free of Win32 and Tk, so they stay testable.
 - Every extra window says what a close request (Alt+F4) means: dialogs cancel, menus close, mirrors and badges ignore it (`ui/base/windows.py`); a test checks each one.
