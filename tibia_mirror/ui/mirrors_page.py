@@ -20,7 +20,7 @@ from tibia_mirror.ui.controls.widgets import RaisedButton, RegionCard, ScrollLis
 
 if TYPE_CHECKING:
     # Only named in annotations: the page never imports the mirror window itself.
-    from tibia_mirror.ui.mirror import MirrorWindow
+    from tibia_mirror.ui.overlay.mirror import MirrorWindow
 
 TONES = {"muted": "SUBTEXT", "ok": "GREEN", "error": "RED"}  # theme colour names
 # Sizes at 100% display scaling, scaled with px() where used.
