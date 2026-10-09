@@ -56,6 +56,7 @@ from tibia_mirror.i18n import tr, tr_n
 from tibia_mirror.services.active_profile import LOAD_ERRORS, ActiveProfile
 from tibia_mirror.services.game import Game
 from tibia_mirror.services.mirrors import Mirrors
+from tibia_mirror.services.running_timers import RunningTimers
 from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.ui.controls.dialogs import (
     CharactersDialog,
@@ -125,14 +126,7 @@ class App:
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title
-        # Like _character, but updated at once (a profile switch may wait), so
-        # timers that pause while logged out lose no time.
-        self._online: str | None = None
-        # Whose paused timers show while logged out; remembered for the next start.
-        self._last_online: str | None = self.settings.last_character or None
-        # Mirror id -> start time of _online's pausing timers, across profiles. Lost
-        # if the app closes while logged in: online time after that is unknown.
-        self._running: dict[str, float] = {}
+        self.timers = RunningTimers(self.settings.last_character or None)
         self._selecting = False
         # Hidden with the hide-all key; each mirror keeps its own hidden flag too.
         # Not remembered across starts.
@@ -817,7 +811,7 @@ class App:
     def _check_character(self) -> None:
         """Notice a character logging in: open its profile, if that setting is on."""
         character = characters.character_in_title(self.game.title())
-        if character != self._online:
+        if character != self.timers.online:
             self._timers_online(character)
         if character == self._character:
             return
@@ -835,23 +829,25 @@ class App:
         """A character logged in or out (None): pause or continue its timers."""
         now = time.monotonic()
         pauses = self.settings.timer_pauses
-        if self._online is not None:
-            elapsed = {mirror_id: now - start for mirror_id, start in self._running.items()}
-            pauses = with_pauses(pauses, self._online, elapsed)
-            self._last_online = self._online
-        self._online = character
-        self._running = {}
+        if self.timers.online is not None:
+            elapsed = {
+                mirror_id: now - start for mirror_id, start in self.timers.started_at.items()
+            }
+            pauses = with_pauses(pauses, self.timers.online, elapsed)
+            self.timers.last_online = self.timers.online
+        self.timers.online = character
+        self.timers.started_at = {}
         if character is not None:
-            # Running again: kept in memory until the logout, see _running.
-            self._running = {
+            # Running again: kept in memory until the logout, see started_at.
+            self.timers.started_at = {
                 mirror_id: now - seconds
                 for mirror_id, seconds in pauses_of(pauses, character).items()
             }
             pauses = with_pauses(pauses, character, {})
         if pauses != self.settings.timer_pauses:
             self._update_settings(timer_pauses=pauses)
-        if (self._last_online or "") != self.settings.last_character:
-            self._update_settings(last_character=self._last_online or "")
+        if (self.timers.last_online or "") != self.settings.last_character:
+            self._update_settings(last_character=self.timers.last_online or "")
         for mirror in self.mirrors:
             self._sync_timer(mirror, now)
 
@@ -859,24 +855,24 @@ class App:
         """Show a pausing timer's state for who is logged in, or as paused at the last logout."""
         if not mirror.timer.pauses_offline:
             return
-        if self._online is not None:
-            mirror.restore_timer(now, started=self._running.get(mirror.id))
-        elif self._last_online is not None:
-            paused = pauses_of(self.settings.timer_pauses, self._last_online).get(mirror.id)
+        if self.timers.online is not None:
+            mirror.restore_timer(now, started=self.timers.started_at.get(mirror.id))
+        elif self.timers.last_online is not None:
+            paused = pauses_of(self.settings.timer_pauses, self.timers.last_online).get(mirror.id)
             mirror.restore_timer(now, paused=paused)
         else:
             mirror.restore_timer(now)
 
     def _start_timer(self, mirror: MirrorWindow, at: float) -> None:
         if mirror.timer.pauses_offline:
-            if self._online is None:
+            if self.timers.online is None:
                 return  # it only counts while a character is logged in
-            self._running[mirror.id] = at
+            self.timers.started_at[mirror.id] = at
         mirror.start_timer(at)
 
     def _forget_timer(self, mirror: MirrorWindow) -> None:
         """Drop a timer's progress, for every character: it was removed or set up anew."""
-        self._running.pop(mirror.id, None)
+        self.timers.started_at.pop(mirror.id, None)
         pauses = without_mirrors(self.settings.timer_pauses, {mirror.id})
         if pauses != self.settings.timer_pauses:
             self._update_settings(timer_pauses=pauses)

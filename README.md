@@ -327,6 +327,7 @@ tibia_mirror/
     active_profile.py   the profile that is open now
     game.py             the Tibia window and its client area
     mirrors.py          the mirror windows on screen
+    running_timers.py   the timers that are running, and who is logged in
   assets/icon.ico       the app icon
   ui/                   everything drawn with Tk
     base/               themes, display scaling, shape rendering, helpers
