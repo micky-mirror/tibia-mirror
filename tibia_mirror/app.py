@@ -54,6 +54,7 @@ from tibia_mirror.core.timers import (
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
+from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.ui.controls.dialogs import (
     CharactersDialog,
@@ -119,7 +120,7 @@ class App:
         )
         self.game_hwnd: Hwnd | None = None
         self._client: Rect | None = None  # the game's client area on screen
-        self.mirrors: list[MirrorWindow] = []
+        self.mirrors = Mirrors()
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title

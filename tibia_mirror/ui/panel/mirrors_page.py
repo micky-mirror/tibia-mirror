@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tkinter as tk
 import tkinter.font as tkfont
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Collection, Iterable
 from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
@@ -191,7 +191,7 @@ class MirrorsPage(tk.Frame):
         text = elide(text, self._status_font, self._status_width)
         self._status.config(text=text, fg=getattr(theme, TONES[tone]))
 
-    def show_regions(self, mirrors: Sequence[MirrorWindow], pending: str | None = None) -> None:
+    def show_regions(self, mirrors: Collection[MirrorWindow], pending: str | None = None) -> None:
         """Cards for `mirrors`; with none, `pending` (why they are not loaded yet) or a hint."""
         for child in self.region_list.inner.winfo_children():
             if isinstance(child, RegionCard):
