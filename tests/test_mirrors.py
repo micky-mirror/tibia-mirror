@@ -29,6 +29,17 @@ class FakeMirror:
     def destroy(self):
         self.closed = "at once"
 
+    def attach(self, game_hwnd, client):
+        if self.made_with[2] == "stubborn":
+            raise OSError("DWM refused")
+        self.attached = (game_hwnd, client)
+
+    def detach(self):
+        self.attached = None
+
+    def set_client(self, client):
+        self.client = client
+
 
 @pytest.fixture
 def mirrors(monkeypatch):
@@ -87,3 +98,28 @@ def test_clear_closes_every_mirror_at_once(mirrors):
     mirrors.clear()
     assert not mirrors
     assert first.closed == second.closed == "at once"
+
+
+def test_attach_points_every_mirror_at_the_new_game_window(mirrors):
+    first = mirrors.add("first", GAME, CLIENT, LOOK)
+    second = mirrors.add("second", GAME, CLIENT, LOOK)
+    assert mirrors.attach(200, "new client") == 0
+    assert first.attached == second.attached == (200, "new client")
+
+
+def test_attach_counts_the_mirrors_windows_refused(mirrors):
+    mirrors.add("stubborn", GAME, CLIENT, LOOK)
+    fine = mirrors.add("fine", GAME, CLIENT, LOOK)
+    assert mirrors.attach(200, "new client") == 1
+    assert fine.attached == (200, "new client")
+
+
+def test_detach_and_set_client_reach_every_mirror(mirrors):
+    first = mirrors.add("first", GAME, CLIENT, LOOK)
+    second = mirrors.add("second", GAME, CLIENT, LOOK)
+    mirrors.set_client("moved")
+    assert first.client == second.client == "moved"
+    mirrors.attach(200, "new client")
+    mirrors.detach()
+    assert first.attached is None
+    assert second.attached is None

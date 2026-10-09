@@ -63,3 +63,23 @@ class Mirrors:
         for mirror in self._items:
             mirror.destroy()
         self._items.clear()
+
+    def attach(self, game: Hwnd, client: Rect) -> int:
+        """Point every mirror at the game's new window; returns how many DWM refused."""
+        failed = 0
+        for mirror in self._items:
+            try:
+                mirror.attach(game, client)
+            except OSError:
+                failed += 1
+        return failed
+
+    def detach(self) -> None:
+        """The game closed: every mirror lets go of its window."""
+        for mirror in self._items:
+            mirror.detach()
+
+    def set_client(self, client: Rect) -> None:
+        """Move every mirror along with the game's client area."""
+        for mirror in self._items:
+            mirror.set_client(client)

@@ -1038,8 +1038,7 @@ class App:
         if client is None or client == old:
             return
         self._client = client
-        for mirror in self.mirrors:
-            mirror.set_client(client)
+        self.mirrors.set_client(client)
         if old is not None and (client.w, client.h) != (old.w, old.h):
             self._show_regions()  # the cards show region sizes
 
@@ -1155,12 +1154,7 @@ class App:
 
     def _reattach_mirrors(self, game: Hwnd, client: Rect) -> None:
         """Tibia was restarted: point the mirrors kept in memory at its new window."""
-        failed = 0
-        for mirror in self.mirrors:
-            try:
-                mirror.attach(game, client)
-            except OSError:
-                failed += 1
+        failed = self.mirrors.attach(game, client)
         self._show_regions()  # region sizes may follow a new client size
         if failed:
             self.page.set_status(
@@ -1177,8 +1171,7 @@ class App:
         self._client = None
         if self._selector is not None and self._selector.overlay.winfo_exists():
             self._selector.cancel()  # it was selecting from the closed window
-        for mirror in self.mirrors:
-            mirror.detach()
+        self.mirrors.detach()
         self._show_connection()
         self._show_regions()
         self._attach_poll()
