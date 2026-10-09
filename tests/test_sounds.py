@@ -1,6 +1,6 @@
 import pytest
 
-from tibia_mirror import sounds
+from tibia_mirror.winapi import sounds
 
 
 def _refuse(*_args):

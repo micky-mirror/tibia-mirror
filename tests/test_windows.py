@@ -30,7 +30,7 @@ def is_close_handler(call):
 def test_every_extra_window_handles_a_close_request():
     """Tk's default for a close request (Alt+F4) destroys the window behind the app's back."""
     missing = []
-    for path in sorted(UI.glob("*.py")):
+    for path in sorted(UI.rglob("*.py")):
         for cls in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if not isinstance(cls, ast.ClassDef):
                 continue

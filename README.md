@@ -304,26 +304,31 @@ Tibia Mirror.spec       the .exe build (PyInstaller)
 tibia_mirror/
   app.py                App: owns runtime state, wires windows together
   config.py             paths, sizes, poll intervals
-  tibia.py              finding the Tibia client window
-  handles.py            the Hwnd name for window handles
-  dwm.py                DWM thumbnail wrapper (the core mechanism)
-  win32.py              ctypes bindings and window helpers
-  geometry.py           pure coordinate math
-  regions.py            saved regions and JSON persistence
-  profiles.py           profiles: one saved set of regions per file
-  settings.py           app settings and settings.json
   i18n.py               English and Polish text
   about.py              author, contact, tip character, copyright years
   errors.py             the error log
-  characters.py         linking characters to profiles
-  instance.py           one copy at a time
-  timers.py             timer settings and what the badge shows
-  rawinput.py           being told of clicks and key presses (Raw Input)
-  sounds.py             timer alert sounds
+  core/                 pure logic: no Windows or Tk code
+    geometry.py         pure coordinate math
+    regions.py          saved regions and JSON persistence
+    profiles.py         profiles: one saved set of regions per file
+    settings.py         app settings and settings.json
+    characters.py       linking characters to profiles
+    timers.py           timer settings and what the badge shows
+    visibility.py       when mirrors are shown
+    handles.py          the Hwnd name for window handles
+  winapi/               everything that calls Windows
+    win32.py            ctypes bindings and window helpers
+    dwm.py              DWM thumbnail wrapper (the core mechanism)
+    tibia.py            finding the Tibia client window
+    rawinput.py         being told of clicks and key presses (Raw Input)
+    instance.py         one copy at a time
+    sounds.py           timer alert sounds
   assets/icon.ico       the app icon
-  ui/                   control panel and its pages, mirror window,
-                        selection overlay and magnifier, dialogs,
-                        custom widgets, shape rendering, themes
+  ui/                   everything drawn with Tk
+    base/               themes, display scaling, shape rendering, helpers
+    controls/           custom widgets, menus, slider, tooltips, dialogs
+    overlay/            mirror window, timer badge, selection overlay, magnifier
+    panel/              control panel, its menu rail and pages
 tests/                  unit tests for the non-GUI modules
 docs/                   architecture, images
 ```

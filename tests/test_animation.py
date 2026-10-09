@@ -1,4 +1,4 @@
-from tibia_mirror.ui.animation import Tween, ease_out_cubic, lerp
+from tibia_mirror.ui.base.animation import Tween, ease_out_cubic, lerp
 
 
 def test_ease_out_cubic_endpoints():

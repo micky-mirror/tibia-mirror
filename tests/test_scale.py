@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tibia_mirror.ui import scale
+from tibia_mirror.ui.base import scale
 
 
 def fake_root(tk_scaling):
@@ -127,7 +127,7 @@ def test_ui_sizes_scale_with_the_display():
     """
     found = set()
     problems = []
-    for path in sorted(UI.glob("*.py")):
+    for path in sorted(UI.rglob("*.py")):
         for code, node in pixel_code(ast.parse(path.read_text(encoding="utf-8"))):
             if unscaled_parts(node):
                 found.add((path.name, code))

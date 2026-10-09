@@ -1,6 +1,6 @@
 import pytest
 
-from tibia_mirror.tibia import is_tibia_client
+from tibia_mirror.winapi.tibia import is_tibia_client
 
 CLIENT_EXE = r"C:\Users\Player\AppData\Local\Tibia\packages\Tibia\bin\client.exe"
 

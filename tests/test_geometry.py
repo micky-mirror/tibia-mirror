@@ -1,4 +1,4 @@
-from tibia_mirror.geometry import (
+from tibia_mirror.core.geometry import (
     Rect,
     clamp_box,
     clamp_rect,

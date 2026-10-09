@@ -1,8 +1,8 @@
 import json
 
-from tibia_mirror import settings
 from tibia_mirror.config import MIN_OPACITY
-from tibia_mirror.settings import Settings
+from tibia_mirror.core import settings
+from tibia_mirror.core.settings import Settings
 
 
 def test_round_trip(tmp_path):

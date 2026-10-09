@@ -48,7 +48,7 @@ It asks the Windows compositor (DWM) to draw a live copy of part of Tibia's wind
 - The app never receives the game's image.
 - It works with Tibia in real fullscreen, where screen capture shows a black image.
 
-Each mirror (`ui/mirror.py`) is a borderless, always-on-top window:
+Each mirror (`ui/overlay/mirror.py`) is a borderless, always-on-top window:
 
 - **Opacity** is the window's alpha, which also applies to the copied image.
 - **Locked** mirrors are click-through, so clicks reach the game.
@@ -64,7 +64,7 @@ For a new size, `regions.guess_layout` makes a proportional first guess; adjusti
 
 ## Finding Tibia
 
-`tibia.py` looks for a window whose title starts with "Tibia" and whose program is `...\Tibia\bin\client.exe`.
+`winapi/tibia.py` looks for a window whose title starts with "Tibia" and whose program is `...\Tibia\bin\client.exe`.
 The title alone isn't enough: other windows (an editor, the app's own panel) can contain "Tibia" too.
 Reading the program's path uses the lowest access level Windows offers (`PROCESS_QUERY_LIMITED_INFORMATION`), which gives no access to the game's memory.
 
@@ -74,7 +74,7 @@ Reading the program's path uses the lowest access level Windows offers (`PROCESS
 
 ## When mirrors show
 
-Mirrors should show while the player is looking at Tibia (`visibility.py`):
+Mirrors should show while the player is looking at Tibia (`core/visibility.py`):
 
 - They show while Tibia is the foreground window.
 - While one of the app's own windows is in front (the panel, a dialog), the last *other* window decides: coming from Tibia keeps them visible, coming from a browser keeps them hidden.
@@ -82,7 +82,7 @@ Mirrors should show while the player is looking at Tibia (`visibility.py`):
 
 ## Input and timers
 
-Clicks and key presses come from Windows **Raw Input** (`rawinput.py`), which only observes: it can't block, change or send input.
+Clicks and key presses come from Windows **Raw Input** (`winapi/rawinput.py`), which only observes: it can't block, change or send input.
 
 > [!WARNING]
 > Raw Input messages arrive inside Tk's event loop, and calling Tk from there crashes Python.
@@ -91,36 +91,36 @@ Clicks and key presses come from Windows **Raw Input** (`rawinput.py`), which on
 - A click starts the timers whose region it hits, but only if it landed on Tibia.
 - A key starts the timers bound to exactly that combination, but only while Tibia is in front.
 - A key combination does one thing only: the hide-all key and timer keys can't clash.
-- The pure timer logic (what the badge shows, key matching, paused progress) is in `timers.py`.
+- The pure timer logic (what the badge shows, key matching, paused progress) is in `core/timers.py`.
 
 **Pause while logged out**: the App reads the logged-in character from Tibia's window title ("Tibia - Name").
 Running timers' start times are kept in memory; at logout they become paused progress in `settings.json`, per character and per mirror id, and continue at the next login.
 
 ## Profiles and settings
 
-- **Profiles** (`profiles.py`, `regions.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
+- **Profiles** (`core/profiles.py`, `core/regions.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
   Each mirror has a permanent hidden `id`, a name, opacity, zoom, colour, timer and its layouts.
   Older file formats still load.
 - **Unsaved changes** are found by comparing what Save would write with the file as loaded, so undoing a change by hand clears the flag.
-- **Settings** (`settings.py`) are saved to `settings.json` shortly after each change.
+- **Settings** (`core/settings.py`) are saved to `settings.json` shortly after each change.
   Bad or unknown values fall back to defaults, so a hand-edited file never stops the app from starting.
-- **Profile per character** (`characters.py`) links character names to profiles in `settings.json`.
+- **Profile per character** (`core/characters.py`) links character names to profiles in `settings.json`.
   A login switches profiles through the same "save changes first?" flow as switching by hand, and waits while a dialog is open.
 
 ## The control panel
 
 The panel is plain Tk, made to look modern without third-party packages:
 
-- **Rounded, anti-aliased shapes and shadows** (buttons, cards, fields) are drawn in code in `ui/render.py` and cached.
+- **Rounded, anti-aliased shapes and shadows** (buttons, cards, fields) are drawn in code in `ui/base/render.py` and cached.
 - **Cards, the menu rail and settings groups** are drawn on one canvas each and hit-tested by position, for clean hover handling.
-- **Themes** (`ui/theme.py`): colours are read when a widget is drawn, never copied at import time.
+- **Themes** (`ui/base/theme.py`): colours are read when a widget is drawn, never copied at import time.
   Switching theme or language rebuilds the panel on the same page.
 - **Languages** (`i18n.py`): every user-facing text goes through `tr()`; a test fails if any has no Polish translation.
 - **Size and place**: the first time, the panel opens centred, tall enough for the whole Settings page, and shorter on small screens (pages scroll).
   After that it opens where it was last, its size shrunk to fit if needed (`panel_rect` in `settings.json`).
   If what it shows (title bar and inside) wouldn't be fully on a screen, for example after a monitor was unplugged, it opens centred instead.
   The check leaves out Windows' invisible resize borders, so a panel dragged against a screen edge stays there.
-- **Display scaling** (`ui/scale.py`): Tk scales fonts with Windows' display scaling, but not pixel sizes.
+- **Display scaling** (`ui/base/scale.py`): Tk scales fonts with Windows' display scaling, but not pixel sizes.
   So every size is written as its value at 100% and goes through `px()` where it is used, so boxes grow with their text.
   The scale is read once at startup from Tk, and the theme's button styles are built after it.
   Game coordinates (regions, mirror positions and sizes) never go through `px()`.
@@ -128,7 +128,7 @@ The panel is plain Tk, made to look modern without third-party packages:
 
 ## Startup, data and errors
 
-1. **One copy at a time** (`instance.py`): a named mutex marks the running copy.
+1. **One copy at a time** (`winapi/instance.py`): a named mutex marks the running copy.
    A second copy signals it to show its panel, and quits before touching any data.
 2. **Error log** (`errors.py`): the `.exe` has no console, so errors and crashes go to `error.log`, which is trimmed once it's large.
    If the app can't even open its panel, a message box names the log.
@@ -151,21 +151,21 @@ These are deliberate and must stay true:
 
 | Area | Files |
 |---|---|
-| App and startup | `app.py`, `main.py`, `instance.py`, `errors.py`, `config.py` |
-| Windows and Tibia | `win32.py` (all Win32 calls), `dwm.py`, `tibia.py`, `rawinput.py`, `handles.py` |
-| Data | `regions.py`, `profiles.py`, `settings.py`, `characters.py` |
-| Logic | `geometry.py`, `visibility.py`, `timers.py`, `sounds.py`, `i18n.py`, `about.py` |
-| Mirrors | `ui/mirror.py`, `ui/badge.py`, `ui/selector.py`, `ui/loupe.py` |
-| Panel | `ui/panel.py`, `ui/nav.py`, and the pages: `ui/mirrors_page.py`, `ui/settings_page.py`, `ui/shortcuts_page.py`, `ui/about_page.py` |
-| Widgets | `ui/widgets.py`, `ui/menu.py`, `ui/dialogs.py`, `ui/tooltip.py`, `ui/slider.py` |
-| Drawing | `ui/render.py`, `ui/theme.py`, `ui/scale.py`, `ui/animation.py`, `ui/images.py`, `ui/text.py` |
+| App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
+| Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
+| Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/settings.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
+| Text | `i18n.py`, `about.py` |
+| Mirrors | `ui/overlay/mirror.py`, `ui/overlay/badge.py`, `ui/overlay/selector.py`, `ui/overlay/loupe.py` |
+| Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, and the pages: `ui/panel/mirrors_page.py`, `ui/panel/settings_page.py`, `ui/panel/shortcuts_page.py`, `ui/panel/about_page.py` |
+| Widgets | `ui/controls/widgets.py`, `ui/controls/menu.py`, `ui/controls/dialogs.py`, `ui/controls/tooltip.py`, `ui/controls/slider.py` |
+| Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/animation.py`, `ui/base/images.py`, `ui/base/text.py`, `ui/base/windows.py` |
 
 ## Conventions
 
 - State lives on `App`; UI classes get callbacks, never globals.
-- Every Win32 function is declared once, with its argument and return types, in `win32.py` or `dwm.py`.
+- Every Win32 function is declared once, with its argument and return types, in `winapi/win32.py` or `winapi/dwm.py`.
 - Pure modules stay free of Win32 and Tk, so they stay testable.
-- Every extra window says what a close request (Alt+F4) means: dialogs cancel, menus close, mirrors and badges ignore it (`ui/windows.py`); a test checks each one.
+- Every extra window says what a close request (Alt+F4) means: dialogs cancel, menus close, mirrors and badges ignore it (`ui/base/windows.py`); a test checks each one.
 - Everything is type-annotated and `mypy --strict` passes.
 - Names are spelled out (`mirror`, `profile`, `middle_y`).
   Short names are kept only where they're the usual convention: `e` for a Tk event, `x, y, w, h`, `x0, y0, x1, y1`, `i`, `lo, hi`, and the Windows terms `hwnd` and `vk`.

@@ -1,7 +1,7 @@
 from tibia_mirror.config import DEFAULT_PROFILE
-from tibia_mirror.geometry import Rect
-from tibia_mirror.profiles import ProfileStore, copy_name, name_error
-from tibia_mirror.regions import Layout, SavedRegion
+from tibia_mirror.core.geometry import Rect
+from tibia_mirror.core.profiles import ProfileStore, copy_name, name_error
+from tibia_mirror.core.regions import Layout, SavedRegion
 
 CD = SavedRegion("Cooldowns", {"1600x900": Layout(Rect(1, 2, 3, 4), (5, 6))})
 
