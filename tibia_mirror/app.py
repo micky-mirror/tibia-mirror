@@ -43,8 +43,6 @@ from tibia_mirror.core.timers import (
     combo_matches,
     key_clashes,
     key_matches,
-    pauses_of,
-    with_pauses,
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
@@ -125,7 +123,6 @@ class App:
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title
-        self.timers = RunningTimers(self.settings)
         self._selecting = False
         # Hidden with the hide-all key; each mirror keeps its own hidden flag too.
         # Not remembered across starts.
@@ -154,6 +151,7 @@ class App:
         self.mirrors = Mirrors(
             self.root, on_remove=self.remove_mirror, on_changed=lambda _mirror: self._changed()
         )
+        self.timers = RunningTimers(self.settings, self.mirrors)
         self._panel_actions = MirrorsActions(
             add=self.add_region,
             save=self.save,
@@ -809,7 +807,7 @@ class App:
         """Notice a character logging in: open its profile, if that setting is on."""
         character = characters.character_in_title(self.game.title())
         if character != self.timers.online:
-            self._timers_online(character)
+            self.timers.set_online(character, time.monotonic())
         if character == self._character:
             return
         wanted = character is not None and self.settings.current.profile_per_character
@@ -822,32 +820,6 @@ class App:
             self._open_character_profile(character)
 
     # ---- timers that pause while logged out ---------------------------------
-    def _timers_online(self, character: str | None) -> None:
-        """A character logged in or out (None): pause or continue its timers."""
-        now = time.monotonic()
-        pauses = self.settings.current.timer_pauses
-        if self.timers.online is not None:
-            elapsed = {
-                mirror_id: now - start for mirror_id, start in self.timers.started_at.items()
-            }
-            pauses = with_pauses(pauses, self.timers.online, elapsed)
-            self.timers.last_online = self.timers.online
-        self.timers.online = character
-        self.timers.started_at = {}
-        if character is not None:
-            # Running again: kept in memory until the logout, see started_at.
-            self.timers.started_at = {
-                mirror_id: now - seconds
-                for mirror_id, seconds in pauses_of(pauses, character).items()
-            }
-            pauses = with_pauses(pauses, character, {})
-        if pauses != self.settings.current.timer_pauses:
-            self.settings.update(timer_pauses=pauses)
-        if (self.timers.last_online or "") != self.settings.current.last_character:
-            self.settings.update(last_character=self.timers.last_online or "")
-        for mirror in self.mirrors:
-            self.timers.sync(mirror, now)
-
     def _dialog_open(self) -> bool:
         """Whether a modal dialog holds the grab.
 

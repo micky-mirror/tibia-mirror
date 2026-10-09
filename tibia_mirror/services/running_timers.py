@@ -9,14 +9,16 @@ so RunningTimers reads and changes it there.
 
 from __future__ import annotations
 
-from tibia_mirror.core.timers import pauses_of, without_mirrors
+from tibia_mirror.core.timers import Pauses, pauses_of, with_pauses, without_mirrors
+from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.services.settings_store import SettingsStore
 from tibia_mirror.ui.overlay.mirror import MirrorWindow
 
 
 class RunningTimers:
-    def __init__(self, settings: SettingsStore) -> None:
+    def __init__(self, settings: SettingsStore, mirrors: Mirrors) -> None:
         self._settings = settings
+        self._mirrors = mirrors
         # The character that is logged in to Tibia now. None if nobody is logged in.
         # It changes at once on a login or logout, so the timers lose no time.
         self.online: str | None = None
@@ -28,6 +30,38 @@ class RunningTimers:
         # It can hold mirrors of other profiles too.
         # It is lost if the app closes while a character is logged in.
         self.started_at: dict[str, float] = {}
+
+    def set_online(self, character: str | None, now: float) -> None:
+        """A character logged in, or logged out (then `character` is None)."""
+        if self.online is not None:
+            self._pause_timers(self.online, now)
+        self.online = character
+        self.started_at = {}
+        if character is not None:
+            self._continue_timers(character, now)
+        for mirror in self._mirrors:
+            self.sync(mirror, now)
+
+    def _pause_timers(self, character: str, now: float) -> None:
+        """`character` logs out: save how far each of its running timers got."""
+        elapsed = {mirror_id: now - start for mirror_id, start in self.started_at.items()}
+        self._save_pauses(with_pauses(self._settings.current.timer_pauses, character, elapsed))
+        self.last_online = character
+        if character != self._settings.current.last_character:
+            self._settings.update(last_character=character)
+
+    def _continue_timers(self, character: str, now: float) -> None:
+        """`character` logs in: its paused timers run again."""
+        paused = pauses_of(self._settings.current.timer_pauses, character)
+        # A start time in the past makes the timer go on from its saved progress.
+        self.started_at = {mirror_id: now - seconds for mirror_id, seconds in paused.items()}
+        # The timers run again, so the paused progress of this character is removed.
+        self._save_pauses(with_pauses(self._settings.current.timer_pauses, character, {}))
+
+    def _save_pauses(self, pauses: Pauses) -> None:
+        """Write the paused progress to the settings, if it is different."""
+        if pauses != self._settings.current.timer_pauses:
+            self._settings.update(timer_pauses=pauses)
 
     def start(self, mirror: MirrorWindow, at: float) -> None:
         """Start the timer of `mirror` at the time `at`.
@@ -47,9 +81,7 @@ class RunningTimers:
         Call it when the mirror is removed, or when its timer gets new settings.
         """
         self.started_at.pop(mirror.id, None)
-        pauses = without_mirrors(self._settings.current.timer_pauses, {mirror.id})
-        if pauses != self._settings.current.timer_pauses:
-            self._settings.update(timer_pauses=pauses)
+        self._save_pauses(without_mirrors(self._settings.current.timer_pauses, {mirror.id}))
 
     def sync(self, mirror: MirrorWindow, now: float) -> None:
         """Make the timer of `mirror` show the right state for who is logged in.

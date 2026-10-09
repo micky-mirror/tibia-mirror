@@ -32,14 +32,19 @@ def settings(tmp_path):
 
 
 @pytest.fixture
-def timers(settings):
-    return RunningTimers(settings)
+def mirrors():
+    return []
+
+
+@pytest.fixture
+def timers(settings, mirrors):
+    return RunningTimers(settings, mirrors)
 
 
 def test_last_online_comes_from_the_settings(settings):
-    assert RunningTimers(settings).last_online is None
+    assert RunningTimers(settings, []).last_online is None
     settings.update(last_character="Knight")
-    assert RunningTimers(settings).last_online == "Knight"
+    assert RunningTimers(settings, []).last_online == "Knight"
 
 
 def test_a_plain_timer_starts_also_when_nobody_is_logged_in(timers):
@@ -91,7 +96,7 @@ def test_sync_shows_a_running_timer_while_someone_is_logged_in(timers):
 def test_sync_shows_the_paused_progress_of_who_was_logged_in_last(settings):
     settings.update(timer_pauses=(("Knight", "m1", 12.5),), last_character="Knight")
     mirror = FakeMirror("m1", PAUSING)
-    RunningTimers(settings).sync(mirror, 10.0)
+    RunningTimers(settings, []).sync(mirror, 10.0)
     assert mirror.restored == (10.0, None, 12.5)
 
 
@@ -99,3 +104,53 @@ def test_sync_shows_not_started_when_nobody_was_logged_in_yet(timers):
     mirror = FakeMirror("m1", PAUSING)
     timers.sync(mirror, 10.0)
     assert mirror.restored == (10.0, None, None)
+
+
+def test_a_login_with_nothing_paused_only_sets_who_is_online(timers, settings):
+    timers.set_online("Knight", 10.0)
+    assert timers.online == "Knight"
+    assert timers.started_at == {}
+    assert settings.current.timer_pauses == ()
+
+
+def test_a_logout_saves_how_far_each_running_timer_got(timers, settings):
+    timers.online = "Knight"
+    timers.started_at = {"m1": 4.0}
+    timers.set_online(None, 10.0)
+    assert timers.online is None
+    assert timers.started_at == {}
+    assert settings.current.timer_pauses == (("Knight", "m1", 6.0),)
+    assert timers.last_online == "Knight"
+    assert settings.current.last_character == "Knight"
+
+
+def test_a_login_continues_the_paused_timers_of_that_character(timers, settings):
+    settings.update(timer_pauses=(("Knight", "m1", 6.0),))
+    timers.set_online("Knight", 20.0)
+    assert timers.started_at == {"m1": 14.0}
+    assert settings.current.timer_pauses == ()
+
+
+def test_the_paused_timers_of_another_character_are_kept(timers, settings):
+    settings.update(timer_pauses=(("Druid", "m9", 3.0), ("Knight", "m1", 6.0)))
+    timers.set_online("Knight", 20.0)
+    assert settings.current.timer_pauses == (("Druid", "m9", 3.0),)
+
+
+def test_a_change_from_one_character_to_another_pauses_and_continues(timers, settings):
+    settings.update(timer_pauses=(("Druid", "m9", 3.0),))
+    timers.online = "Knight"
+    timers.started_at = {"m1": 4.0}
+    timers.set_online("Druid", 10.0)
+    assert settings.current.timer_pauses == (("Knight", "m1", 6.0),)
+    assert timers.started_at == {"m9": 7.0}
+    assert timers.last_online == "Knight"
+
+
+def test_after_a_logout_every_mirror_shows_its_paused_progress(timers, mirrors):
+    mirror = FakeMirror("m1", PAUSING)
+    mirrors.append(mirror)
+    timers.online = "Knight"
+    timers.started_at = {"m1": 4.0}
+    timers.set_online(None, 10.0)
+    assert mirror.restored == (10.0, None, 6.0)
