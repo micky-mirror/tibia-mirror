@@ -54,6 +54,7 @@ from tibia_mirror.core.timers import (
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
+from tibia_mirror.services.active_profile import ActiveProfile
 from tibia_mirror.services.game import Game
 from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.ui.base import scale, theme
@@ -114,9 +115,11 @@ class App:
         self.settings = settings.load(settings_file)
         names = self.store.names()
         # Windows file names ignore case, so match the remembered profile the same way.
-        self.profile = next(
-            (name for name in names if name.casefold() == self.settings.profile.casefold()),
-            names[0],
+        self.profile = ActiveProfile(
+            next(
+                (name for name in names if name.casefold() == self.settings.profile.casefold()),
+                names[0],
+            )
         )
         self.game = Game()
         self._pid = os.getpid()
@@ -134,13 +137,9 @@ class App:
         # Hidden with the hide-all key; each mirror keeps its own hidden flag too.
         # Not remembered across starts.
         self._all_hidden = False
-        self._saved_snapshot = regions.snapshot([])  # the active profile as last saved or loaded
         # Tk `after` job ids of the pending debounced saves (see _schedule).
         self._autosave_job: str | None = None
         self._settings_job: str | None = None
-        # True until the active profile's mirrors are loaded, which needs Tibia.
-        # A restart of Tibia keeps the loaded mirrors, unsaved changes included.
-        self._needs_load = True
         self._selector: RegionSelector | None = None
         # Clicks and key presses from anywhere: used only for timers and the hide-all key.
         self._input = InputWatcher(self._on_click, self._on_key)
@@ -254,7 +253,7 @@ class App:
             self.root.destroy()
 
         self._resolve_unsaved(
-            tr('Save changes to "{name}" before closing?', name=self.profile), quit_app
+            tr('Save changes to "{name}" before closing?', name=self.profile.name), quit_app
         )
 
     # ---- mirrors page actions -----------------------------------------------
@@ -268,11 +267,11 @@ class App:
         self._cancel("_autosave_job")
         saved = [mirror.to_saved() for mirror in self.mirrors]
         try:
-            self.store.save(self.profile, saved)
+            self.store.save(self.profile.name, saved)
         except OSError:
             self.page.set_status(tr("Save failed"), "error")
             return False
-        self._saved_snapshot = regions.snapshot(saved)
+        self.profile.saved_snapshot = regions.snapshot(saved)
         self._changed()
         if not quiet:
             self.page.set_status(
@@ -396,9 +395,9 @@ class App:
 
     # ---- profile actions ----------------------------------------------------
     def select_profile(self, name: str) -> None:
-        if name != self.profile:
+        if name != self.profile.name:
             self._resolve_unsaved(
-                tr('Save changes to "{name}" before switching?', name=self.profile),
+                tr('Save changes to "{name}" before switching?', name=self.profile.name),
                 lambda: self._open_profile(name),
             )
 
@@ -409,7 +408,7 @@ class App:
             regions.next_default_name(names, stem=tr("Profile")),
             self._panel_center(),
             on_ok=lambda name: self._resolve_unsaved(
-                tr('Save changes to "{name}" before switching?', name=self.profile),
+                tr('Save changes to "{name}" before switching?', name=self.profile.name),
                 lambda: self._create_profile(name),
             ),
             on_cancel=_nothing,
@@ -421,7 +420,7 @@ class App:
         names = self.store.names()
         NameDialog(
             self.root,
-            copy_name(self.profile, names, tr("copy")),
+            copy_name(self.profile.name, names, tr("copy")),
             self._panel_center(),
             on_ok=self._duplicate_profile,
             on_cancel=_nothing,
@@ -430,10 +429,10 @@ class App:
         )
 
     def rename_profile(self) -> None:
-        others = [name for name in self.store.names() if name != self.profile]
+        others = [name for name in self.store.names() if name != self.profile.name]
         NameDialog(
             self.root,
-            self.profile,
+            self.profile.name,
             self._panel_center(),
             on_ok=self._rename_profile,
             on_cancel=_nothing,
@@ -468,7 +467,7 @@ class App:
             default,
             self._panel_center(),
             on_ok=lambda name: self._resolve_unsaved(
-                tr('Save changes to "{name}" before switching?', name=self.profile),
+                tr('Save changes to "{name}" before switching?', name=self.profile.name),
                 lambda: self._import_profile(name, saved),
             ),
             on_cancel=_nothing,
@@ -481,33 +480,33 @@ class App:
         path = filedialog.asksaveasfilename(
             parent=self.root,
             title=tr("Export profile"),
-            initialfile=f"{self.profile}.json",
+            initialfile=f"{self.profile.name}.json",
             defaultextension=".json",
             filetypes=[(tr("Tibia Mirror profile"), "*.json")],
         )
         if not path:
             return
         try:
-            self.store.export(self.profile, Path(path))
+            self.store.export(self.profile.name, Path(path))
         except OSError:
             self.page.set_status(tr("Export failed"), "error")
             return
-        self.page.set_status(tr('Exported "{name}"', name=self.profile), "ok")
+        self.page.set_status(tr('Exported "{name}"', name=self.profile.name), "ok")
 
     def edit_characters(self) -> None:
         CharactersDialog(
             self.root,
-            self.profile,
+            self.profile.name,
             self.settings.characters,
             self._panel_center(),
             on_change=self._set_links,
         )
 
     def copy_profile_from(self) -> None:
-        sources = [name for name in self.store.names() if name != self.profile]
+        sources = [name for name in self.store.names() if name != self.profile.name]
         if sources and self._require_client() is not None:
             CopyFromDialog(
-                self.root, self.profile, sources, self._panel_center(), self._copy_mirrors_from
+                self.root, self.profile.name, sources, self._panel_center(), self._copy_mirrors_from
             )
 
     def delete_profile(self) -> None:
@@ -516,7 +515,10 @@ class App:
         ChoiceDialog(
             self.root,
             tr("Delete profile"),
-            tr('Delete "{name}" and all its mirrors? This can\'t be undone.', name=self.profile),
+            tr(
+                'Delete "{name}" and all its mirrors? This can\'t be undone.',
+                name=self.profile.name,
+            ),
             self._panel_center(),
             [
                 Choice(tr("Cancel"), _nothing),
@@ -551,7 +553,7 @@ class App:
         if combo is not None and clash is not None:
             name, profile = clash
             key_name = key_combo_name(combo)
-            if profile == self.profile:
+            if profile == self.profile.name:
                 return tr('{key} already starts the timer of "{name}".', key=key_name, name=name)
             return tr(
                 '{key} already starts the timer of "{name}" in profile "{profile}".',
@@ -571,13 +573,13 @@ class App:
         """(mirror name, profile) of an enabled timer that `combo` starts, or None."""
 
         def timers(profile: str) -> list[tuple[str, TimerSettings]]:
-            if profile == self.profile and not self._needs_load:
+            if profile == self.profile.name and not self.profile.needs_load:
                 return [(mirror.name, mirror.timer) for mirror in self.mirrors]
             return [(e.name, e.timer) for e in self.store.load(profile, self.game.client)]
 
         for profile in [
-            self.profile,
-            *(name for name in self.store.names() if name != self.profile),
+            self.profile.name,
+            *(name for name in self.store.names() if name != self.profile.name),
         ]:
             try:
                 found = [name for name, timer in timers(profile) if key_clashes(timer, combo)]
@@ -605,7 +607,7 @@ class App:
             self.root, self.settings, self._panel_actions, self.set_setting, page=page
         )
         self.page = self.panel.mirrors
-        self.page.set_profiles(self.store.names(), self.profile)
+        self.page.set_profiles(self.store.names(), self.profile.name)
         self.page.set_autosave(self.settings.autosave)
         self._show_regions()
         self._show_connection()
@@ -687,7 +689,8 @@ class App:
 
     def _unsaved(self) -> bool:
         return (
-            regions.snapshot(mirror.to_saved() for mirror in self.mirrors) != self._saved_snapshot
+            regions.snapshot(mirror.to_saved() for mirror in self.mirrors)
+            != self.profile.saved_snapshot
         )
 
     def _changed(self) -> None:
@@ -723,7 +726,7 @@ class App:
         )
 
     def _set_active_profile(self, name: str) -> None:
-        self.profile = name
+        self.profile.name = name
         self.page.set_profiles(self.store.names(), name)
         self._update_settings(profile=name)
 
@@ -736,8 +739,8 @@ class App:
             return
         # Loaded by _attach_poll once Tibia is running and not minimized.
         self.mirrors.clear()
-        self._needs_load = True
-        self._saved_snapshot = regions.snapshot([])
+        self.profile.needs_load = True
+        self.profile.saved_snapshot = regions.snapshot([])
         self._show_regions()
         self._changed()
 
@@ -751,20 +754,20 @@ class App:
 
     def _duplicate_profile(self, name: str) -> None:
         """Save what is on screen (unsaved changes included) as a new profile and switch to it."""
-        loaded = not self._needs_load
+        loaded = not self.profile.needs_load
         saved = [mirror.to_saved() for mirror in self.mirrors]
         try:
             if loaded:
                 self.store.save(name, saved)
             else:
                 # Until Tibia connects the mirrors are not loaded yet, so copy the file.
-                self.store.copy(self.profile, name)
+                self.store.copy(self.profile.name, name)
         except OSError:
             self.page.set_status(tr("Could not duplicate profile"), "error")
             return
         self._cancel("_autosave_job")
         if loaded:
-            self._saved_snapshot = regions.snapshot(saved)
+            self.profile.saved_snapshot = regions.snapshot(saved)
         self._set_active_profile(name)
         self._changed()
 
@@ -777,24 +780,26 @@ class App:
         self._open_profile(name)
 
     def _rename_profile(self, name: str) -> None:
-        if name == self.profile:
+        if name == self.profile.name:
             return
         try:
-            self.store.rename(self.profile, name)
+            self.store.rename(self.profile.name, name)
         except OSError:
             self.page.set_status(tr("Could not rename profile"), "error")
             return
-        self._set_links(characters.rename_profile(self.settings.characters, self.profile, name))
+        self._set_links(
+            characters.rename_profile(self.settings.characters, self.profile.name, name)
+        )
         self._set_active_profile(name)
 
     def _delete_profile(self) -> None:
         self._cancel("_autosave_job")
         try:
-            self.store.delete(self.profile)
+            self.store.delete(self.profile.name)
         except OSError:
             self.page.set_status(tr("Could not delete profile"), "error")
             return
-        self._set_links(characters.drop_profile(self.settings.characters, self.profile))
+        self._set_links(characters.drop_profile(self.settings.characters, self.profile.name))
         self._open_profile(self.store.names()[0])
 
     def _set_links(self, links: Links) -> None:
@@ -802,7 +807,7 @@ class App:
 
     def _copy_mirrors_from(self, source: str) -> None:
         """Replace the mirrors on screen with `source`'s as saved, as an unsaved change."""
-        if self._require_client() is None or self._needs_load:
+        if self._require_client() is None or self.profile.needs_load:
             return
         try:
             saved = self.store.load(source, self.game.current_client())
@@ -910,9 +915,9 @@ class App:
         target = next(
             (name for name in names if linked and name.casefold() == linked.casefold()), None
         )
-        question = tr('Save changes to "{name}" before switching?', name=self.profile)
+        question = tr('Save changes to "{name}" before switching?', name=self.profile.name)
         if target is not None:
-            if target != self.profile:
+            if target != self.profile.name:
                 self._resolve_unsaved(question, lambda: self._open_for(character, target))
             return
         name, exists = characters.profile_for_new_character(character, names, links, tr("copy"))
@@ -920,20 +925,20 @@ class App:
         def create() -> None:
             if not exists:
                 try:
-                    self.store.copy(self.profile, name)
+                    self.store.copy(self.profile.name, name)
                 except OSError:
                     self.page.set_status(tr("Could not create profile"), "error")
                     return
             self._set_links(characters.link(self.settings.characters, character, name))
             self._open_for(character, name, created=not exists)
 
-        if exists and name == self.profile:
+        if exists and name == self.profile.name:
             create()
         else:
             self._resolve_unsaved(question, create)
 
     def _open_for(self, character: str, name: str, created: bool = False) -> None:
-        if name != self.profile:
+        if name != self.profile.name:
             self._open_profile(name)
         # The picker above shows the profile's name.
         if created:
@@ -946,11 +951,11 @@ class App:
         """Replace the mirrors with the active profile as saved on disk."""
         self._cancel("_autosave_job")
         self.mirrors.clear()
-        self._needs_load = False
+        self.profile.needs_load = False
         try:
-            saved = self.store.load(self.profile, self.game.current_client())
+            saved = self.store.load(self.profile.name, self.game.current_client())
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
-            self._saved_snapshot = regions.snapshot([])
+            self.profile.saved_snapshot = regions.snapshot([])
             self._show_regions()
             self.page.set_status(tr("Profile file is invalid"), "error")
             self._changed()
@@ -960,8 +965,8 @@ class App:
             # A file from before mirror ids: write them back now, so paused timers keep
             # finding their mirrors. If that fails, the next Save writes them.
             with contextlib.suppress(OSError):
-                self.store.save(self.profile, saved)
-        self._saved_snapshot = regions.snapshot(saved)
+                self.store.save(self.profile.name, saved)
+        self.profile.saved_snapshot = regions.snapshot(saved)
         failed = sum(not self._create_mirror(e) for e in saved)
         self._show_regions()
         if failed:
@@ -1102,7 +1107,7 @@ class App:
             self.root.after(ATTACH_POLL_MS, self._attach_poll)
             return
         self._show_connection()
-        if self._needs_load:
+        if self.profile.needs_load:
             self._load_mirrors()
         else:
             self._reattach_mirrors(game_hwnd, client)
@@ -1110,7 +1115,7 @@ class App:
     def _show_regions(self) -> None:
         """Refresh the region cards; before the profile is loaded, say what it waits for."""
         pending: str | None = None
-        if self._needs_load:
+        if self.profile.needs_load:
             if self.game.hwnd is None:
                 pending = tr("This profile's mirrors appear once Tibia is running.")
             else:
