@@ -17,17 +17,15 @@ from tibia_mirror.config import (
     ROUND_SMALL_RADIUS,
     ZOOM_RANGE,
 )
-from tibia_mirror.dwm import Thumbnail
-from tibia_mirror.geometry import (
+from tibia_mirror.core.geometry import (
     Rect,
     clamp_box,
     resize_around_center,
     scaled_size,
     zoom_for_width,
 )
-from tibia_mirror.handles import Hwnd
-from tibia_mirror.i18n import tr
-from tibia_mirror.regions import (
+from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.core.regions import (
     Layout,
     SavedRegion,
     clamp_opacity,
@@ -36,7 +34,9 @@ from tibia_mirror.regions import (
     new_id,
     size_key,
 )
-from tibia_mirror.timers import TimerSettings, badge_text, is_done
+from tibia_mirror.core.timers import TimerSettings, badge_text, is_done
+from tibia_mirror.dwm import Thumbnail
+from tibia_mirror.i18n import tr
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.animation import Tween
 from tibia_mirror.ui.badge import TimerBadge

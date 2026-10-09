@@ -9,11 +9,11 @@ from dataclasses import asdict, dataclass, fields, replace
 from pathlib import Path
 from typing import Any
 
-from tibia_mirror import characters
-from tibia_mirror.characters import Links
 from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
-from tibia_mirror.regions import clamp_opacity
-from tibia_mirror.timers import (
+from tibia_mirror.core import characters
+from tibia_mirror.core.characters import Links
+from tibia_mirror.core.regions import clamp_opacity
+from tibia_mirror.core.timers import (
     KeyCombo,
     Pauses,
     canonical_modifiers,

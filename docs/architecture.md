@@ -74,7 +74,7 @@ Reading the program's path uses the lowest access level Windows offers (`PROCESS
 
 ## When mirrors show
 
-Mirrors should show while the player is looking at Tibia (`visibility.py`):
+Mirrors should show while the player is looking at Tibia (`core/visibility.py`):
 
 - They show while Tibia is the foreground window.
 - While one of the app's own windows is in front (the panel, a dialog), the last *other* window decides: coming from Tibia keeps them visible, coming from a browser keeps them hidden.
@@ -91,20 +91,20 @@ Clicks and key presses come from Windows **Raw Input** (`rawinput.py`), which on
 - A click starts the timers whose region it hits, but only if it landed on Tibia.
 - A key starts the timers bound to exactly that combination, but only while Tibia is in front.
 - A key combination does one thing only: the hide-all key and timer keys can't clash.
-- The pure timer logic (what the badge shows, key matching, paused progress) is in `timers.py`.
+- The pure timer logic (what the badge shows, key matching, paused progress) is in `core/timers.py`.
 
 **Pause while logged out**: the App reads the logged-in character from Tibia's window title ("Tibia - Name").
 Running timers' start times are kept in memory; at logout they become paused progress in `settings.json`, per character and per mirror id, and continue at the next login.
 
 ## Profiles and settings
 
-- **Profiles** (`profiles.py`, `regions.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
+- **Profiles** (`core/profiles.py`, `core/regions.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
   Each mirror has a permanent hidden `id`, a name, opacity, zoom, colour, timer and its layouts.
   Older file formats still load.
 - **Unsaved changes** are found by comparing what Save would write with the file as loaded, so undoing a change by hand clears the flag.
-- **Settings** (`settings.py`) are saved to `settings.json` shortly after each change.
+- **Settings** (`core/settings.py`) are saved to `settings.json` shortly after each change.
   Bad or unknown values fall back to defaults, so a hand-edited file never stops the app from starting.
-- **Profile per character** (`characters.py`) links character names to profiles in `settings.json`.
+- **Profile per character** (`core/characters.py`) links character names to profiles in `settings.json`.
   A login switches profiles through the same "save changes first?" flow as switching by hand, and waits while a dialog is open.
 
 ## The control panel
@@ -152,9 +152,9 @@ These are deliberate and must stay true:
 | Area | Files |
 |---|---|
 | App and startup | `app.py`, `main.py`, `instance.py`, `errors.py`, `config.py` |
-| Windows and Tibia | `win32.py` (all Win32 calls), `dwm.py`, `tibia.py`, `rawinput.py`, `handles.py` |
-| Data | `regions.py`, `profiles.py`, `settings.py`, `characters.py` |
-| Logic | `geometry.py`, `visibility.py`, `timers.py`, `sounds.py`, `i18n.py`, `about.py` |
+| Windows and Tibia | `win32.py` (all Win32 calls), `dwm.py`, `tibia.py`, `rawinput.py`, `sounds.py` |
+| Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/settings.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
+| Text | `i18n.py`, `about.py` |
 | Mirrors | `ui/mirror.py`, `ui/badge.py`, `ui/selector.py`, `ui/loupe.py` |
 | Panel | `ui/panel.py`, `ui/nav.py`, and the pages: `ui/mirrors_page.py`, `ui/settings_page.py`, `ui/shortcuts_page.py`, `ui/about_page.py` |
 | Widgets | `ui/widgets.py`, `ui/menu.py`, `ui/dialogs.py`, `ui/tooltip.py`, `ui/slider.py` |

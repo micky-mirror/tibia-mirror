@@ -2,8 +2,8 @@
 
 import tkinter as tk
 
+from tibia_mirror.core.settings import Settings
 from tibia_mirror.i18n import tr
-from tibia_mirror.settings import Settings
 from tibia_mirror.ui.settings_page import KeyRow, OnChange, build_groups_page
 
 

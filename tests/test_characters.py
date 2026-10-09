@@ -1,5 +1,5 @@
-from tibia_mirror import characters
-from tibia_mirror.characters import (
+from tibia_mirror.core import characters
+from tibia_mirror.core.characters import (
     character_in_title,
     characters_of,
     drop_profile,

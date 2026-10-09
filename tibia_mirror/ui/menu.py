@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import partial
 
 from tibia_mirror import dwm, win32
-from tibia_mirror.geometry import Box
+from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.images import photo
 from tibia_mirror.ui.render import ButtonStyle, button_pixels, outlined_pixels

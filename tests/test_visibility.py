@@ -1,4 +1,4 @@
-from tibia_mirror.visibility import mirrors_should_show, next_last_external
+from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 
 GAME, BROWSER, PANEL = 100, 200, 300
 

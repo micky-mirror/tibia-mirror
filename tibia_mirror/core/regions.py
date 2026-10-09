@@ -18,8 +18,8 @@ from tibia_mirror.config import (
     MIN_OPACITY,
     ZOOM_RANGE,
 )
-from tibia_mirror.geometry import Rect, clamp_rect
-from tibia_mirror.timers import TimerSettings
+from tibia_mirror.core.geometry import Rect, clamp_rect
+from tibia_mirror.core.timers import TimerSettings
 
 FORMAT_VERSION = 2
 

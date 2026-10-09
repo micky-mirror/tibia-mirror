@@ -5,7 +5,7 @@ import tkinter as tk
 from dataclasses import dataclass
 
 from tibia_mirror import dwm, win32
-from tibia_mirror.geometry import Box
+from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.windows import keep_open

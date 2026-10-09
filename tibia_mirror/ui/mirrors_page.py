@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
 
-from tibia_mirror.geometry import Box, Point
+from tibia_mirror.core.geometry import Box, Point
 from tibia_mirror.i18n import tr, tr_n
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.menu import SEPARATOR, MenuItem, PopupMenu, ProfilePicker

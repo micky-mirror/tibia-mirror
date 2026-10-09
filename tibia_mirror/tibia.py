@@ -1,7 +1,7 @@
 """Finding the Tibia client window, by its executable path (titles alone can match other apps)."""
 
 from tibia_mirror import win32
-from tibia_mirror.handles import Hwnd
+from tibia_mirror.core.handles import Hwnd
 
 TITLE_PREFIX = "Tibia"
 EXE_SUFFIX = "\\tibia\\bin\\client.exe"

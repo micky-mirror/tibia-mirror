@@ -7,9 +7,9 @@ import shutil
 from collections.abc import Iterable
 from pathlib import Path
 
-from tibia_mirror import regions
 from tibia_mirror.config import DEFAULT_PROFILE
-from tibia_mirror.geometry import Rect
+from tibia_mirror.core import regions
+from tibia_mirror.core.geometry import Rect
 
 INVALID_CHARS = frozenset('<>:"/\\|?*')
 RESERVED_NAMES = frozenset(

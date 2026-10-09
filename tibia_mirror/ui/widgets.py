@@ -9,10 +9,10 @@ from dataclasses import replace
 from typing import Protocol
 
 from tibia_mirror.config import FRAME_COLORS, FRAME_COLORS_PER_ROW, MIN_OPACITY, OPACITY_STEP
-from tibia_mirror.geometry import Box, Point, scroll_fraction, scroll_thumb
+from tibia_mirror.core.geometry import Box, Point, scroll_fraction, scroll_thumb
+from tibia_mirror.core.regions import clamp_opacity
+from tibia_mirror.core.timers import KeyCombo, clock
 from tibia_mirror.i18n import tr
-from tibia_mirror.regions import clamp_opacity
-from tibia_mirror.timers import KeyCombo, clock
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.images import photo
 from tibia_mirror.ui.menu import SwatchPicker

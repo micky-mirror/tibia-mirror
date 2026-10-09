@@ -10,8 +10,8 @@ import tkinter as tk
 from ctypes import wintypes
 from typing import Any
 
-from tibia_mirror.geometry import Rect
-from tibia_mirror.handles import Hwnd
+from tibia_mirror.core.geometry import Rect
+from tibia_mirror.core.handles import Hwnd
 
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32

@@ -6,7 +6,7 @@ they fit in the frozen Settings.
 
 from collections.abc import Iterable
 
-from tibia_mirror.profiles import copy_name, name_error
+from tibia_mirror.core.profiles import copy_name, name_error
 
 Links = tuple[tuple[str, str], ...]
 

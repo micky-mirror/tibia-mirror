@@ -10,9 +10,9 @@ from typing import TypedDict
 
 from tibia_mirror import win32
 from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
+from tibia_mirror.core.settings import Settings
+from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.i18n import tr
-from tibia_mirror.settings import Settings
-from tibia_mirror.timers import KeyCombo
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.animation import Tween
 from tibia_mirror.ui.dialogs import key_combo_name

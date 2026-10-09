@@ -1,4 +1,4 @@
-from tibia_mirror.timers import (
+from tibia_mirror.core.timers import (
     TimerSettings,
     badge_text,
     button_matches,

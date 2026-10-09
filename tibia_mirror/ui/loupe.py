@@ -3,9 +3,9 @@
 import tkinter as tk
 
 from tibia_mirror import win32
+from tibia_mirror.core.geometry import Rect, magnifier_source
+from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.dwm import Thumbnail
-from tibia_mirror.geometry import Rect, magnifier_source
-from tibia_mirror.handles import Hwnd
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.scale import px
 from tibia_mirror.ui.windows import keep_open

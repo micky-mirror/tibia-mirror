@@ -13,8 +13,7 @@ from tkinter import filedialog
 from types import TracebackType
 from typing import Any
 
-from tibia_mirror import characters, dwm, errors, i18n, regions, settings, sounds, win32
-from tibia_mirror.characters import Links
+from tibia_mirror import dwm, errors, i18n, sounds, win32
 from tibia_mirror.config import (
     APP_ID,
     ATTACH_POLL_MS,
@@ -35,15 +34,13 @@ from tibia_mirror.config import (
     VISIBILITY_POLL_MS,
     ZOOM_RANGE,
 )
-from tibia_mirror.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
-from tibia_mirror.handles import Hwnd
-from tibia_mirror.i18n import tr, tr_n
-from tibia_mirror.instance import SingleInstance
-from tibia_mirror.profiles import ProfileStore, copy_name, name_error
-from tibia_mirror.rawinput import InputWatcher
-from tibia_mirror.settings import PanelRect
-from tibia_mirror.tibia import find_tibia_window
-from tibia_mirror.timers import (
+from tibia_mirror.core import characters, regions, settings
+from tibia_mirror.core.characters import Links
+from tibia_mirror.core.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
+from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.core.profiles import ProfileStore, copy_name, name_error
+from tibia_mirror.core.settings import PanelRect
+from tibia_mirror.core.timers import (
     KeyCombo,
     Pauses,
     TimerSettings,
@@ -55,6 +52,11 @@ from tibia_mirror.timers import (
     with_pauses,
     without_mirrors,
 )
+from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
+from tibia_mirror.i18n import tr, tr_n
+from tibia_mirror.instance import SingleInstance
+from tibia_mirror.rawinput import InputWatcher
+from tibia_mirror.tibia import find_tibia_window
 from tibia_mirror.ui import scale, theme
 from tibia_mirror.ui.dialogs import (
     CharactersDialog,
@@ -76,7 +78,6 @@ from tibia_mirror.ui.mirrors_page import (
 from tibia_mirror.ui.panel import ControlPanel
 from tibia_mirror.ui.selector import RegionSelector
 from tibia_mirror.ui.settings_page import SettingValue
-from tibia_mirror.visibility import mirrors_should_show, next_last_external
 
 
 def _nothing() -> None:

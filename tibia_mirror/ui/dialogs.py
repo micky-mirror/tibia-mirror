@@ -8,12 +8,13 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from functools import partial
 
-from tibia_mirror import characters, dwm, sounds, win32
-from tibia_mirror.characters import Links
+from tibia_mirror import dwm, sounds, win32
 from tibia_mirror.config import MAX_NAME_LENGTH, TIMER_SOUNDS
-from tibia_mirror.geometry import Point, Rect, region_error
+from tibia_mirror.core import characters
+from tibia_mirror.core.characters import Links
+from tibia_mirror.core.geometry import Point, Rect, region_error
+from tibia_mirror.core.timers import KeyCombo, TimerSettings, combo_name, key_clashes, parse_alert
 from tibia_mirror.i18n import tr
-from tibia_mirror.timers import KeyCombo, TimerSettings, combo_name, key_clashes, parse_alert
 from tibia_mirror.ui import theme
 from tibia_mirror.ui.images import photo
 from tibia_mirror.ui.menu import DropdownField

@@ -4,7 +4,7 @@ They show while Tibia is in front, or was the last window in front before one
 of the app's own (panel, dialogs, mirrors) came up.
 """
 
-from tibia_mirror.handles import Hwnd
+from tibia_mirror.core.handles import Hwnd
 
 # Shell windows that take the foreground for a moment while switching apps
 # (taskbar, Alt+Tab). They don't count as where the user came from.
