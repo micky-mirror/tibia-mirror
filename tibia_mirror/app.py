@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import os
 import time
 import tkinter as tk
@@ -54,7 +53,7 @@ from tibia_mirror.core.timers import (
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
-from tibia_mirror.services.active_profile import ActiveProfile
+from tibia_mirror.services.active_profile import LOAD_ERRORS, ActiveProfile
 from tibia_mirror.services.game import Game
 from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.ui.base import scale, theme
@@ -947,22 +946,13 @@ class App:
         """Replace the mirrors with the active profile as saved on disk."""
         self._cancel("_autosave_job")
         self.mirrors.clear()
-        self.profile.needs_load = False
         try:
-            saved = self.store.load(self.profile.name, self.game.current_client())
-        except (OSError, ValueError, KeyError, TypeError, AttributeError):
-            self.profile.mark_saved([])
+            saved = self.profile.load(self.game.current_client())
+        except LOAD_ERRORS:
             self._show_regions()
             self.page.set_status(tr("Profile file is invalid"), "error")
             self._changed()
             return
-        saved, missing = regions.assign_ids(saved)
-        if missing:
-            # A file from before mirror ids: write them back now, so paused timers keep
-            # finding their mirrors. If that fails, the next Save writes them.
-            with contextlib.suppress(OSError):
-                self.store.save(self.profile.name, saved)
-        self.profile.mark_saved(saved)
         failed = sum(not self._create_mirror(e) for e in saved)
         self._show_regions()
         if failed:

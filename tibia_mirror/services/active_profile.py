@@ -6,11 +6,16 @@ ActiveProfile remembers its name, what was last saved, and if its mirrors are lo
 
 from __future__ import annotations
 
+import contextlib
 from collections.abc import Iterable
 
 from tibia_mirror.core import regions
+from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.profiles import ProfileStore
 from tibia_mirror.core.regions import SavedRegion
+
+# The errors that reading a broken profile file can raise.
+LOAD_ERRORS = (OSError, ValueError, KeyError, TypeError, AttributeError)
 
 
 class ActiveProfile:
@@ -46,3 +51,29 @@ class ActiveProfile:
         mirrors = list(mirrors)
         self._store.save(self.name, mirrors)
         self.mark_saved(mirrors)
+
+    def load(self, client: Rect | None) -> list[SavedRegion]:
+        """Read the mirrors from the profile file, and remember them as saved.
+
+        `client` is the client area of the game. Old profile files need it.
+        After this call needs_load is False, also when the file is broken.
+
+        If the file is broken, this raises one of LOAD_ERRORS.
+        Then an empty profile is remembered.
+
+        Mirrors from an old file have no id. They get one here, and the file is
+        written again with the ids. Paused timers find their mirror by this id.
+        If that write fails, it is not a problem: the next save writes the ids.
+        """
+        self.needs_load = False
+        try:
+            mirrors = self._store.load(self.name, client)
+        except LOAD_ERRORS:
+            self.mark_saved([])
+            raise
+        mirrors, missing_ids = regions.assign_ids(mirrors)
+        if missing_ids:
+            with contextlib.suppress(OSError):
+                self._store.save(self.name, mirrors)
+        self.mark_saved(mirrors)
+        return mirrors

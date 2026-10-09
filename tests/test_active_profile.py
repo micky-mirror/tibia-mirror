@@ -5,7 +5,7 @@ import pytest
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.profiles import ProfileStore
 from tibia_mirror.core.regions import Layout, SavedRegion
-from tibia_mirror.services.active_profile import ActiveProfile
+from tibia_mirror.services.active_profile import LOAD_ERRORS, ActiveProfile
 
 CD = SavedRegion("Cooldowns", {"1600x900": Layout(Rect(1, 2, 3, 4), (5, 6))})
 
@@ -61,3 +61,32 @@ def test_a_failed_save_keeps_the_changes_unsaved(tmp_path):
     with pytest.raises(OSError, match="disk full"):
         profile.save([CD])
     assert profile.has_unsaved([CD])
+
+
+def test_load_reads_the_file_and_leaves_nothing_unsaved(profile, store):
+    store.save("Knight", [replace(CD, id="abc")])
+    mirrors = profile.load(None)
+    assert mirrors == [replace(CD, id="abc")]
+    assert not profile.has_unsaved(mirrors)
+    assert not profile.needs_load
+
+
+def test_load_gives_no_mirrors_when_the_file_is_missing(profile):
+    assert profile.load(None) == []
+    assert not profile.has_unsaved([])
+
+
+def test_load_of_a_broken_file_raises_and_remembers_an_empty_profile(profile, tmp_path):
+    (tmp_path / "Knight.json").write_text("this is not a profile", encoding="utf-8")
+    with pytest.raises(LOAD_ERRORS):
+        profile.load(None)
+    assert not profile.needs_load
+    assert not profile.has_unsaved([])
+
+
+def test_load_gives_ids_to_old_mirrors_and_writes_them_to_the_file(profile, store):
+    store.save("Knight", [CD])  # CD has no id, like a mirror from an old file
+    mirrors = profile.load(None)
+    assert mirrors[0].id
+    assert store.load("Knight") == mirrors
+    assert not profile.has_unsaved(mirrors)
