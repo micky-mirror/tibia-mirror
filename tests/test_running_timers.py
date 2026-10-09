@@ -17,9 +17,13 @@ class FakeMirror:
         self.id = mirror_id
         self.timer = timer
         self.started = None
+        self.restored = None
 
     def start_timer(self, at):
         self.started = at
+
+    def restore_timer(self, now, started=None, paused=None):
+        self.restored = (now, started, paused)
 
 
 @pytest.fixture
@@ -66,3 +70,32 @@ def test_forget_drops_the_start_time_and_the_paused_progress(timers, settings):
     timers.forget(FakeMirror("m1", PAUSING))
     assert timers.started_at == {}
     assert settings.current.timer_pauses == (("Knight", "m2", 3.0),)
+
+
+def test_sync_does_not_touch_a_plain_timer(timers):
+    mirror = FakeMirror("m1", PLAIN)
+    timers.sync(mirror, 10.0)
+    assert mirror.restored is None
+
+
+def test_sync_shows_a_running_timer_while_someone_is_logged_in(timers):
+    timers.online = "Knight"
+    timers.started_at = {"m1": 4.0}
+    running, not_started = FakeMirror("m1", PAUSING), FakeMirror("m2", PAUSING)
+    timers.sync(running, 10.0)
+    timers.sync(not_started, 10.0)
+    assert running.restored == (10.0, 4.0, None)
+    assert not_started.restored == (10.0, None, None)
+
+
+def test_sync_shows_the_paused_progress_of_who_was_logged_in_last(settings):
+    settings.update(timer_pauses=(("Knight", "m1", 12.5),), last_character="Knight")
+    mirror = FakeMirror("m1", PAUSING)
+    RunningTimers(settings).sync(mirror, 10.0)
+    assert mirror.restored == (10.0, None, 12.5)
+
+
+def test_sync_shows_not_started_when_nobody_was_logged_in_yet(timers):
+    mirror = FakeMirror("m1", PAUSING)
+    timers.sync(mirror, 10.0)
+    assert mirror.restored == (10.0, None, None)

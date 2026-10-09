@@ -9,7 +9,7 @@ so RunningTimers reads and changes it there.
 
 from __future__ import annotations
 
-from tibia_mirror.core.timers import without_mirrors
+from tibia_mirror.core.timers import pauses_of, without_mirrors
 from tibia_mirror.services.settings_store import SettingsStore
 from tibia_mirror.ui.overlay.mirror import MirrorWindow
 
@@ -50,3 +50,25 @@ class RunningTimers:
         pauses = without_mirrors(self._settings.current.timer_pauses, {mirror.id})
         if pauses != self._settings.current.timer_pauses:
             self._settings.update(timer_pauses=pauses)
+
+    def sync(self, mirror: MirrorWindow, now: float) -> None:
+        """Make the timer of `mirror` show the right state for who is logged in.
+
+        This is only for timers that pause while logged out. Other timers are not touched.
+
+        There are three cases:
+        - A character is logged in: the timer runs from its start time.
+          If it has no start time, it shows as not started.
+        - Nobody is logged in, but someone was before: the timer shows the paused
+          progress of that character.
+        - Nobody was logged in yet: the timer shows as not started.
+        """
+        if not mirror.timer.pauses_offline:
+            return
+        if self.online is not None:
+            mirror.restore_timer(now, started=self.started_at.get(mirror.id))
+        elif self.last_online is not None:
+            pauses = pauses_of(self._settings.current.timer_pauses, self.last_online)
+            mirror.restore_timer(now, paused=pauses.get(mirror.id))
+        else:
+            mirror.restore_timer(now)

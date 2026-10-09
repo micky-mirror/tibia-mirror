@@ -320,7 +320,7 @@ class App:
         if mirror in self.mirrors and settings != mirror.timer:
             mirror.set_timer(settings)  # starts over, so any progress is gone
             self.timers.forget(mirror)
-            self._sync_timer(mirror, time.monotonic())
+            self.timers.sync(mirror, time.monotonic())
             self._show_regions()  # the card's clock icon shows whether it is on
             self._changed()
 
@@ -846,21 +846,7 @@ class App:
         if (self.timers.last_online or "") != self.settings.current.last_character:
             self.settings.update(last_character=self.timers.last_online or "")
         for mirror in self.mirrors:
-            self._sync_timer(mirror, now)
-
-    def _sync_timer(self, mirror: MirrorWindow, now: float) -> None:
-        """Show a pausing timer's state for who is logged in, or as paused at the last logout."""
-        if not mirror.timer.pauses_offline:
-            return
-        if self.timers.online is not None:
-            mirror.restore_timer(now, started=self.timers.started_at.get(mirror.id))
-        elif self.timers.last_online is not None:
-            paused = pauses_of(self.settings.current.timer_pauses, self.timers.last_online).get(
-                mirror.id
-            )
-            mirror.restore_timer(now, paused=paused)
-        else:
-            mirror.restore_timer(now)
+            self.timers.sync(mirror, now)
 
     def _dialog_open(self) -> bool:
         """Whether a modal dialog holds the grab.
@@ -1047,7 +1033,7 @@ class App:
         mirror = self.mirrors.add(saved, game_hwnd, client, self._look())
         if mirror is None:
             return False
-        self._sync_timer(mirror, time.monotonic())
+        self.timers.sync(mirror, time.monotonic())
         return True
 
     def _attach_poll(self) -> None:
