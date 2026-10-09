@@ -114,3 +114,39 @@ def test_delete_removes_the_file(profile, store):
     profile.save([CD])
     profile.delete()
     assert store.names() == []
+
+
+def test_open_switches_to_a_profile_that_is_not_loaded_yet(profile, store):
+    profile.save([CD])
+    profile.load(None)
+    profile.open("Paladin")
+    assert profile.name == "Paladin"
+    assert profile.needs_load
+    assert not profile.has_unsaved([])
+
+
+def test_duplicate_writes_the_mirrors_on_screen_to_the_new_profile(profile, store):
+    profile.save([CD])
+    loaded = profile.load(None)
+    changed = [replace(loaded[0], hidden=True)]
+    profile.duplicate("Knight copy", changed)
+    assert profile.name == "Knight copy"
+    assert store.load("Knight copy") == changed
+    assert store.load("Knight") == loaded
+    assert not profile.has_unsaved(changed)
+
+
+def test_duplicate_copies_the_file_when_the_mirrors_are_not_loaded(profile, store):
+    store.save("Knight", [CD])
+    profile.duplicate("Knight copy", [])
+    assert profile.name == "Knight copy"
+    assert store.load("Knight copy") == [CD]
+    assert profile.needs_load
+
+
+def test_a_failed_duplicate_keeps_the_old_name(tmp_path):
+    profile = ActiveProfile(BrokenStore(tmp_path), "Knight")
+    profile.load(None)
+    with pytest.raises(OSError, match="disk full"):
+        profile.duplicate("Knight copy", [CD])
+    assert profile.name == "Knight"

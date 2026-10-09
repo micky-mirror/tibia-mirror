@@ -78,6 +78,35 @@ class ActiveProfile:
         self.mark_saved(mirrors)
         return mirrors
 
+    def open(self, name: str) -> None:
+        """Make `name` the active profile. Its mirrors are not loaded yet.
+
+        After this call needs_load is True, and an empty profile is remembered.
+        Call load() next, when Tibia is running.
+        """
+        self.name = name
+        self.needs_load = True
+        self.mark_saved([])
+
+    def duplicate(self, new_name: str, mirrors: Iterable[SavedRegion]) -> None:
+        """Make a copy of this profile with a new name, and switch to the copy.
+
+        There are two cases:
+        - The mirrors are loaded: write `mirrors` to the new file. Pass the mirrors
+          that are on screen now, so unsaved changes go into the copy too.
+        - The mirrors are not loaded yet (needs_load is True): copy the profile file
+          as it is. `mirrors` is not used.
+
+        If the new file cannot be written, this raises OSError. Then nothing changes.
+        """
+        if self.needs_load:
+            self._store.copy(self.name, new_name)
+        else:
+            mirrors = list(mirrors)
+            self._store.save(new_name, mirrors)
+            self.mark_saved(mirrors)
+        self.name = new_name
+
     def rename(self, new_name: str) -> None:
         """Rename the profile file, and use the new name from now on.
 

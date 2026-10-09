@@ -720,22 +720,21 @@ class App:
             ],
         )
 
-    def _set_active_profile(self, name: str) -> None:
-        self.profile.name = name
-        self.page.set_profiles(self.store.names(), name)
-        self._update_settings(profile=name)
+    def _show_active_profile(self) -> None:
+        """Show the active profile in the panel, and save its name in the settings."""
+        self.page.set_profiles(self.store.names(), self.profile.name)
+        self._update_settings(profile=self.profile.name)
 
     def _open_profile(self, name: str) -> None:
         """Make `name` the active profile and show its mirrors (once Tibia is connected)."""
         self._cancel("_autosave_job")
-        self._set_active_profile(name)
+        self.profile.open(name)
+        self._show_active_profile()
         if self.game.hwnd is not None and self.game.client is not None:
             self._load_mirrors()
             return
         # Loaded by _attach_poll once Tibia is running and not minimized.
         self.mirrors.clear()
-        self.profile.needs_load = True
-        self.profile.mark_saved([])
         self._show_regions()
         self._changed()
 
@@ -749,21 +748,13 @@ class App:
 
     def _duplicate_profile(self, name: str) -> None:
         """Save what is on screen (unsaved changes included) as a new profile and switch to it."""
-        loaded = not self.profile.needs_load
-        saved = [mirror.to_saved() for mirror in self.mirrors]
         try:
-            if loaded:
-                self.store.save(name, saved)
-            else:
-                # Until Tibia connects the mirrors are not loaded yet, so copy the file.
-                self.store.copy(self.profile.name, name)
+            self.profile.duplicate(name, (mirror.to_saved() for mirror in self.mirrors))
         except OSError:
             self.page.set_status(tr("Could not duplicate profile"), "error")
             return
         self._cancel("_autosave_job")
-        if loaded:
-            self.profile.mark_saved(saved)
-        self._set_active_profile(name)
+        self._show_active_profile()
         self._changed()
 
     def _import_profile(self, name: str, saved: list[regions.SavedRegion]) -> None:
@@ -784,7 +775,7 @@ class App:
             self.page.set_status(tr("Could not rename profile"), "error")
             return
         self._set_links(characters.rename_profile(self.settings.characters, old_name, name))
-        self._set_active_profile(name)
+        self._show_active_profile()
 
     def _delete_profile(self) -> None:
         self._cancel("_autosave_job")
