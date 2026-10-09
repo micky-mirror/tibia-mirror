@@ -359,7 +359,7 @@ class App:
         connected = self._require_client()
         if connected is None:
             return
-        _game, client = connected
+        _game_hwnd, client = connected
         original = (mirror.rect, mirror.zoom)
 
         def finish() -> None:
@@ -631,14 +631,14 @@ class App:
 
     def _require_client(self) -> tuple[Hwnd, Rect] | None:
         """Tibia's window and client area, or None after telling the user what's missing."""
-        game = self._require_game()
-        if game is None:
+        game_hwnd = self._require_game()
+        if game_hwnd is None:
             return None
         client = self.game.current_client()
         if client is None:
             self.page.set_status(tr("Restore Tibia first"), "error")
             return None
-        return game, client
+        return game_hwnd, client
 
     def _panel_center(self) -> Point:
         root = self.root
@@ -971,14 +971,14 @@ class App:
         self._changed()
         self._apply_visibility()
 
-    def _select_region(self, game: Hwnd, on_done: Callable[[Rect], None]) -> None:
+    def _select_region(self, game_hwnd: Hwnd, on_done: Callable[[Rect], None]) -> None:
         """Let the user drag out part of the game: on_done(rect in client coordinates).
 
         Tibia is never brought to the front, so the part must already be in view.
         """
         self._selecting = True
         self._apply_visibility()
-        self._selector = RegionSelector(self.root, game, on_done, self._selection_cancelled)
+        self._selector = RegionSelector(self.root, game_hwnd, on_done, self._selection_cancelled)
 
     def _reselect_region(self, mirror: MirrorWindow) -> None:
         def done(rect: Rect) -> None:
@@ -1079,18 +1079,18 @@ class App:
 
     def _create_mirror(self, saved: regions.SavedRegion) -> bool:
         """Show a mirror of `saved`; False if there is no game to mirror or DWM refuses."""
-        game, client = self.game.hwnd, self.game.client
-        if game is None or client is None:
+        game_hwnd, client = self.game.hwnd, self.game.client
+        if game_hwnd is None or client is None:
             return False
-        mirror = self.mirrors.add(saved, game, client, self._look())
+        mirror = self.mirrors.add(saved, game_hwnd, client, self._look())
         if mirror is None:
             return False
         self._sync_timer(mirror, time.monotonic())
         return True
 
     def _attach_poll(self) -> None:
-        game = self.game.find()
-        if game is None:
+        game_hwnd = self.game.find()
+        if game_hwnd is None:
             self.root.after(ATTACH_POLL_MS, self._attach_poll)
             return
         # Mirrors are laid out on the game's client area, which a minimized
@@ -1105,7 +1105,7 @@ class App:
         if self._needs_load:
             self._load_mirrors()
         else:
-            self._reattach_mirrors(game, client)
+            self._reattach_mirrors(game_hwnd, client)
 
     def _show_regions(self) -> None:
         """Refresh the region cards; before the profile is loaded, say what it waits for."""
@@ -1120,9 +1120,9 @@ class App:
     def _show_connection(self) -> None:
         self.panel.set_connection(self.game.state())
 
-    def _reattach_mirrors(self, game: Hwnd, client: Rect) -> None:
+    def _reattach_mirrors(self, game_hwnd: Hwnd, client: Rect) -> None:
         """Tibia was restarted: point the mirrors kept in memory at its new window."""
-        failed = self.mirrors.attach(game, client)
+        failed = self.mirrors.attach(game_hwnd, client)
         self._show_regions()  # region sizes may follow a new client size
         if failed:
             self.page.set_status(
