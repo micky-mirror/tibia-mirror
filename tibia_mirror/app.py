@@ -116,10 +116,11 @@ class App:
         names = self.store.names()
         # Windows file names ignore case, so match the remembered profile the same way.
         self.profile = ActiveProfile(
+            self.store,
             next(
                 (name for name in names if name.casefold() == self.settings.profile.casefold()),
                 names[0],
-            )
+            ),
         )
         self.game = Game()
         self._pid = os.getpid()
@@ -265,13 +266,11 @@ class App:
     def save(self, quiet: bool = False) -> bool:
         """Write the mirrors to the active profile; returns whether that worked."""
         self._cancel("_autosave_job")
-        saved = [mirror.to_saved() for mirror in self.mirrors]
         try:
-            self.store.save(self.profile.name, saved)
+            self.profile.save(mirror.to_saved() for mirror in self.mirrors)
         except OSError:
             self.page.set_status(tr("Save failed"), "error")
             return False
-        self.profile.mark_saved(saved)
         self._changed()
         if not quiet:
             self.page.set_status(
