@@ -323,6 +323,8 @@ tibia_mirror/
     rawinput.py         being told of clicks and key presses (Raw Input)
     instance.py         one copy at a time
     sounds.py           timer alert sounds
+  services/             the pieces of the running app that App wires together
+    mirrors.py          the mirror windows on screen
   assets/icon.ico       the app icon
   ui/                   everything drawn with Tk
     base/               themes, display scaling, shape rendering, helpers

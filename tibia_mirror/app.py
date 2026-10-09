@@ -54,6 +54,7 @@ from tibia_mirror.core.timers import (
 )
 from tibia_mirror.core.visibility import mirrors_should_show, next_last_external
 from tibia_mirror.i18n import tr, tr_n
+from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.ui.controls.dialogs import (
     CharactersDialog,
@@ -119,7 +120,6 @@ class App:
         )
         self.game_hwnd: Hwnd | None = None
         self._client: Rect | None = None  # the game's client area on screen
-        self.mirrors: list[MirrorWindow] = []
         self._pid = os.getpid()
         self._last_external: Hwnd | None = None  # last foreground window not owned by this app
         self._character: str | None = None  # logged in to Tibia, from its window title
@@ -160,6 +160,9 @@ class App:
         self.root.configure(bg=theme.BG)
         self.root.attributes("-topmost", self.settings.panel_on_top)
         self.root.protocol("WM_DELETE_WINDOW", self.close)
+        self.mirrors = Mirrors(
+            self.root, on_remove=self.remove_mirror, on_changed=lambda _mirror: self._changed()
+        )
         self._panel_actions = MirrorsActions(
             add=self.add_region,
             save=self.save,
@@ -284,10 +287,8 @@ class App:
 
     # ---- region card actions ------------------------------------------------
     def remove_mirror(self, mirror: MirrorWindow) -> None:
-        if mirror in self.mirrors:
-            self.mirrors.remove(mirror)
+        self.mirrors.remove(mirror)
         self._forget_timer(mirror)
-        mirror.fade_out_and_destroy()
         self._show_regions()
         self._changed()
 
@@ -535,9 +536,7 @@ class App:
             self.page.set_autosave(self.settings.autosave)
             self._changed()
         elif key in ("mirror_frame", "fades", "rounded_corners", "frame_tint"):
-            look = self._look()
-            for mirror in self.mirrors:
-                mirror.set_look(look)
+            self.mirrors.set_look(self._look())
         elif key == "panel_on_top":
             self.root.attributes("-topmost", self.settings.panel_on_top)
         elif key in ("theme", "language"):
@@ -623,9 +622,7 @@ class App:
         page = self.panel.page
         self.panel.destroy()
         self._build_panel(page)
-        look = self._look()
-        for mirror in self.mirrors:
-            mirror.set_look(look)  # the mirror frame colour comes from the theme
+        self.mirrors.set_look(self._look())  # the mirror frame colour comes from the theme
 
     def _require_game(self) -> Hwnd | None:
         """Tibia's window, or None after telling the user to start it."""
@@ -739,7 +736,7 @@ class App:
             self._load_mirrors()
             return
         # Loaded by _attach_poll once Tibia is running and not minimized.
-        self._clear_mirrors()
+        self.mirrors.clear()
         self._needs_load = True
         self._saved_snapshot = regions.snapshot([])
         self._show_regions()
@@ -813,7 +810,7 @@ class App:
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             self.page.set_status(tr("Profile file is invalid"), "error")
             return
-        self._clear_mirrors()
+        self.mirrors.clear()
         failed = sum(not self._create_mirror(e) for e in saved)
         self._show_regions()
         if failed:
@@ -951,7 +948,7 @@ class App:
     def _load_mirrors(self) -> None:
         """Replace the mirrors with the active profile as saved on disk."""
         self._cancel("_autosave_job")
-        self._clear_mirrors()
+        self.mirrors.clear()
         self._needs_load = False
         try:
             saved = self.store.load(self.profile, self._current_client())
@@ -1037,8 +1034,7 @@ class App:
         if client is None or client == old:
             return
         self._client = client
-        for mirror in self.mirrors:
-            mirror.set_client(client)
+        self.mirrors.set_client(client)
         if old is not None and (client.w, client.h) != (old.w, old.h):
             self._show_regions()  # the cards show region sizes
 
@@ -1106,26 +1102,11 @@ class App:
         game, client = self.game_hwnd, self._client
         if game is None or client is None:
             return False
-        try:
-            mirror = MirrorWindow(
-                self.root,
-                game,
-                saved,
-                client,
-                self._look(),
-                on_remove=self.remove_mirror,
-                on_changed=lambda _mirror: self._changed(),
-            )
-        except OSError:
+        mirror = self.mirrors.add(saved, game, client, self._look())
+        if mirror is None:
             return False
-        self.mirrors.append(mirror)
         self._sync_timer(mirror, time.monotonic())
         return True
-
-    def _clear_mirrors(self) -> None:
-        for mirror in self.mirrors:
-            mirror.destroy()
-        self.mirrors.clear()
 
     def _attach_poll(self) -> None:
         if self.game_hwnd is None:
@@ -1169,12 +1150,7 @@ class App:
 
     def _reattach_mirrors(self, game: Hwnd, client: Rect) -> None:
         """Tibia was restarted: point the mirrors kept in memory at its new window."""
-        failed = 0
-        for mirror in self.mirrors:
-            try:
-                mirror.attach(game, client)
-            except OSError:
-                failed += 1
+        failed = self.mirrors.attach(game, client)
         self._show_regions()  # region sizes may follow a new client size
         if failed:
             self.page.set_status(
@@ -1191,8 +1167,7 @@ class App:
         self._client = None
         if self._selector is not None and self._selector.overlay.winfo_exists():
             self._selector.cancel()  # it was selecting from the closed window
-        for mirror in self.mirrors:
-            mirror.detach()
+        self.mirrors.detach()
         self._show_connection()
         self._show_regions()
         self._attach_poll()
@@ -1259,8 +1234,7 @@ class App:
             self._selecting,
             self._all_hidden,
         )
-        for mirror in self.mirrors:
-            mirror.set_visible(show)
+        self.mirrors.set_visible(show)
 
 
 def main() -> None:
