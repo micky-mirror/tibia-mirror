@@ -324,6 +324,7 @@ tibia_mirror/
     instance.py         one copy at a time
     sounds.py           timer alert sounds
   services/             the pieces of the running app that App wires together
+    game.py             the Tibia window and its client area
     mirrors.py          the mirror windows on screen
   assets/icon.ico       the app icon
   ui/                   everything drawn with Tk

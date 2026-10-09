@@ -34,13 +34,13 @@ class Mirrors:
         return mirror in self._items
 
     def add(
-        self, saved: SavedRegion, game: Hwnd, client: Rect, look: MirrorLook
+        self, saved: SavedRegion, game_hwnd: Hwnd, client: Rect, look: MirrorLook
     ) -> MirrorWindow | None:
-        """Show a mirror of `saved` on `game`; None if DWM refuses."""
+        """Show a mirror of `saved` on `game_hwnd`; None if DWM refuses."""
         try:
             mirror = MirrorWindow(
                 self._root,
-                game,
+                game_hwnd,
                 saved,
                 client,
                 look,
@@ -64,12 +64,12 @@ class Mirrors:
             mirror.destroy()
         self._items.clear()
 
-    def attach(self, game: Hwnd, client: Rect) -> int:
+    def attach(self, game_hwnd: Hwnd, client: Rect) -> int:
         """Point every mirror at the game's new window; returns how many DWM refused."""
         failed = 0
         for mirror in self._items:
             try:
-                mirror.attach(game, client)
+                mirror.attach(game_hwnd, client)
             except OSError:
                 failed += 1
         return failed
