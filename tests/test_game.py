@@ -93,3 +93,39 @@ def test_check_closed_forgets_a_window_that_is_gone(game, monkeypatch):
     assert game.hwnd is None
     assert game.client is None
     assert not game.check_closed()
+
+
+def test_track_client_is_none_before_tibia_is_found(window):
+    assert Game().track_client() is None
+
+
+def test_track_client_reports_the_first_area_it_sees(game):
+    assert game.track_client() == (AREA, False)
+    assert game.client == AREA
+
+
+def test_track_client_is_none_when_nothing_changed(game):
+    game.track_client()
+    assert game.track_client() is None
+
+
+def test_track_client_reports_a_move(game, window):
+    game.track_client()
+    moved = Rect(50, 60, 800, 600)
+    window["client"] = moved
+    assert game.track_client() == (moved, False)
+    assert game.client == moved
+
+
+def test_track_client_reports_a_new_size(game, window):
+    game.track_client()
+    bigger = Rect(10, 20, 1920, 1080)
+    window["client"] = bigger
+    assert game.track_client() == (bigger, True)
+
+
+def test_track_client_keeps_the_area_while_minimized(game, window):
+    game.track_client()
+    window["minimized"] = True
+    assert game.track_client() is None
+    assert game.client == AREA

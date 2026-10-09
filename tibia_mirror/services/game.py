@@ -27,6 +27,24 @@ class Game:
             self.client = client
         return self.client
 
+    def track_client(self) -> tuple[Rect, bool] | None:
+        """Read the client area again, and remember it if it changed.
+
+        Return None when there is nothing to do:
+        - the client area is the same as before, or
+        - there is no client area now (Tibia is not running, or it is minimized).
+
+        If it changed, return two values:
+        - the new client area
+        - True if the size changed, False if the window only moved
+        """
+        old, client = self.client, self.read_client()
+        if client is None or client == old:
+            return None
+        self.client = client
+        resized = old is not None and (client.w, client.h) != (old.w, old.h)
+        return client, resized
+
     def find(self) -> Hwnd | None:
         """Return Tibia's window, or None if Tibia is not running.
 

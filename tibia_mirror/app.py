@@ -1012,14 +1012,12 @@ class App:
 
     def _track_client(self) -> None:
         """Keep mirrors on the game's client area as it moves or changes size."""
-        if self.game.hwnd is None:
+        change = self.game.track_client()
+        if change is None:
             return
-        old, client = self.game.client, self.game.read_client()
-        if client is None or client == old:
-            return
-        self.game.client = client
+        client, resized = change
         self.mirrors.set_client(client)
-        if old is not None and (client.w, client.h) != (old.w, old.h):
+        if resized:
             self._show_regions()  # the cards show region sizes
 
     def _end_selection(self) -> None:
