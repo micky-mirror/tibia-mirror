@@ -129,3 +129,38 @@ def test_track_client_keeps_the_area_while_minimized(game, window):
     window["minimized"] = True
     assert game.track_client() is None
     assert game.client == AREA
+
+
+def test_state_is_waiting_before_tibia_is_found():
+    assert Game().state() == "waiting"
+
+
+def test_state_is_minimized_until_a_client_area_is_seen(game, window):
+    window["minimized"] = True
+    game.current_client()
+    assert game.state() == "minimized"
+
+
+def test_state_is_connected_once_a_client_area_is_seen(game):
+    game.current_client()
+    assert game.state() == "connected"
+
+
+def test_title_is_empty_before_tibia_is_found():
+    assert Game().title() == ""
+
+
+def test_title_comes_from_the_window(game, monkeypatch):
+    monkeypatch.setattr(win32, "window_title", lambda hwnd: "Tibia - Knight")
+    assert game.title() == "Tibia - Knight"
+
+
+def test_is_minimized_is_false_before_tibia_is_found(window):
+    window["minimized"] = True
+    assert not Game().is_minimized()
+
+
+def test_is_minimized_follows_the_window(game, window):
+    assert not game.is_minimized()
+    window["minimized"] = True
+    assert game.is_minimized()

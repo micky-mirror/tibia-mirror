@@ -70,3 +70,25 @@ class Game:
         self.hwnd = None
         self.client = None
         return True
+
+    def state(self) -> str:
+        """Return what the panel shows about Tibia: "waiting", "minimized" or "connected".
+
+        - "waiting": Tibia is not found yet.
+        - "minimized": Tibia is found, but its client area was never seen,
+          because it has been minimized since it was found.
+        - "connected": Tibia is found and its client area is known.
+        """
+        if self.hwnd is None:
+            return "waiting"
+        if self.client is None:
+            return "minimized"
+        return "connected"
+
+    def title(self) -> str:
+        """Return the title of Tibia's window, or "" if Tibia is not running."""
+        return win32.window_title(self.hwnd) if self.hwnd is not None else ""
+
+    def is_minimized(self) -> bool:
+        """Return True if Tibia is running and its window is minimized now."""
+        return self.hwnd is not None and win32.is_minimized(self.hwnd)

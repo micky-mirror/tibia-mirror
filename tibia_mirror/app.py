@@ -826,9 +826,7 @@ class App:
 
     def _check_character(self) -> None:
         """Notice a character logging in: open its profile, if that setting is on."""
-        game = self.game.hwnd
-        title = win32.window_title(game) if game is not None else ""
-        character = characters.character_in_title(title)
+        character = characters.character_in_title(self.game.title())
         if character != self._online:
             self._timers_online(character)
         if character == self._character:
@@ -1120,13 +1118,7 @@ class App:
         self.page.show_regions(self.mirrors, pending)
 
     def _show_connection(self) -> None:
-        if self.game.hwnd is None:
-            state = "waiting"
-        elif self.game.client is None:
-            state = "minimized"
-        else:
-            state = "connected"
-        self.panel.set_connection(state)
+        self.panel.set_connection(self.game.state())
 
     def _reattach_mirrors(self, game: Hwnd, client: Rect) -> None:
         """Tibia was restarted: point the mirrors kept in memory at its new window."""
@@ -1208,7 +1200,7 @@ class App:
         show = mirrors_should_show(
             self._last_external,
             self.game.hwnd,
-            self.game.hwnd is not None and win32.is_minimized(self.game.hwnd),
+            self.game.is_minimized(),
             self._selecting,
             self._all_hidden,
         )
