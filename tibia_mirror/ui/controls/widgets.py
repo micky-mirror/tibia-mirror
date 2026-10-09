@@ -18,9 +18,9 @@ from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, margins, outlined_pixels
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.menu import SwatchPicker
-from tibia_mirror.ui.slider import SliderDrawing
-from tibia_mirror.ui.tooltip import Tooltip
+from tibia_mirror.ui.controls.menu import SwatchPicker
+from tibia_mirror.ui.controls.slider import SliderDrawing
+from tibia_mirror.ui.controls.tooltip import Tooltip
 
 
 class RaisedButton(tk.Canvas):

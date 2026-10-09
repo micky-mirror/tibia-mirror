@@ -18,8 +18,8 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import margins, outlined_pixels
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.menu import DropdownField
-from tibia_mirror.ui.widgets import (
+from tibia_mirror.ui.controls.menu import DropdownField
+from tibia_mirror.ui.controls.widgets import (
     CheckBox,
     ChoiceBar,
     KeyField,

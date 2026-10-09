@@ -17,9 +17,9 @@ from tibia_mirror.ui.base.animation import Tween
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.dialogs import key_combo_name
-from tibia_mirror.ui.slider import SliderDrawing
-from tibia_mirror.ui.widgets import KeyField, ScrollList, SegmentedDrawing
+from tibia_mirror.ui.controls.dialogs import key_combo_name
+from tibia_mirror.ui.controls.slider import SliderDrawing
+from tibia_mirror.ui.controls.widgets import KeyField, ScrollList, SegmentedDrawing
 from tibia_mirror.winapi import win32
 
 SWITCH_MS = 120

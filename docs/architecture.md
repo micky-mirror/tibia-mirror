@@ -157,7 +157,7 @@ These are deliberate and must stay true:
 | Text | `i18n.py`, `about.py` |
 | Mirrors | `ui/mirror.py`, `ui/badge.py`, `ui/selector.py`, `ui/loupe.py` |
 | Panel | `ui/panel.py`, `ui/nav.py`, and the pages: `ui/mirrors_page.py`, `ui/settings_page.py`, `ui/shortcuts_page.py`, `ui/about_page.py` |
-| Widgets | `ui/widgets.py`, `ui/menu.py`, `ui/dialogs.py`, `ui/tooltip.py`, `ui/slider.py` |
+| Widgets | `ui/controls/widgets.py`, `ui/controls/menu.py`, `ui/controls/dialogs.py`, `ui/controls/tooltip.py`, `ui/controls/slider.py` |
 | Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/animation.py`, `ui/base/images.py`, `ui/base/text.py`, `ui/base/windows.py` |
 
 ## Conventions

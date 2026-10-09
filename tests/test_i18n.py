@@ -86,6 +86,6 @@ def test_every_text_in_the_code_has_a_polish_translation():
 
 
 def test_sound_names_are_translated():
-    from tibia_mirror.ui.dialogs import SOUND_LABELS
+    from tibia_mirror.ui.controls.dialogs import SOUND_LABELS
 
     assert all(label in POLISH for label in SOUND_LABELS.values())

@@ -15,8 +15,8 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import margins
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.menu import SEPARATOR, MenuItem, PopupMenu, ProfilePicker
-from tibia_mirror.ui.widgets import RaisedButton, RegionCard, ScrollList
+from tibia_mirror.ui.controls.menu import SEPARATOR, MenuItem, PopupMenu, ProfilePicker
+from tibia_mirror.ui.controls.widgets import RaisedButton, RegionCard, ScrollList
 
 if TYPE_CHECKING:
     # Only named in annotations: the page never imports the mirror window itself.

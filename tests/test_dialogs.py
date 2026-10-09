@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from tibia_mirror.ui.dialogs import fit_name
+from tibia_mirror.ui.controls.dialogs import fit_name
 
 FONT = SimpleNamespace(measure=len)  # one pixel per character
 TEMPLATE = 'Timer for "{name}"'

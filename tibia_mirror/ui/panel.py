@@ -14,11 +14,11 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.about_page import build_about_page
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.widgets import CopyText
 from tibia_mirror.ui.mirrors_page import MirrorsActions, MirrorsPage
 from tibia_mirror.ui.nav import NavItem, NavRail
 from tibia_mirror.ui.settings_page import OnChange, build_settings_page
 from tibia_mirror.ui.shortcuts_page import build_shortcuts_page
-from tibia_mirror.ui.widgets import CopyText
 
 PAD = 20
 TIP_GAP = 10  # above and below the hairline between the footer's tip line and its credit
