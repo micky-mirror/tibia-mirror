@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import time
 import tkinter as tk
 from collections.abc import Callable
@@ -1113,6 +1114,59 @@ class App:
         self.mirrors.set_visible(show)
 
 
+class App2:
+    """The new App, built step by step beside the old one. Start it with --new."""
+
+    def __init__(self, instance: SingleInstance) -> None:
+        self._instance = instance
+        self._prepare_windows()
+        self.root = _Root()
+        self._use_display_scaling()
+        self._set_title_and_colour()
+        self._set_icon()
+        self._set_size_and_place()
+
+    def run(self) -> None:
+        self.root.mainloop()
+
+    def _prepare_windows(self) -> None:
+        """Keep the app sharp on scaled displays and give it its own taskbar button.
+
+        Windows needs both before the first window is created.
+        """
+        win32.enable_dpi_awareness()
+        win32.set_app_id(APP_ID)
+
+    def _use_display_scaling(self) -> None:
+        """Make our pixel sizes grow with the display scaling (125%, 150%, ...)."""
+        scale.init(self.root)
+        # Button styles contain pixel sizes, so the theme is loaded again after scaling.
+        theme.use(theme.current)
+
+    def _set_title_and_colour(self) -> None:
+        self.root.title("Tibia Mirror")
+        self.root.configure(bg=theme.BG)
+
+    def _set_icon(self) -> None:
+        """Use the app icon for this window and for every dialog."""
+        # The same as root.iconbitmap(default=ICON_FILE).
+        # mypy rejects that method (it has no type hints), so the command is sent as text.
+        self.root.tk.call("wm", "iconbitmap", str(self.root), "-default", str(ICON_FILE))
+
+    def _set_size_and_place(self) -> None:
+        """Open at the normal size, in the middle of the main screen.
+
+        Sizes in config.py are for 100% scaling, so they are scaled here.
+        On a short screen the window is made shorter to fit.
+        """
+        width, height = scale.px(PANEL_SIZE[0]), scale.px(PANEL_SIZE[1])
+        min_width, min_height = scale.px(PANEL_MIN_SIZE[0]), scale.px(PANEL_MIN_SIZE[1])
+        title_bar = scale.px(PANEL_FRAME)
+        screen = win32.work_area_at((0, 0))
+        self.root.minsize(min_width, min_height)
+        self.root.geometry(panel_geometry((width, height), min_height, title_bar, screen))
+
+
 def main() -> None:
     # Everything up to the panel showing: a failure here gets a message box,
     # since the app would otherwise just never appear.
@@ -1124,7 +1178,8 @@ def main() -> None:
             instance.ask_first_to_show()
             return
         errors.start(ERROR_LOG, ERROR_LOG_MAX_BYTES)
-        app = App(instance)
+        # --new starts the new App while it is being built; the option goes away at the switch.
+        app = App2(instance) if "--new" in sys.argv[1:] else App(instance)
     except Exception as e:
         errors.log_exception(type(e), e, e.__traceback__)
         win32.error_box(
