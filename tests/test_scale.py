@@ -81,7 +81,10 @@ UNSCALED = {
     ("about_page.py", "height=1"): "a placeholder: the box is sized once its text is laid out",
     ("settings_page.py", "height=1"): "a placeholder: the card is sized once its rows are drawn",
     ("widgets.py", "height=1"): "a placeholder: the check box is sized to its label",
-    ("footer.py", "padx=(LABEL_INSET, 0)"): "where a tk.Label starts its text; Tk never scales it",
+}
+# Constants that are never scaled, on purpose: name -> why. They need no px() anywhere.
+UNSCALED_NAMES = {
+    "LABEL_INSET": "where a tk.Label starts its text; Tk never scales it",
 }
 
 
@@ -101,7 +104,7 @@ def unscaled_parts(node, parent=None):
         return [node] if number and node.value != 0 and not factor else []
     name = getattr(node, "attr", None) or getattr(node, "id", None)
     if isinstance(name, str) and name.isupper() and len(name) > 1:
-        return [node]
+        return [] if name in UNSCALED_NAMES else [node]
     if isinstance(node, ast.Attribute):
         return []
     if isinstance(node, ast.Subscript):

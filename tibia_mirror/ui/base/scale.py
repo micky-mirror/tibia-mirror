@@ -11,6 +11,10 @@ import tkinter as tk
 # Tk's "tk scaling" is pixels per point; at 100% (96 DPI) it is 96 / 72.
 _POINTS_AT_100 = 96 / 72
 
+# A tk.Label starts its text 3 pixels from its edge (2 of border, 1 of padding).
+# Tk never scales those, so this size is used with no px(): it lines other things up with labels.
+LABEL_INSET = 3
+
 _scale = 1.0
 
 
