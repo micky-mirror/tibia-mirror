@@ -17,6 +17,10 @@ FOOTER_TOP_PAD = 10  # between the thin line and the footer's text
 FOOTER_BOTTOM_PAD = 12  # below the footer's text
 TIP_DIVIDER_PAD = 10  # above and below the thin line between the tip and the credit
 
+# A tk.Label starts its text 3 pixels from its left edge (border and padding).
+# Tk does not scale those, so this is not scaled.
+LABEL_INSET = 3
+
 
 def content_width() -> int:
     """The width of the content: the normal window width without the menu and the side space.
@@ -83,6 +87,7 @@ class Panel(tk.Frame):
         if TIP_CHARACTER is None:
             return
         self._add_tip_question()
+        self._add_tip_sentence()
         self._add_tip_divider()
 
     def _add_tip_question(self) -> None:
@@ -94,6 +99,24 @@ class Panel(tk.Frame):
             font=theme.FONT_SMALL,
         )
         label.pack(side="top", anchor="w")
+
+    def _add_tip_sentence(self) -> None:
+        """The line "Tip a few Tibia Coins to", with the coins in gold."""
+        self._tip_row = tk.Frame(self._footer, bg=theme.BG)
+        # The row starts where the text of the label above starts.
+        self._tip_row.pack(side="top", anchor="w", padx=(LABEL_INSET, 0))
+        before, after = tr("Tip {coins} to").split("{coins}")
+        self._add_tip_words(before, theme.SUBTEXT)
+        self._add_tip_words(tr("a few Tibia Coins"), theme.GOLD)
+        self._add_tip_words(after + " ", theme.SUBTEXT)
+
+    def _add_tip_words(self, text: str, colour: str) -> None:
+        """One piece of the tip sentence, in its own colour."""
+        # No border and no padding, so the pieces touch like words in one sentence.
+        label = tk.Label(
+            self._tip_row, text=text, bg=theme.BG, fg=colour, font=theme.FONT_SMALL, bd=0, padx=0
+        )
+        label.pack(side="left")
 
     def _add_tip_divider(self) -> None:
         """The thin line between the tip and the credit."""

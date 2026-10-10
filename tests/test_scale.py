@@ -81,6 +81,7 @@ UNSCALED = {
     ("about_page.py", "height=1"): "a placeholder: the box is sized once its text is laid out",
     ("settings_page.py", "height=1"): "a placeholder: the card is sized once its rows are drawn",
     ("widgets.py", "height=1"): "a placeholder: the check box is sized to its label",
+    ("panel.py", "padx=(LABEL_INSET, 0)"): "where a tk.Label starts its text; Tk does not scale it",
 }
 
 
