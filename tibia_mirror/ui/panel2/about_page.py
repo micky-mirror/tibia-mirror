@@ -1,9 +1,10 @@
 """The About page: what the app is for, its version, contact, tips and the trademark notice."""
 
 import tkinter as tk
+from collections.abc import Sequence
 
 from tibia_mirror import __version__
-from tibia_mirror.about import DISCORD
+from tibia_mirror.about import DISCORD, TIP_CHARACTER
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
@@ -26,6 +27,7 @@ class AboutPage(tk.Frame):
         self._add_version()
         self._add_intro()
         self._add_contact()
+        self._add_tip()
         self._add_trademark_notice()
 
     def _add_column(self, side_pad: int) -> None:
@@ -83,8 +85,28 @@ class AboutPage(tk.Frame):
         """The sentence that sends the reader to Discord, with "Discord" in its own colour."""
         before, after = tr("Questions or ideas? Message me on {discord}:").split("{discord}")
         text_parts = [(before, theme.TEXT), (tr("Discord"), theme.BLURPLE), (after, theme.TEXT)]
-        sentence = RichParagraph(self._column, text_parts, self._width)
-        sentence.pack(side="top", anchor="w", pady=(px(PARAGRAPH_GAP), 0))
+        self._add_rich_paragraph(text_parts)
+
+    def _add_tip(self) -> None:
+        """How to say thanks: a sentence, and under it the character name to copy.
+
+        TIP_CHARACTER can be None; then the page has no tip part.
+        """
+        if TIP_CHARACTER is None:
+            return
+        self._add_tip_sentence()
+        self._add_copy_name(TIP_CHARACTER, theme.GOLD)
+
+    def _add_tip_sentence(self) -> None:
+        """The sentence that says the app is free, with the coins in gold."""
+        sentence = tr(
+            "Tibia Mirror is free. If you find it useful, you can say thanks "
+            "by sending {coins} to this character:"
+        )
+        before, after = sentence.split("{coins}")
+        coins = tr("a few Tibia Coins")
+        text_parts = [(before, theme.TEXT), (coins, theme.GOLD), (after, theme.TEXT)]
+        self._add_rich_paragraph(text_parts)
 
     def _add_copy_name(self, name: str, colour: str) -> None:
         """A name on its own line, with a copy icon. A click copies the name."""
@@ -112,4 +134,9 @@ class AboutPage(tk.Frame):
             justify="left",
             wraplength=self._width,
         )
+        paragraph.pack(side="top", anchor="w", pady=(px(PARAGRAPH_GAP), 0))
+
+    def _add_rich_paragraph(self, text_parts: Sequence[tuple[str, str]]) -> None:
+        """One paragraph where each part has its own colour: a list of (text, colour)."""
+        paragraph = RichParagraph(self._column, text_parts, self._width)
         paragraph.pack(side="top", anchor="w", pady=(px(PARAGRAPH_GAP), 0))
