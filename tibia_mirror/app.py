@@ -1127,6 +1127,7 @@ class App2:
         self._set_icon()
         self._set_size_and_place()
         self._show_panel()
+        self._style_title_bar()
 
     def run(self) -> None:
         self.root.mainloop()
@@ -1171,6 +1172,11 @@ class App2:
     def _show_panel(self) -> None:
         self.panel = Panel(self.root)
         self.panel.pack(fill="both", expand=True)
+
+    def _style_title_bar(self) -> None:
+        """Make the title bar dark in the dark theme. Windows draws it, so we ask Windows."""
+        window_handle = win32.toplevel_hwnd(self.root)
+        dwm.set_dark_title_bar(window_handle, theme.current == "dark")
 
 
 def main() -> None:
