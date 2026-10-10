@@ -71,6 +71,7 @@ from tibia_mirror.ui.panel.mirrors_page import (
 )
 from tibia_mirror.ui.panel.panel import ControlPanel
 from tibia_mirror.ui.panel.settings_page import SettingValue
+from tibia_mirror.ui.panel2.panel import Panel
 from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.instance import SingleInstance
 from tibia_mirror.winapi.rawinput import InputWatcher
@@ -1125,6 +1126,7 @@ class App2:
         self._set_title_and_colour()
         self._set_icon()
         self._set_size_and_place()
+        self._show_panel()
 
     def run(self) -> None:
         self.root.mainloop()
@@ -1165,6 +1167,10 @@ class App2:
         screen = win32.work_area_at((0, 0))
         self.root.minsize(min_width, min_height)
         self.root.geometry(panel_geometry((width, height), min_height, title_bar, screen))
+
+    def _show_panel(self) -> None:
+        self.panel = Panel(self.root)
+        self.panel.pack(fill="both", expand=True)
 
 
 def main() -> None:
