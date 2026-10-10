@@ -1,5 +1,7 @@
 """The menu on the left side of the panel."""
 
+from __future__ import annotations
+
 import tkinter as tk
 
 from tibia_mirror.i18n import tr
@@ -33,9 +35,27 @@ class NavRail(tk.Canvas):
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(parent, width=px(self.WIDTH), bg=theme.MANTLE, highlightthickness=0, bd=0)
         self._selected = "mirrors"  # the key of the selected entry; Mirrors at the start
+        self._hovered: str | None = None  # the key of the entry under the pointer
+        self._entry_tops: dict[str, int] = {}  # key -> the top edge of the entry
         self._selected_pill = self._render_pill(theme.ACCENT_TINT)
-        # Tk sends <Configure> when the menu appears and when its size changes.
-        self.bind("<Configure>", lambda event: self._draw(event.height))
+        self._bind_events()
+
+    def _bind_events(self) -> None:
+        self.bind("<Configure>", self._on_resize)
+        # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
+        self.bind("<Enter>", self._on_mouse_move)
+        self.bind("<Motion>", self._on_mouse_move)
+        self.bind("<Leave>", self._on_mouse_leave)
+
+    def _on_resize(self, event: tk.Event[tk.Canvas]) -> None:
+        """Tk calls this when the menu appears and when its size changes."""
+        self._draw(event.height)
+
+    def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered_entry(self._entry_at(event.y))
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered_entry(None)
 
     def _render_pill(self, colour: str) -> tk.PhotoImage:
         """The rounded shape behind an icon, as an image in the given colour."""
@@ -50,10 +70,14 @@ class NavRail(tk.Canvas):
         top = px(self.TOP_PAD)
         bottom = height - px(self.BOTTOM_PAD)
         entry_height = px(self.ENTRY_HEIGHT)
-        self._draw_entry("mirrors", top)
-        self._draw_entry("shortcuts", top + entry_height)
-        self._draw_entry("about", bottom - 2 * entry_height)
-        self._draw_entry("settings", bottom - entry_height)
+        self._entry_tops = {
+            "mirrors": top,
+            "shortcuts": top + entry_height,
+            "about": bottom - 2 * entry_height,
+            "settings": bottom - entry_height,
+        }
+        for key, entry_top in self._entry_tops.items():
+            self._draw_entry(key, entry_top)
 
     def _draw_entry(self, key: str, top: int) -> None:
         """Draw one entry of ENTRIES. `top` is the entry's top edge."""
@@ -88,3 +112,20 @@ class NavRail(tk.Canvas):
             font=theme.FONT_CAPTION,
             fill=label_colour,
         )
+
+    def _entry_at(self, position_y: int) -> str | None:
+        """The key of the entry at `position_y`, or None for the empty space.
+
+        `position_y` is the mouse "y" position on the menu.
+        An entry reacts in a band: the full width of the menu, ENTRY_HEIGHT high.
+        """
+        for key, top in self._entry_tops.items():
+            if top <= position_y < top + px(self.ENTRY_HEIGHT):
+                return key
+        return None
+
+    def _set_hovered_entry(self, key: str | None) -> None:
+        self._hovered = key
+        # the selected entry is already open, so it is not clickable
+        is_clickable: bool = key is not None and key != self._selected
+        self.configure(cursor="hand2" if is_clickable else "")
