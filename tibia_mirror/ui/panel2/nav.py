@@ -36,6 +36,7 @@ class NavRail(tk.Canvas):
         super().__init__(parent, width=px(self.WIDTH), bg=theme.MANTLE, highlightthickness=0, bd=0)
         self._selected = "mirrors"  # the key of the selected entry; Mirrors at the start
         self._hovered: str | None = None  # the key of the entry under the pointer
+        self._pressed: str | None = None  # the key of the entry the button went down on
         self._entry_tops: dict[str, int] = {}  # key -> the top edge of the entry
         self._selected_pill = self._render_pill(theme.ACCENT_TINT)
         self._hovered_pill = self._render_pill(theme.SURFACE)
@@ -47,6 +48,8 @@ class NavRail(tk.Canvas):
         self.bind("<Enter>", self._on_mouse_move)
         self.bind("<Motion>", self._on_mouse_move)
         self.bind("<Leave>", self._on_mouse_leave)
+        self.bind("<ButtonPress-1>", self._on_mouse_down)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_resize(self, event: tk.Event[tk.Canvas]) -> None:
         """Tk calls this when the menu appears and when its size changes."""
@@ -57,6 +60,18 @@ class NavRail(tk.Canvas):
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
         self._set_hovered_entry(None)
+
+    def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
+        self._pressed = self._entry_at(event.y)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        """Select the entry if the button went down and up on it, like a normal button."""
+        # after a drag the button can go up outside the menu
+        is_inside: bool = 0 <= event.x < self.winfo_width()
+        key = self._entry_at(event.y)
+        if is_inside and key is not None and key == self._pressed:
+            self._select(key)
+        self._pressed = None
 
     def _render_pill(self, colour: str) -> tk.PhotoImage:
         """The rounded shape behind an icon, as an image in the given colour."""
@@ -134,7 +149,16 @@ class NavRail(tk.Canvas):
         if key == self._hovered:
             return
         self._hovered = key
-        # the selected entry is already open, so it is not clickable
-        is_clickable: bool = key is not None and key != self._selected
-        self.configure(cursor="hand2" if is_clickable else "")
+        self._update_pointer()
         self._draw(self.winfo_height())
+
+    def _select(self, key: str) -> None:
+        self._selected = key
+        self._update_pointer()
+        self._draw(self.winfo_height())
+
+    def _update_pointer(self) -> None:
+        """Show a hand over an entry that can be clicked."""
+        # the selected entry is already open, so it is not clickable
+        is_clickable: bool = self._hovered is not None and self._hovered != self._selected
+        self.configure(cursor="hand2" if is_clickable else "")
