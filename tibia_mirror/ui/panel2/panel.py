@@ -83,7 +83,7 @@ class Panel(tk.Frame):
         self._pages: dict[str, tk.Frame] = {
             "mirrors": tk.Frame(self._content, bg=theme.BG),
             "shortcuts": tk.Frame(self._content, bg=theme.BG),
-            "about": AboutPage(self._content, px(SIDE_PAD)),
+            "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": tk.Frame(self._content, bg=theme.BG),
         }
         self._open_page = START_PAGE  # the key of the page that is shown

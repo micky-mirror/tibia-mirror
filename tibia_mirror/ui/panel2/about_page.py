@@ -7,18 +7,21 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 
-# At 100% display scaling; px() scales it where it is used.
+# Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 18  # above the title
+PARAGRAPH_GAP = 14  # above each paragraph
 
 
 class AboutPage(tk.Frame):
     """The About page."""
 
-    def __init__(self, parent: tk.Misc, side_pad: int) -> None:
+    def __init__(self, parent: tk.Misc, width: int, side_pad: int) -> None:
         super().__init__(parent, bg=theme.BG)
+        self._width = width  # the width of the content, in pixels
         self._add_column(side_pad)
         self._add_title()
         self._add_version()
+        self._add_intro()
 
     def _add_column(self, side_pad: int) -> None:
         """The column that holds the lines of the page, one under another."""
@@ -41,3 +44,35 @@ class AboutPage(tk.Frame):
             font=theme.FONT,
         )
         version.pack(side="top", anchor="w")
+
+    def _add_intro(self) -> None:
+        """Two paragraphs: what the app is for, and how it works."""
+        self._add_paragraph(
+            tr(
+                "Keep your eyes on the fight, not on the corners of the screen. "
+                "Tibia Mirror puts the parts of Tibia you care about - cooldowns, "
+                "the minimap, anything you like - into small windows you can place "
+                "wherever suits you."
+            ),
+            theme.TEXT,
+        )
+        self._add_paragraph(
+            tr(
+                "It uses Windows' own window previews - the same ones you see on the taskbar. "
+                "No screen capture, nothing changed in the game, nothing sent anywhere."
+            ),
+            theme.TEXT,
+        )
+
+    def _add_paragraph(self, text: str, colour: str) -> None:
+        """One paragraph of text. Long lines break at the width of the content."""
+        paragraph = tk.Label(
+            self._column,
+            text=text,
+            bg=theme.BG,
+            fg=colour,
+            font=theme.FONT,
+            justify="left",
+            wraplength=self._width,
+        )
+        paragraph.pack(side="top", anchor="w", pady=(px(PARAGRAPH_GAP), 0))
