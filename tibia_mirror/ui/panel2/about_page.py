@@ -22,6 +22,7 @@ class AboutPage(tk.Frame):
         self._add_title()
         self._add_version()
         self._add_intro()
+        self._add_trademark_notice()
 
     def _add_column(self, side_pad: int) -> None:
         """The column that holds the lines of the page, one under another."""
@@ -62,6 +63,16 @@ class AboutPage(tk.Frame):
                 "No screen capture, nothing changed in the game, nothing sent anywhere."
             ),
             theme.TEXT,
+        )
+
+    def _add_trademark_notice(self) -> None:
+        """The last paragraph: the app is made by a fan and is not a CipSoft product."""
+        self._add_paragraph(
+            tr(
+                "A fan-made tool for the Tibia community. Tibia is a trademark of "
+                "CipSoft GmbH, and this app is not affiliated with or endorsed by CipSoft."
+            ),
+            theme.SUBTEXT,
         )
 
     def _add_paragraph(self, text: str, colour: str) -> None:
