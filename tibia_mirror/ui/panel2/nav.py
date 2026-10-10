@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
@@ -31,10 +32,11 @@ class NavRail(tk.Canvas):
     ENTRY_HEIGHT = 68  # from the top of one entry to the top of the next
     BOTTOM_PAD = 10  # below the last entry
 
-    def __init__(self, parent: tk.Misc) -> None:
+    def __init__(self, parent: tk.Misc, selected: str, on_select: Callable[[str], None]) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(parent, width=px(self.WIDTH), bg=theme.MANTLE, highlightthickness=0, bd=0)
-        self._selected = "mirrors"  # the key of the selected entry; Mirrors at the start
+        self._selected = selected  # the key of the selected entry
+        self._on_select = on_select  # called with the key when the user selects another entry
         self._hovered: str | None = None  # the key of the entry under the pointer
         self._pressed: str | None = None  # the key of the entry the button went down on
         self._entry_tops: dict[str, int] = {}  # key -> the top edge of the entry
@@ -153,9 +155,12 @@ class NavRail(tk.Canvas):
         self._draw(self.winfo_height())
 
     def _select(self, key: str) -> None:
+        if key == self._selected:
+            return
         self._selected = key
         self._update_pointer()
         self._draw(self.winfo_height())
+        self._on_select(key)
 
     def _update_pointer(self) -> None:
         """Show a hand over an entry that can be clicked."""
