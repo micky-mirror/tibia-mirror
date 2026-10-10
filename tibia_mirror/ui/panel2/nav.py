@@ -26,7 +26,7 @@ class NavRail(tk.Canvas):
     WIDTH = 100
     TOP_PAD = 16  # above the entry
     ICON_HEIGHT = 30
-    PILL_WIDTH = 48  # the rounded shape behind the selected icon; its height is ICON_HEIGHT
+    PILL_WIDTH = 48  # the rounded shape behind an icon; its height is ICON_HEIGHT
     LABEL_GAP = 4  # between the icon and the label
     ENTRY_HEIGHT = 68  # from the top of one entry to the top of the next
     BOTTOM_PAD = 10  # below the last entry
@@ -38,6 +38,7 @@ class NavRail(tk.Canvas):
         self._hovered: str | None = None  # the key of the entry under the pointer
         self._entry_tops: dict[str, int] = {}  # key -> the top edge of the entry
         self._selected_pill = self._render_pill(theme.ACCENT_TINT)
+        self._hovered_pill = self._render_pill(theme.SURFACE)
         self._bind_events()
 
     def _bind_events(self) -> None:
@@ -79,22 +80,27 @@ class NavRail(tk.Canvas):
         for key, entry_top in self._entry_tops.items():
             self._draw_entry(key, entry_top)
 
+    def _entry_look(self, key: str) -> tuple[tk.PhotoImage | None, str, str]:
+        """How the entry looks now: (rounded shape or None, icon colour, label colour)."""
+        if key == self._selected:
+            return self._selected_pill, theme.ACCENT, theme.TEXT
+        elif key == self._hovered:
+            return self._hovered_pill, theme.TEXT, theme.TEXT
+        else:
+            return None, theme.SUBTEXT, theme.SUBTEXT
+
     def _draw_entry(self, key: str, top: int) -> None:
         """Draw one entry of ENTRIES. `top` is the entry's top edge."""
         icon, label = ENTRIES[key]
+        pill, icon_colour, label_colour = self._entry_look(key)
         # start icon positions
         position_x = px(self.WIDTH) // 2
         position_y = top + px(self.ICON_HEIGHT) // 2
         # label position from top
         label_y = position_y + px(self.ICON_HEIGHT) // 2 + px(self.LABEL_GAP)
-        # colours: the selected entry is brighter
-        is_selected: bool = key == self._selected
-
-        icon_colour = theme.ACCENT if is_selected else theme.SUBTEXT
-        label_colour = theme.TEXT if is_selected else theme.SUBTEXT
-        # draw the rounded shape behind the selected icon
-        if is_selected:
-            self.create_image(position_x, position_y, image=self._selected_pill)
+        # draw the rounded shape behind the icon
+        if pill is not None:
+            self.create_image(position_x, position_y, image=pill)
         # draw icon
         self.create_text(
             position_x,
@@ -125,7 +131,10 @@ class NavRail(tk.Canvas):
         return None
 
     def _set_hovered_entry(self, key: str | None) -> None:
+        if key == self._hovered:
+            return
         self._hovered = key
         # the selected entry is already open, so it is not clickable
         is_clickable: bool = key is not None and key != self._selected
         self.configure(cursor="hand2" if is_clickable else "")
+        self._draw(self.winfo_height())
