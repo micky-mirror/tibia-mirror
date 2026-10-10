@@ -3,9 +3,11 @@
 import tkinter as tk
 
 from tibia_mirror import __version__
+from tibia_mirror.about import DISCORD
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel2.rich_paragraph import RichParagraph
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 18  # above the title
@@ -22,6 +24,7 @@ class AboutPage(tk.Frame):
         self._add_title()
         self._add_version()
         self._add_intro()
+        self._add_contact()
         self._add_trademark_notice()
 
     def _add_column(self, side_pad: int) -> None:
@@ -64,6 +67,18 @@ class AboutPage(tk.Frame):
             ),
             theme.TEXT,
         )
+
+    def _add_contact(self) -> None:
+        """How to reach the author: a sentence with "Discord" in its own colour.
+
+        DISCORD can be None; then the page has no contact part.
+        """
+        if DISCORD is None:
+            return
+        before, after = tr("Questions or ideas? Message me on {discord}:").split("{discord}")
+        text_parts = [(before, theme.TEXT), (tr("Discord"), theme.BLURPLE), (after, theme.TEXT)]
+        sentence = RichParagraph(self._column, text_parts, self._width)
+        sentence.pack(side="top", anchor="w", pady=(px(PARAGRAPH_GAP), 0))
 
     def _add_trademark_notice(self) -> None:
         """The last paragraph: the app is made by a fan and is not a CipSoft product."""

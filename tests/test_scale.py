@@ -81,6 +81,7 @@ UNSCALED = {
     ("about_page.py", "height=1"): "a placeholder: the box is sized once its text is laid out",
     ("settings_page.py", "height=1"): "a placeholder: the card is sized once its rows are drawn",
     ("widgets.py", "height=1"): "a placeholder: the check box is sized to its label",
+    ("rich_paragraph.py", "height=1"): "a placeholder: the frame is sized to its text",
 }
 # Constants that are never scaled, on purpose: name -> why. They need no px() anywhere.
 UNSCALED_NAMES = {
