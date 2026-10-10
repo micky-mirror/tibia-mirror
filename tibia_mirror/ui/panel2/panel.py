@@ -8,6 +8,7 @@ from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.widgets import CopyText
 from tibia_mirror.ui.panel2.nav import NavRail
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -88,6 +89,7 @@ class Panel(tk.Frame):
             return
         self._add_tip_question()
         self._add_tip_sentence()
+        self._add_tip_name(TIP_CHARACTER)
         self._add_tip_divider()
 
     def _add_tip_question(self) -> None:
@@ -117,6 +119,24 @@ class Panel(tk.Frame):
             self._tip_row, text=text, bg=theme.BG, fg=colour, font=theme.FONT_SMALL, bd=0, padx=0
         )
         label.pack(side="left")
+
+    def _add_tip_name(self, character: str) -> None:
+        """The character to tip, in gold, at the end of the tip sentence. A click copies it."""
+        name = CopyText(
+            self._tip_row,
+            character,
+            background=theme.BG,
+            fg=theme.GOLD,
+            small=True,
+            inset=0,
+            max_width=self._tip_name_space(),
+        )
+        name.pack(side="left")
+
+    def _tip_name_space(self) -> int:
+        """The width left for the name after the sentence. A longer name is cut short."""
+        sentence_width = sum(words.winfo_reqwidth() for words in self._tip_row.winfo_children())
+        return content_width() - LABEL_INSET - sentence_width
 
     def _add_tip_divider(self) -> None:
         """The thin line between the tip and the credit."""
