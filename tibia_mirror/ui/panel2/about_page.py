@@ -8,12 +8,13 @@ from tibia_mirror.about import DISCORD, TIP_CHARACTER
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.widgets import CopyText
+from tibia_mirror.ui.controls.widgets import CopyText, ScrollList
 from tibia_mirror.ui.panel2.rich_paragraph import RichParagraph
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 18  # above the title
 PARAGRAPH_GAP = 14  # above each paragraph
+BOTTOM_PAD = 8  # below the last line of the page
 
 
 class AboutPage(tk.Frame):
@@ -31,9 +32,20 @@ class AboutPage(tk.Frame):
         self._add_trademark_notice()
 
     def _add_column(self, side_pad: int) -> None:
-        """The column that holds the lines of the page, one under another."""
-        self._column = tk.Frame(self, bg=theme.BG)
-        self._column.pack(side="top", anchor="w", padx=(side_pad, 0), pady=(px(TOP_PAD), 0))
+        """The column that holds the lines of the page, one under another.
+
+        It scrolls when the window is too short to show the whole page.
+        """
+        scroll_list = ScrollList(self, width=self._width)
+        scroll_list.pack(
+            side="top",
+            anchor="w",
+            fill="y",
+            expand=True,
+            padx=(side_pad, 0),
+            pady=(px(TOP_PAD), px(BOTTOM_PAD)),
+        )
+        self._column = scroll_list.inner
 
     def _add_title(self) -> None:
         # The name of the app is never translated.
