@@ -3,7 +3,8 @@
 import tkinter as tk
 from datetime import date
 
-from tibia_mirror.about import AUTHOR, copyright_years
+from tibia_mirror.about import AUTHOR, TIP_CHARACTER, copyright_years
+from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
@@ -14,6 +15,15 @@ SIDE_PAD = 20  # left and right of the content
 CONNECTION_TOP_PAD = 14  # above the connection line
 FOOTER_TOP_PAD = 10  # between the thin line and the footer's text
 FOOTER_BOTTOM_PAD = 12  # below the footer's text
+TIP_DIVIDER_PAD = 10  # above and below the thin line between the tip and the credit
+
+
+def content_width() -> int:
+    """The width of the content: the normal window width without the menu and the side space.
+
+    It is fixed. A wider window leaves empty space on the right.
+    """
+    return px(PANEL_SIZE[0]) - px(NavRail.WIDTH) - 2 * px(SIDE_PAD)
 
 
 class Panel(tk.Frame):
@@ -25,6 +35,7 @@ class Panel(tk.Frame):
         self._add_content()
         self._add_connection_line()
         self._add_footer()
+        self._add_tip()
         self._add_credit()
 
     def _add_menu(self) -> None:
@@ -63,6 +74,31 @@ class Panel(tk.Frame):
         # side="bottom" stacks upwards, so the thin line lands above the footer.
         thin_line = tk.Frame(self._content, bg=theme.SURFACE_HI, height=px(1))
         thin_line.pack(side="bottom", fill="x")
+
+    def _add_tip(self) -> None:
+        """The tip text above the credit, with a thin line between them.
+
+        TIP_CHARACTER can be None; then the footer shows only the credit.
+        """
+        if TIP_CHARACTER is None:
+            return
+        self._add_tip_question()
+        self._add_tip_divider()
+
+    def _add_tip_question(self) -> None:
+        label = tk.Label(
+            self._footer,
+            text=tr("Enjoying it?"),
+            bg=theme.BG,
+            fg=theme.SUBTEXT,
+            font=theme.FONT_SMALL,
+        )
+        label.pack(side="top", anchor="w")
+
+    def _add_tip_divider(self) -> None:
+        """The thin line between the tip and the credit."""
+        divider = tk.Frame(self._footer, bg=theme.SURFACE_HI, height=px(1), width=content_width())
+        divider.pack(side="top", anchor="w", pady=px(TIP_DIVIDER_PAD))
 
     def _add_credit(self) -> None:
         """Two small lines in the footer: the author and the license."""
