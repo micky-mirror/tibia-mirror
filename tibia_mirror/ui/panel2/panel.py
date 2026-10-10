@@ -7,7 +7,7 @@ from tibia_mirror.ui.panel2.nav import NavRail
 
 
 class Panel(tk.Frame):
-    """Everything inside the main window. For now only the menu."""
+    """Everything inside the main window."""
 
     def __init__(self, root: tk.Misc) -> None:
         super().__init__(root, bg=theme.BG)
