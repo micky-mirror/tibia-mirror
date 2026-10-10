@@ -7,6 +7,7 @@ from tibia_mirror.about import DISCORD
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.widgets import CopyText
 from tibia_mirror.ui.panel2.rich_paragraph import RichParagraph
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -69,16 +70,26 @@ class AboutPage(tk.Frame):
         )
 
     def _add_contact(self) -> None:
-        """How to reach the author: a sentence with "Discord" in its own colour.
+        """How to reach the author: a sentence, and under it the Discord name to copy.
 
         DISCORD can be None; then the page has no contact part.
         """
         if DISCORD is None:
             return
+        self._add_contact_sentence()
+        self._add_copy_name(DISCORD, theme.BLURPLE)
+
+    def _add_contact_sentence(self) -> None:
+        """The sentence that sends the reader to Discord, with "Discord" in its own colour."""
         before, after = tr("Questions or ideas? Message me on {discord}:").split("{discord}")
         text_parts = [(before, theme.TEXT), (tr("Discord"), theme.BLURPLE), (after, theme.TEXT)]
         sentence = RichParagraph(self._column, text_parts, self._width)
         sentence.pack(side="top", anchor="w", pady=(px(PARAGRAPH_GAP), 0))
+
+    def _add_copy_name(self, name: str, colour: str) -> None:
+        """A name on its own line, with a copy icon. A click copies the name."""
+        copy_name = CopyText(self._column, name, background=theme.BG, fg=colour)
+        copy_name.pack(side="top", anchor="w")
 
     def _add_trademark_notice(self) -> None:
         """The last paragraph: the app is made by a fan and is not a CipSoft product."""
