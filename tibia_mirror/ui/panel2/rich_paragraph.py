@@ -24,6 +24,7 @@ class RichParagraph(tk.Frame):
         self.pack_propagate(False)
         self._add_text_box()
         self._add_text_parts(text_parts)
+        self._remove_text_box_actions()
         self._text.bind("<Configure>", self._on_resize)
 
     def _add_text_box(self) -> None:
@@ -47,6 +48,16 @@ class RichParagraph(tk.Frame):
             self._text.tag_configure(tag, foreground=colour)
             self._text.insert("end", text, tag)
         self._text.configure(state="disabled")
+
+    def _remove_text_box_actions(self) -> None:
+        """Drop what a text box does on its own: selecting with the mouse, keys, its own scrolling.
+
+        The text then acts like a label, and the mouse wheel reaches the page under it.
+        """
+        # Tk looks for the action of an event in these groups, in this order.
+        # The normal list also has "Text", the group with the actions of every text box.
+        window = self._text.winfo_toplevel()
+        self._text.bindtags((str(self._text), str(window), "all"))
 
     def _on_resize(self, event: tk.Event[tk.Text]) -> None:
         """Make the frame as high as its lines of text.
