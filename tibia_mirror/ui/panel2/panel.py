@@ -6,6 +6,7 @@ from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel2.about_page import AboutPage
 from tibia_mirror.ui.panel2.footer import Footer
 from tibia_mirror.ui.panel2.nav import NavRail
 
@@ -33,6 +34,7 @@ class Panel(tk.Frame):
         self._add_content()
         self._add_connection_line()
         self._add_footer()
+        self._add_about_page()
 
     def _add_menu(self) -> None:
         NavRail(self).pack(side="left", fill="y")
@@ -70,3 +72,8 @@ class Panel(tk.Frame):
         # side="bottom" stacks upwards, so the thin line lands above the footer.
         thin_line = tk.Frame(self._content, bg=theme.SURFACE_HI, height=px(1))
         thin_line.pack(side="bottom", fill="x")
+
+    def _add_about_page(self) -> None:
+        self._about_page = AboutPage(self._content, px(SIDE_PAD))
+        # Packed last, so the page gets the space between the connection line and the footer.
+        self._about_page.pack(side="top", fill="both", expand=True)
