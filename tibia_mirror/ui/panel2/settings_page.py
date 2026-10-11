@@ -108,7 +108,27 @@ class SettingsPage(tk.Frame):
             lowest=MIN_OPACITY,
             value_text=percent,
         )
-        self._add_card([opacity_row])
+        frame_row = ToggleRow(
+            tr("Mirror frame"),
+            tr("Grey outline on mirrors without a colour."),
+            is_on=True,
+        )
+        tint_row = ToggleRow(
+            tr("Tint with frame colour"),
+            tr("Shades coloured mirrors in their colour."),
+            is_on=False,
+        )
+        corners_row = ToggleRow(
+            tr("Rounded corners"),
+            tr("Clips a few pixels at each corner."),
+            is_on=False,
+        )
+        fades_row = ToggleRow(
+            tr("Fade animations"),
+            tr("Off: mirrors appear and hide instantly."),
+            is_on=True,
+        )
+        self._add_card([opacity_row, frame_row, tint_row, corners_row, fades_row])
 
     def _add_caption(self, text: str) -> None:
         """The small grey title above one group of settings."""
