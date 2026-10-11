@@ -40,7 +40,7 @@ class Switch:
             width=px(self.WIDTH),
             height=px(self.HEIGHT),
             radius=px(self.HEIGHT) // 2,  # half of the height: fully round ends
-            colour=self._track_colour(is_on, is_hovered),
+            colour=self._get_track_colour(is_on, is_hovered),
             background=theme.SURFACE,  # the colour of the card around the track
         )
         self._canvas.itemconfigure(self._track, image=self._track_image)
@@ -54,12 +54,13 @@ class Switch:
             height=size,
             radius=size // 2,
             colour=theme.ON_ACCENT if is_on else theme.TEXT,
-            background=self._track_colour(is_on, is_hovered),  # the track is seen around the knob
+            # the track is seen around the knob
+            background=self._get_track_colour(is_on, is_hovered),
         )
         self._canvas.itemconfigure(self._knob, image=self._knob_image)
-        self._canvas.coords(self._knob, self._knob_x(is_on), self._middle_y)
+        self._canvas.coords(self._knob, self._get_knob_position_x(is_on), self._middle_y)
 
-    def _knob_x(self, is_on: bool) -> int:
+    def _get_knob_position_x(self, is_on: bool) -> int:
         """The x of the left side of the knob."""
         # the knob has the same space around it on every side inside the track
         space = (px(self.HEIGHT) - px(self.KNOB_SIZE)) // 2
@@ -67,7 +68,7 @@ class Switch:
             return self._left + px(self.WIDTH) - space - px(self.KNOB_SIZE)
         return self._left + space
 
-    def _track_colour(self, is_on: bool, is_hovered: bool) -> str:
+    def _get_track_colour(self, is_on: bool, is_hovered: bool) -> str:
         """Accent when the switch is on, grey when it is off; brighter when hovered."""
         if is_on:
             return theme.ACCENT_HI if is_hovered else theme.ACCENT

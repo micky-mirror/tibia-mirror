@@ -57,19 +57,19 @@ class NavRail(tk.Canvas):
         self._draw(event.height)
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
-        self._set_hovered_entry(self._entry_at(event.y))
+        self._set_hovered_entry(self._get_entry_at(event.y))
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
         self._set_hovered_entry(None)
 
     def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
-        self._pressed = self._entry_at(event.y)
+        self._pressed = self._get_entry_at(event.y)
 
     def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
         """Select the entry if the button went down and up on it, like a normal button."""
         # after a drag the button can go up outside the menu
         is_inside: bool = 0 <= event.x < self.winfo_width()
-        key = self._entry_at(event.y)
+        key = self._get_entry_at(event.y)
         if is_inside and key is not None and key == self._pressed:
             self._select(key)
         self._pressed = None
@@ -101,7 +101,7 @@ class NavRail(tk.Canvas):
         for key, entry_top in self._entry_tops.items():
             self._draw_entry(key, entry_top)
 
-    def _entry_look(self, key: str) -> tuple[tk.PhotoImage | None, str, str]:
+    def _get_entry_look(self, key: str) -> tuple[tk.PhotoImage | None, str, str]:
         """How the entry looks now: (rounded shape or None, icon colour, label colour)."""
         if key == self._selected:
             return self._selected_pill, theme.ACCENT, theme.TEXT
@@ -113,7 +113,7 @@ class NavRail(tk.Canvas):
     def _draw_entry(self, key: str, top: int) -> None:
         """Draw one entry of ENTRIES. `top` is the entry's top edge."""
         icon, label = ENTRIES[key]
-        pill, icon_colour, label_colour = self._entry_look(key)
+        pill, icon_colour, label_colour = self._get_entry_look(key)
         # start icon positions
         position_x = px(self.WIDTH) // 2
         position_y = top + px(self.ICON_HEIGHT) // 2
@@ -140,7 +140,7 @@ class NavRail(tk.Canvas):
             fill=label_colour,
         )
 
-    def _entry_at(self, position_y: int) -> str | None:
+    def _get_entry_at(self, position_y: int) -> str | None:
         """The key of the entry at `position_y`, or None for the empty space.
 
         `position_y` is the mouse "y" position on the menu.

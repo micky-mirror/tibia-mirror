@@ -65,9 +65,9 @@ class RichParagraph(tk.Frame):
         Tk calls this when the text box has a size.
         """
         line_height = tkfont.Font(font=theme.FONT).metrics("linespace")
-        self.configure(height=self._line_count() * line_height + 2 * LABEL_INSET)
+        self.configure(height=self._get_line_count() * line_height + 2 * LABEL_INSET)
 
-    def _line_count(self) -> int:
+    def _get_line_count(self) -> int:
         """How many lines the text takes on screen, after long lines are broken."""
         counted = self._text.count("1.0", "end", "displaylines")
         return counted[0] if isinstance(counted, tuple) else (counted or 1)

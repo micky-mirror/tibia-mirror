@@ -74,7 +74,7 @@ class MirrorCardButtonBar:
 
         self._remove_button = IconButton(
             self._canvas,
-            self._button_position_x(0),
+            self._get_button_position_x(0),
             px(TOP_ROW_Y),
             REMOVE_ICON,
             theme.FONT,
@@ -93,7 +93,7 @@ class MirrorCardButtonBar:
 
         self._lock_button = IconButton(
             self._canvas,
-            self._button_position_x(1),
+            self._get_button_position_x(1),
             px(TOP_ROW_Y),
             icon,
             theme.FONT_ICON,
@@ -112,7 +112,7 @@ class MirrorCardButtonBar:
 
         self._eye_button = IconButton(
             self._canvas,
-            self._button_position_x(2),
+            self._get_button_position_x(2),
             px(TOP_ROW_Y),
             icon,
             theme.FONT_ICON,
@@ -130,7 +130,7 @@ class MirrorCardButtonBar:
 
         self._timer_button = IconButton(
             self._canvas,
-            self._button_position_x(3),
+            self._get_button_position_x(3),
             px(TOP_ROW_Y),
             TIMER_ICON,
             theme.FONT_ICON,
@@ -139,7 +139,7 @@ class MirrorCardButtonBar:
             tip,
         )
 
-    def _button_position_x(self, place: int) -> int:
+    def _get_button_position_x(self, place: int) -> int:
         """The middle of a button. `place` counts the buttons from the right, from 0."""
         size = px(IconButton.SIZE)
         step = size + px(BUTTON_GAP)  # from the middle of one button to the middle of the next

@@ -30,7 +30,7 @@ class ChoiceRow:
 
         Return True when a click at this place would choose an option.
         """
-        option = self._option_at(position_x, position_y)
+        option = self._get_option_at(position_x, position_y)
         self._set_hovered(option)
         return option is not None
 
@@ -40,11 +40,11 @@ class ChoiceRow:
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
         """Remember the option the mouse button went down on."""
-        self._pressed = self._option_at(position_x, position_y)
+        self._pressed = self._get_option_at(position_x, position_y)
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """Choose the option if the button went down and up on it, like a normal button."""
-        option = self._option_at(position_x, position_y)
+        option = self._get_option_at(position_x, position_y)
         if option is not None and option == self._pressed:
             self._select(option)
         self._pressed = None
@@ -56,7 +56,7 @@ class ChoiceRow:
         self._hovered = option
         self._options_drawing.draw(self._selected, self._hovered)
 
-    def _option_at(self, position_x: int, position_y: int) -> str | None:
+    def _get_option_at(self, position_x: int, position_y: int) -> str | None:
         """The key of the option at this place, or None. The chosen option does not count."""
         option = self._options_drawing.at(position_x, position_y)
         if option == self._selected:

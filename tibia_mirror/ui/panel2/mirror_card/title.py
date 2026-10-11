@@ -75,7 +75,7 @@ class MirrorCardTitle:
         """
         font = tkfont.Font(font=theme.FONT_BOLD)
         # the name can take the width that the size and the buttons leave
-        room = self._width - px(NAME_X) - self._size_width() - px(TEXT_GAP) - px(BUTTONS_ROOM)
+        room = self._width - px(NAME_X) - self._get_size_width() - px(TEXT_GAP) - px(BUTTONS_ROOM)
         name = elide(self._mirror.name, font, room)
         self._canvas.create_text(
             px(NAME_X),
@@ -95,11 +95,11 @@ class MirrorCardTitle:
         """
         position_x = self._name_end_x + px(TEXT_GAP)
 
-        self._size_link = TextLink(self._canvas, position_x, px(TOP_ROW_Y), self._size_text())
+        self._size_link = TextLink(self._canvas, position_x, px(TOP_ROW_Y), self._get_size_text())
 
-    def _size_text(self) -> str:
+    def _get_size_text(self) -> str:
         return f"{self._mirror.area_width}×{self._mirror.area_height}"
 
-    def _size_width(self) -> int:
+    def _get_size_width(self) -> int:
         """The width of the size text on the screen, in pixels."""
-        return tkfont.Font(font=theme.FONT).measure(self._size_text())
+        return tkfont.Font(font=theme.FONT).measure(self._get_size_text())

@@ -25,15 +25,15 @@ class ProfileMenu:
 
         `on_close` is called when the menu closes.
         """
-        PopupMenu(root, box, self._items(), on_close=on_close)
+        PopupMenu(root, box, self._get_items(), on_close=on_close)
 
-    def _items(self) -> list[MenuItem | None]:
+    def _get_items(self) -> list[MenuItem | None]:
         """The entries of the menu: every profile, then what can be done with profiles."""
         # two entries need a second profile: there is nothing to copy from, and the last
         # profile cannot be deleted
         has_other_profiles: bool = len(self._profile_names) > 1
         return [
-            *self._profile_items(),
+            *self._get_profile_items(),
             SEPARATOR,
             MenuItem(tr("New profile…"), self._new),
             MenuItem(tr("Duplicate…"), self._duplicate),
@@ -48,7 +48,7 @@ class ProfileMenu:
             MenuItem(tr("Delete profile"), self._delete, enabled=has_other_profiles, danger=True),
         ]
 
-    def _profile_items(self) -> list[MenuItem]:
+    def _get_profile_items(self) -> list[MenuItem]:
         """One entry for each profile, with a check mark at the active one."""
         return [
             MenuItem(name, partial(self._select, name), checked=name == self._active_name)

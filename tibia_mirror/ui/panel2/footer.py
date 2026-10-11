@@ -71,11 +71,11 @@ class Footer(tk.Frame):
             fg=theme.GOLD,
             small=True,
             inset=0,
-            max_width=self._tip_name_space(),
+            max_width=self._get_tip_name_space(),
         )
         name.pack(side="left")
 
-    def _tip_name_space(self) -> int:
+    def _get_tip_name_space(self) -> int:
         """The width left for the name after the sentence. A longer name is cut short."""
         sentence_width = sum(words.winfo_reqwidth() for words in self._tip_row.winfo_children())
         return self._width - LABEL_INSET - sentence_width

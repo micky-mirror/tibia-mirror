@@ -23,7 +23,7 @@ class ToggleRow:
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
         label_end_y = draw_label(canvas, row_start_y, self._label)
-        hint_end_y = draw_hint(canvas, label_end_y, self._hint, self._hint_width(width))
+        hint_end_y = draw_hint(canvas, label_end_y, self._hint, self._get_hint_width(width))
         row_end_y = hint_end_y + px(ROW_PAD)
         self._draw_switch(canvas, row_start_y, row_end_y, width)
         # remembered to know later if the pointer is in the row
@@ -79,6 +79,6 @@ class ToggleRow:
         position_y = (row_start_y + row_end_y) // 2  # the middle of the switch
         self._switch = Switch(canvas, position_x, position_y, self._is_on)
 
-    def _hint_width(self, width: int) -> int:
+    def _get_hint_width(self, width: int) -> int:
         """The width the help text can take: the row without its side space and the switch."""
         return width - 2 * px(SIDE_PAD) - px(Switch.WIDTH) - px(SWITCH_GAP)

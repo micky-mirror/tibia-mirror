@@ -72,11 +72,11 @@ class IconButton:
     def _update_tip(self) -> None:
         """Open the hint while the button is hovered, and close it when it is not."""
         if self._is_hovered:
-            self._tooltip.show(self._tip.title, self._screen_box(), self._tip.detail)
+            self._tooltip.show(self._tip.title, self._get_screen_box(), self._tip.detail)
         else:
             self._tooltip.hide()
 
-    def _screen_box(self) -> Box:
+    def _get_screen_box(self) -> Box:
         """The place of the button on the screen. The hint opens under it."""
         half = px(self.SIZE) // 2
         middle_x = self._canvas.winfo_rootx() + self._middle_x
