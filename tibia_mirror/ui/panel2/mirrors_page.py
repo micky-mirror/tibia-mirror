@@ -8,6 +8,8 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import margins
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import RaisedButton, ScrollList
+from tibia_mirror.ui.panel2.mirror_card import MirrorCard
+from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.profile_picker import ProfilePicker
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -20,6 +22,14 @@ SAVE_BUTTON_GAP = 12  # between the Save button and the Revert button
 LIST_TOP_PAD = 2  # between the shadow of the Add region button and the list
 LIST_BOTTOM_PAD = 8  # between the list and the Save buttons
 HINT_TOP_PAD = 10  # above the sentence that shows when there are no mirrors
+CARD_GAP = 6  # under each mirror card
+
+# Three mirrors to build the page with. They go away when the page gets the real mirrors.
+SAMPLE_MIRRORS = (
+    MirrorInfo("Cooldowns", 320, 64, opacity=0.5, colour="", is_hidden=False, is_locked=False),
+    MirrorInfo("Minimap", 176, 176, opacity=1.0, colour="", is_hidden=False, is_locked=True),
+    MirrorInfo("Health and mana", 240, 40, opacity=0.8, colour="", is_hidden=True, is_locked=False),
+)
 BOTTOM_PAD = 14  # below the line that tells if the changes are saved
 
 
@@ -30,6 +40,7 @@ class MirrorsPage(tk.Frame):
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
+        self._mirrors = SAMPLE_MIRRORS
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
@@ -39,7 +50,7 @@ class MirrorsPage(tk.Frame):
         self._add_save_buttons()
         # add the list last: it takes the space that the other parts leave
         self._add_mirror_list()
-        self._add_empty_hint()
+        self._show_mirrors()
 
     def _add_profile_picker(self) -> None:
         """The box at the top with the name of the active profile."""
@@ -176,6 +187,15 @@ class MirrorsPage(tk.Frame):
             pady=(px(LIST_TOP_PAD), px(LIST_BOTTOM_PAD)),
         )
         self._mirror_list = scroll_list.inner
+
+    def _show_mirrors(self) -> None:
+        """Fill the list: a card for each mirror, or the help sentence when there are none."""
+        if not self._mirrors:
+            self._add_empty_hint()
+            return
+        for mirror in self._mirrors:
+            card = MirrorCard(self._mirror_list, self._width, mirror)
+            card.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
 
     def _add_empty_hint(self) -> None:
         """The sentence that tells how to add the first mirror. It is for a list with no mirrors."""
