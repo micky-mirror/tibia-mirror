@@ -14,6 +14,7 @@ TOP_PAD = 18  # above the profile picker
 CAPTION_TOP_PAD = 20  # between the profile picker and the caption
 CAPTION_BOTTOM_PAD = 7  # between the caption and the Add region button
 ADD_BUTTON_HEIGHT = 42
+BOTTOM_PAD = 14  # below the line that tells if the changes are saved
 
 
 class MirrorsPage(tk.Frame):
@@ -27,6 +28,8 @@ class MirrorsPage(tk.Frame):
         self._add_profile_picker()
         self._add_regions_caption()
         self._add_region_button()
+        # add the parts at the bottom of the page, from the bottom up
+        self._add_save_state()
 
     def _add_profile_picker(self) -> None:
         """The box at the top with the name of the active profile."""
@@ -80,3 +83,19 @@ class MirrorsPage(tk.Frame):
 
     def _on_add_region(self) -> None:
         """Let the user drag a box over the part of the game that the new mirror will show."""
+
+    def _add_save_state(self) -> None:
+        """The line at the bottom that tells if the changes are saved."""
+        save_state = tk.Label(
+            self,
+            text=tr("All changes saved"),
+            bg=theme.BG,
+            fg=theme.SUBTEXT,
+            font=theme.FONT,
+        )
+        save_state.pack(
+            side="bottom",
+            anchor="w",
+            padx=self._side_pad,
+            pady=(0, px(BOTTOM_PAD)),
+        )
