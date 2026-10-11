@@ -3,10 +3,12 @@
 import tkinter as tk
 import tkinter.font as tkfont
 
+from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
+from tibia_mirror.ui.controls.slider import SliderDrawing
 from tibia_mirror.ui.panel2.icon_button import IconButton
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
@@ -29,6 +31,9 @@ BUTTONS_ROOM = 126  # kept free at the right side of the card, for the four butt
 BUTTONS_RIGHT_PAD = 8  # from the right side of the card to the last button
 BUTTON_GAP = 2  # between two buttons
 TEXT_GAP = 8  # between the name and the size, and between the size and the buttons
+SLIDER_Y = 44  # from the top of the card to the middle line of the slider
+SLIDER_SIDE_PAD = 14  # from the left side of the card to the slider
+PERCENT_ROOM = 48  # kept free between the slider and the right side space, for the percent
 
 
 class MirrorCard(tk.Canvas):
@@ -51,6 +56,7 @@ class MirrorCard(tk.Canvas):
         self._draw_name()
         self._draw_size()
         self._draw_buttons()
+        self._draw_slider()
 
     def _draw_background(self) -> None:
         """The rounded shape of the card, a little lighter than the page."""
@@ -190,3 +196,20 @@ class MirrorCard(tk.Canvas):
         size = px(IconButton.SIZE)
         step = size + px(BUTTON_GAP)  # from the middle of one button to the middle of the next
         return self._width - px(BUTTONS_RIGHT_PAD) - size // 2 - place * step
+
+    def _draw_slider(self) -> None:
+        """The slider under the top row that sets how see-through the mirror is."""
+        position_x_start = px(SLIDER_SIDE_PAD)
+        position_x_end = self._width - px(SLIDER_SIDE_PAD) - px(PERCENT_ROOM)
+
+        self._slider = SliderDrawing(
+            self,
+            position_x_start,
+            position_x_end,
+            px(SLIDER_Y),
+            self._mirror.opacity,
+            lo=0.0,
+            hi=1.0,
+            step=OPACITY_STEP,
+            floor=MIN_OPACITY,
+        )
