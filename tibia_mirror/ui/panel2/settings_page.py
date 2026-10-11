@@ -27,6 +27,7 @@ class SettingsPage(tk.Frame):
         self._width = width  # the width of the content, in pixels
         self._add_column(side_pad)
         self._add_general_group()
+        self._add_profiles_group()
 
     def _add_column(self, side_pad: int) -> None:
         """The column that holds the groups of the page, one under another.
@@ -64,6 +65,16 @@ class SettingsPage(tk.Frame):
             is_on=False,
         )
         self._add_card([language_row, theme_row, on_top_row])
+
+    def _add_profiles_group(self) -> None:
+        """The second group: how the app chooses a profile."""
+        self._add_caption(tr("PROFILES"))
+        per_character_row = ToggleRow(
+            tr("Profile per character"),
+            tr("Logging in opens the character's profile, creating one the first time."),
+            is_on=False,
+        )
+        self._add_card([per_character_row])
 
     def _add_caption(self, text: str) -> None:
         """The small grey title above one group of settings."""
