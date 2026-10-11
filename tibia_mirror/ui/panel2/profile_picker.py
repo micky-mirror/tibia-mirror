@@ -7,11 +7,12 @@ import tkinter.font as tkfont
 from collections.abc import Sequence
 from functools import partial
 
+from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.controls.menu import MenuItem, PopupMenu
+from tibia_mirror.ui.controls.menu import SEPARATOR, MenuItem, PopupMenu
 
 ICON = "\ue77b"  # a person, from the Segoe MDL2 Assets icon font
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the same icon font
@@ -153,7 +154,17 @@ class ProfilePicker(tk.Canvas):
         self._set_open(False)
 
     def _menu_items(self) -> list[MenuItem | None]:
-        """The entries of the menu: every profile, with a check mark at the active one."""
+        """The entries of the menu: every profile, then what can be done with profiles."""
+        return [
+            *self._profile_items(),
+            SEPARATOR,
+            MenuItem(tr("New profile…"), self._new),
+            MenuItem(tr("Duplicate…"), self._duplicate),
+            MenuItem(tr("Rename…"), self._rename),
+        ]
+
+    def _profile_items(self) -> list[MenuItem]:
+        """One entry for each profile, with a check mark at the active one."""
         return [
             MenuItem(name, partial(self._select, name), checked=name == self._profile_name)
             for name in self._profile_names
@@ -161,3 +172,12 @@ class ProfilePicker(tk.Canvas):
 
     def _select(self, name: str) -> None:
         """Make the profile `name` the active one."""
+
+    def _new(self) -> None:
+        """Ask for a name and make a new, empty profile."""
+
+    def _duplicate(self) -> None:
+        """Ask for a name and make a copy of the active profile."""
+
+    def _rename(self) -> None:
+        """Ask for a new name for the active profile."""
