@@ -5,14 +5,12 @@ from __future__ import annotations
 import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Sequence
-from functools import partial
 
-from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.controls.menu import SEPARATOR, MenuItem, PopupMenu
+from tibia_mirror.ui.panel2.profile_menu import ProfileMenu
 
 ICON = "\ue77b"  # a person, from the Segoe MDL2 Assets icon font
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the same icon font
@@ -45,7 +43,7 @@ class ProfilePicker(tk.Canvas):
         )
         self._width = width
         self._profile_name = name  # the name of the active profile
-        self._profile_names = profile_names  # the names of all profiles, for the menu
+        self._profile_menu = ProfileMenu(name, profile_names)
         self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the profile menu is open
 
@@ -148,62 +146,7 @@ class ProfilePicker(tk.Canvas):
         left = self.winfo_rootx()
         top = self.winfo_rooty()
         box = (left, top, left + self._width, top + px(HEIGHT))
-        PopupMenu(self.winfo_toplevel(), box, self._menu_items(), on_close=self._on_menu_closed)
+        self._profile_menu.open(self.winfo_toplevel(), box, on_close=self._on_menu_closed)
 
     def _on_menu_closed(self) -> None:
         self._set_open(False)
-
-    def _menu_items(self) -> list[MenuItem | None]:
-        """The entries of the menu: every profile, then what can be done with profiles."""
-        # two entries need a second profile: there is nothing to copy from, and the last
-        # profile cannot be deleted
-        has_other_profiles: bool = len(self._profile_names) > 1
-        return [
-            *self._profile_items(),
-            SEPARATOR,
-            MenuItem(tr("New profile…"), self._new),
-            MenuItem(tr("Duplicate…"), self._duplicate),
-            MenuItem(tr("Rename…"), self._rename),
-            SEPARATOR,
-            MenuItem(tr("Characters…"), self._characters),
-            MenuItem(tr("Copy from…"), self._copy_from, enabled=has_other_profiles),
-            SEPARATOR,
-            MenuItem(tr("Import…"), self._import),
-            MenuItem(tr("Export…"), self._export),
-            SEPARATOR,
-            MenuItem(tr("Delete profile"), self._delete, enabled=has_other_profiles, danger=True),
-        ]
-
-    def _profile_items(self) -> list[MenuItem]:
-        """One entry for each profile, with a check mark at the active one."""
-        return [
-            MenuItem(name, partial(self._select, name), checked=name == self._profile_name)
-            for name in self._profile_names
-        ]
-
-    def _select(self, name: str) -> None:
-        """Make the profile `name` the active one."""
-
-    def _new(self) -> None:
-        """Ask for a name and make a new, empty profile."""
-
-    def _duplicate(self) -> None:
-        """Ask for a name and make a copy of the active profile."""
-
-    def _rename(self) -> None:
-        """Ask for a new name for the active profile."""
-
-    def _characters(self) -> None:
-        """Let the user choose which characters open the active profile when they log in."""
-
-    def _copy_from(self) -> None:
-        """Ask for another profile and copy its mirrors into the active one."""
-
-    def _import(self) -> None:
-        """Ask for a profile file and add it as a new profile."""
-
-    def _export(self) -> None:
-        """Ask where to save, and write the active profile to a file."""
-
-    def _delete(self) -> None:
-        """Ask if the user is sure, then delete the active profile."""
