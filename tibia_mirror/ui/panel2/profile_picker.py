@@ -15,6 +15,7 @@ from tibia_mirror.ui.controls.menu import MenuItem, PopupMenu
 
 ICON = "\ue77b"  # a person, from the Segoe MDL2 Assets icon font
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the same icon font
+ARROW_UP = "\ue70e"  # the same arrow, pointing up
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 36
@@ -44,6 +45,7 @@ class ProfilePicker(tk.Canvas):
         self._width = width
         self._profile_name = name  # the name of the active profile
         self._profile_names = profile_names  # the names of all profiles, for the menu
+        self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the profile menu is open
 
         self._normal_box = self._render_box(theme.SURFACE)
@@ -95,7 +97,7 @@ class ProfilePicker(tk.Canvas):
 
     def _draw_arrow(self) -> None:
         """The small arrow at the right, in the middle of the box's height."""
-        self.create_text(
+        self._arrow = self.create_text(
             self._width - px(ARROW_X),
             px(HEIGHT) // 2,
             text=ARROW_DOWN,
@@ -115,9 +117,21 @@ class ProfilePicker(tk.Canvas):
         self._set_hovered(False)
 
     def _set_hovered(self, is_hovered: bool) -> None:
-        """Show the box brighter while the pointer is over it."""
-        box_image = self._bright_box if is_hovered else self._normal_box
-        self.itemconfigure(self._box, image=box_image)
+        self._is_hovered = is_hovered
+        self._update_look()
+
+    def _set_open(self, is_open: bool) -> None:
+        self._is_open = is_open
+        self._update_look()
+
+    def _update_look(self) -> None:
+        """Show the box brighter while it is hovered or its menu is open.
+
+        The arrow points up while the menu is open.
+        """
+        is_bright: bool = self._is_hovered or self._is_open
+        self.itemconfigure(self._box, image=self._bright_box if is_bright else self._normal_box)
+        self.itemconfigure(self._arrow, text=ARROW_UP if self._is_open else ARROW_DOWN)
 
     def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
         """Open the profile menu if the button went up inside the box."""
@@ -128,7 +142,7 @@ class ProfilePicker(tk.Canvas):
 
     def _open_menu(self) -> None:
         """Open the profile menu under the box, as wide as the box."""
-        self._is_open = True
+        self._set_open(True)
         # the menu is its own small window, so it needs the place of the box on the screen
         left = self.winfo_rootx()
         top = self.winfo_rooty()
@@ -136,7 +150,7 @@ class ProfilePicker(tk.Canvas):
         PopupMenu(self.winfo_toplevel(), box, self._menu_items(), on_close=self._on_menu_closed)
 
     def _on_menu_closed(self) -> None:
-        self._is_open = False
+        self._set_open(False)
 
     def _menu_items(self) -> list[MenuItem | None]:
         """The entries of the menu: every profile, with a check mark at the active one."""
