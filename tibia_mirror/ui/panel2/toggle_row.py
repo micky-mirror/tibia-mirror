@@ -18,13 +18,13 @@ class ToggleRow:
         self._hint = hint  # the help text under the label
         self._is_on = is_on
 
-    def draw(self, canvas: tk.Canvas, top: int, width: int) -> int:
-        """Draw the row on the card, starting at `top`. Return where the row ends."""
-        label_bottom = draw_label(canvas, top, self._label)
-        hint_bottom = draw_hint(canvas, label_bottom, self._hint, self._hint_width(width))
-        bottom = hint_bottom + px(ROW_PAD)
-        self._draw_switch(canvas, top, bottom, width)
-        return bottom
+    def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
+        """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
+        label_end_y = draw_label(canvas, row_start_y, self._label)
+        hint_end_y = draw_hint(canvas, label_end_y, self._hint, self._hint_width(width))
+        row_end_y = hint_end_y + px(ROW_PAD)
+        self._draw_switch(canvas, row_start_y, row_end_y, width)
+        return row_end_y
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Show the switch as hovered when the pointer is anywhere in the row.
@@ -42,10 +42,10 @@ class ToggleRow:
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """Turn the setting on or off if the button went down and up in the row."""
 
-    def _draw_switch(self, canvas: tk.Canvas, top: int, bottom: int, width: int) -> None:
+    def _draw_switch(self, canvas: tk.Canvas, row_start_y: int, row_end_y: int, width: int) -> None:
         """The switch at the right, in the middle of the row's height."""
         position_x = width - px(SIDE_PAD)  # the right end of the switch
-        position_y = (top + bottom) // 2  # the middle of the switch
+        position_y = (row_start_y + row_end_y) // 2  # the middle of the switch
         self._switch = Switch(canvas, position_x, position_y, self._is_on)
 
     def _hint_width(self, width: int) -> int:

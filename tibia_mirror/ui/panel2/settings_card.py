@@ -37,13 +37,15 @@ class SettingsCard(tk.Canvas):
 
         Return the height they take together.
         """
-        position_y = 0
+        row_end_y = 0
         for row in self._rows:
-            is_first: bool = position_y == 0
+            row_start_y = row_end_y  # a row starts where the row above it ended
+            is_first: bool = row_start_y == 0
             if not is_first:
-                self._draw_line(position_y, width)
-            position_y = row.draw(self, position_y, width)
-        return position_y
+                self._draw_line(row_start_y, width)
+            row_end_y = row.draw(self, row_start_y, width)
+        # the end of the last row is the height of all the rows together
+        return row_end_y
 
     def _draw_line(self, position_y: int, width: int) -> None:
         """A thin line across the card, in the colour of the page.

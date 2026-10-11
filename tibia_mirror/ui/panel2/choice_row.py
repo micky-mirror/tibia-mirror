@@ -18,12 +18,12 @@ class ChoiceRow:
         self._hovered: str | None = None  # the key of the option under the pointer
         self._pressed: str | None = None  # the key of the option the button went down on
 
-    def draw(self, canvas: tk.Canvas, top: int, width: int) -> int:
-        """Draw the row on the card, starting at `top`. Return where the row ends."""
-        label_bottom = draw_label(canvas, top, self._label)
-        bottom = label_bottom + px(ROW_PAD)
-        self._draw_options(canvas, top, bottom, width)
-        return bottom
+    def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
+        """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
+        label_end_y = draw_label(canvas, row_start_y, self._label)
+        row_end_y = label_end_y + px(ROW_PAD)
+        self._draw_options(canvas, row_start_y, row_end_y, width)
+        return row_end_y
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Show the option under the pointer as hovered.
@@ -69,10 +69,12 @@ class ChoiceRow:
         self._hovered = None  # the chosen option has no hover look
         self._options_drawing.draw(self._selected, self._hovered)
 
-    def _draw_options(self, canvas: tk.Canvas, top: int, bottom: int, width: int) -> None:
+    def _draw_options(
+        self, canvas: tk.Canvas, row_start_y: int, row_end_y: int, width: int
+    ) -> None:
         """The options side by side, at the right, in the middle of the row's height."""
         position_x = width - px(SIDE_PAD)  # the right end of the options
-        position_y = (top + bottom) // 2  # the middle of the options
+        position_y = (row_start_y + row_end_y) // 2  # the middle of the options
         # The drawing holds its images, so the row stores it.
         self._options_drawing = SegmentedDrawing(canvas, position_x, position_y, self._options)
         self._options_drawing.draw(self._selected, None)
