@@ -7,7 +7,10 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
+from tibia_mirror.ui.panel2.icon_button import IconButton
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+
+REMOVE_ICON = "✕"
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 62
@@ -16,7 +19,10 @@ TOP_ROW_Y = 20  # from the top of the card to the middle line of the name and th
 DOT_X = 18  # from the left side of the card to the middle of the colour dot
 DOT_SIZE = 10
 NAME_X = 33  # from the left side of the card to the start of the name
+# four buttons of 26, three gaps of 2, 8 at the right of them and 8 at the left
 BUTTONS_ROOM = 126  # kept free at the right side of the card, for the four buttons
+BUTTONS_RIGHT_PAD = 8  # from the right side of the card to the last button
+BUTTON_GAP = 2  # between two buttons
 TEXT_GAP = 8  # between the name and the size, and between the size and the buttons
 
 
@@ -39,6 +45,7 @@ class MirrorCard(tk.Canvas):
         self._draw_colour_dot()
         self._draw_name()
         self._draw_size()
+        self._draw_buttons()
 
     def _draw_background(self) -> None:
         """The rounded shape of the card, a little lighter than the page."""
@@ -108,3 +115,18 @@ class MirrorCard(tk.Canvas):
     def _size_width(self) -> int:
         """The width of the size text on the screen, in pixels."""
         return tkfont.Font(font=theme.FONT).measure(self._size_text())
+
+    def _draw_buttons(self) -> None:
+        """The small buttons at the right of the top row.
+
+        From the right: remove, lock, show or hide, timer.
+        """
+        self._remove_button = IconButton(
+            self, self._button_x(0), px(TOP_ROW_Y), REMOVE_ICON, theme.FONT
+        )
+
+    def _button_x(self, place: int) -> int:
+        """The middle of a button. `place` counts the buttons from the right, from 0."""
+        size = px(IconButton.SIZE)
+        step = size + px(BUTTON_GAP)  # from the middle of one button to the middle of the next
+        return self._width - px(BUTTONS_RIGHT_PAD) - size // 2 - place * step
