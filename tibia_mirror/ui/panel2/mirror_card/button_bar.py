@@ -34,6 +34,7 @@ class MirrorCardButtonBar:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
+        self._pressed_button: IconButton | None = None  # the mouse button went down on it
 
         self._draw_remove_button()
         self._draw_lock_button()
@@ -65,9 +66,16 @@ class MirrorCardButtonBar:
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
         """Remember the button the mouse button went down on."""
+        self._pressed_button = self._get_button_at(position_x, position_y)
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """Do what the button does, if the mouse button went down and up on it."""
+        button = self._get_button_at(position_x, position_y)
+        pressed_button = self._pressed_button
+        self._pressed_button = None
+
+        if button is not None and button is pressed_button:
+            button.click()
 
     def _draw_remove_button(self) -> None:
         tip = Tip(tr("Remove region"))
@@ -81,6 +89,7 @@ class MirrorCardButtonBar:
             theme.SUBTEXT,
             theme.RED,
             tip,
+            self._remove,
         )
 
     def _draw_lock_button(self) -> None:
@@ -100,6 +109,7 @@ class MirrorCardButtonBar:
             colour,
             hovered_colour,
             tip,
+            self._toggle_locked,
         )
 
     def _draw_eye_button(self) -> None:
@@ -119,6 +129,7 @@ class MirrorCardButtonBar:
             colour,
             hovered_colour,
             tip,
+            self._toggle_hidden,
         )
 
     def _draw_timer_button(self) -> None:
@@ -137,6 +148,7 @@ class MirrorCardButtonBar:
             colour,
             hovered_colour,
             tip,
+            self._open_timer,
         )
 
     def _get_button_position_x(self, place: int) -> int:
@@ -175,3 +187,23 @@ class MirrorCardButtonBar:
             tr("Timer"),
             tr("Counts time since you click this region or press its key."),
         )
+
+    def _get_button_at(self, position_x: int, position_y: int) -> IconButton | None:
+        """The button at this place, or None."""
+        for button in self._buttons:
+            if button.contains(position_x, position_y):
+                return button
+
+        return None
+
+    def _remove(self) -> None:
+        """Remove the mirror from the profile."""
+
+    def _toggle_locked(self) -> None:
+        """Lock the mirror in its place, or unlock it."""
+
+    def _toggle_hidden(self) -> None:
+        """Hide the mirror, or show it again."""
+
+    def _open_timer(self) -> None:
+        """Open the settings of the mirror's timer."""

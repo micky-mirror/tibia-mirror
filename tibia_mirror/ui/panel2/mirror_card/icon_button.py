@@ -1,6 +1,7 @@
 """A small button with only an icon, drawn on a canvas that something else owns."""
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
@@ -30,6 +31,7 @@ class IconButton:
         colour: str,
         hovered_colour: str,
         tip: Tip,
+        on_click: Callable[[], None],
     ) -> None:
         self._canvas = canvas
         self._middle_x = middle_x
@@ -40,6 +42,7 @@ class IconButton:
         self._hovered_colour = hovered_colour  # of the icon while the pointer is over the button
         self._tip = tip  # the hint that opens while the pointer rests on the button
         self._tooltip = Tooltip(canvas.winfo_toplevel())
+        self._on_click = on_click  # what the button does when it is clicked
         self._is_hovered = False  # True while the pointer is over the button
 
         # the shape first, so the icon lies on top of it
@@ -60,6 +63,10 @@ class IconButton:
         self._is_hovered = is_hovered
         self._update_look()
         self._update_tip()
+
+    def click(self) -> None:
+        """Do what the button is for."""
+        self._on_click()
 
     def _update_look(self) -> None:
         """While hovered: the shape behind the icon, and the icon in its hovered colour."""
