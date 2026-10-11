@@ -7,8 +7,7 @@ from collections.abc import Callable
 
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.images import photo
-from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
+from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 
 # The menu entries: key -> (icon, label in English).
@@ -77,10 +76,15 @@ class NavRail(tk.Canvas):
 
     def _render_pill(self, colour: str) -> tk.PhotoImage:
         """The rounded shape behind an icon, as an image in the given colour."""
-        width, height = px(self.PILL_WIDTH), px(self.ICON_HEIGHT)
-        shape = ButtonStyle(fill=colour, radius=height // 2)
-        # theme.MANTLE is the menu's background: the smooth edges blend into it.
-        return photo(self, button_pixels(width, height, shape, theme.MANTLE))
+        height = px(self.ICON_HEIGHT)
+        return rounded_image(
+            self,
+            width=px(self.PILL_WIDTH),
+            height=height,
+            radius=height // 2,
+            colour=colour,
+            background=theme.MANTLE,  # the menu's background: the smooth edges blend into it
+        )
 
     def _draw(self, height: int) -> None:
         """Draw the entries: two at the top edge and two at the bottom edge."""

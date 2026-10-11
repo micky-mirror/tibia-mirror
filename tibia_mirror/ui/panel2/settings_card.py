@@ -6,8 +6,7 @@ import tkinter as tk
 from collections.abc import Sequence
 
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.images import photo
-from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
+from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.row import SIDE_PAD, Row
 
@@ -63,9 +62,14 @@ class SettingsCard(tk.Canvas):
 
     def _draw_background(self, width: int, height: int) -> None:
         """The rounded shape of the card, a little lighter than the page."""
-        style = ButtonStyle(fill=theme.SURFACE, radius=px(RADIUS))
-        # Tk shows an image only while Python keeps it, so the card stores it.
-        self._background = photo(self, button_pixels(width, height, style, theme.BG))
+        self._background = rounded_image(
+            self,
+            width=width,
+            height=height,
+            radius=px(RADIUS),
+            colour=theme.SURFACE,
+            background=theme.BG,
+        )
         background = self.create_image(0, 0, anchor="nw", image=self._background)
         # The rows are drawn first, so the background must go under them.
         self.tag_lower(background)

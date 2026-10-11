@@ -3,8 +3,7 @@
 import tkinter as tk
 
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.images import photo
-from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
+from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 
 
@@ -36,22 +35,27 @@ class Switch:
 
     def _draw_track(self, is_on: bool) -> None:
         """The rounded track, in the accent colour when the switch is on."""
-        # fully round ends: the radius is half of the height
-        style = ButtonStyle(fill=self._track_colour(is_on), radius=px(self.HEIGHT) // 2)
-        # theme.SURFACE is the colour of the card, seen around the round ends
-        pixels = button_pixels(px(self.WIDTH), px(self.HEIGHT), style, theme.SURFACE)
-        # Tk shows an image only while Python keeps it, so the switch stores it.
-        self._track_image = photo(self._canvas, pixels)
+        self._track_image = rounded_image(
+            self._canvas,
+            width=px(self.WIDTH),
+            height=px(self.HEIGHT),
+            radius=px(self.HEIGHT) // 2,  # half of the height: fully round ends
+            colour=self._track_colour(is_on),
+            background=theme.SURFACE,  # the colour of the card around the track
+        )
         self._canvas.itemconfigure(self._track, image=self._track_image)
 
     def _draw_knob(self, is_on: bool) -> None:
         """The round knob, at the left when the switch is off and at the right when it is on."""
         size = px(self.KNOB_SIZE)
-        colour = theme.ON_ACCENT if is_on else theme.TEXT
-        style = ButtonStyle(fill=colour, radius=size // 2)
-        # the track is seen around the knob, so the track's colour is the background
-        pixels = button_pixels(size, size, style, self._track_colour(is_on))
-        self._knob_image = photo(self._canvas, pixels)
+        self._knob_image = rounded_image(
+            self._canvas,
+            width=size,
+            height=size,
+            radius=size // 2,
+            colour=theme.ON_ACCENT if is_on else theme.TEXT,
+            background=self._track_colour(is_on),  # the track is seen around the knob
+        )
         self._canvas.itemconfigure(self._knob, image=self._knob_image)
         self._canvas.coords(self._knob, self._knob_x(is_on), self._middle_y)
 
