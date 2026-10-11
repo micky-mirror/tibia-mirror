@@ -18,6 +18,7 @@ class ToggleRow:
         self._hint = hint  # the help text under the label
         self._is_on = is_on
         self._is_hovered = False  # True while the pointer is in the row
+        self._is_pressed = False  # True when the mouse button went down in the row
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
@@ -28,6 +29,7 @@ class ToggleRow:
         # remembered to know later if the pointer is in the row
         self._row_start_y = row_start_y
         self._row_end_y = row_end_y
+        self._row_width = width
         return row_end_y
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
@@ -35,7 +37,7 @@ class ToggleRow:
 
         Return True then: a click at any place in the row turns the setting on or off.
         """
-        is_in_row: bool = self._is_in_row(position_y)
+        is_in_row: bool = self._is_in_row(position_x, position_y)
         self._set_hovered(is_in_row)
         return is_in_row
 
@@ -45,19 +47,30 @@ class ToggleRow:
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
         """Remember if the mouse button went down in the row."""
+        self._is_pressed = self._is_in_row(position_x, position_y)
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """Turn the setting on or off if the button went down and up in the row."""
+        if self._is_pressed and self._is_in_row(position_x, position_y):
+            self._toggle()
+        self._is_pressed = False
 
-    def _is_in_row(self, position_y: int) -> bool:
-        """True when this y is between the start and the end of the row."""
-        return self._row_start_y <= position_y < self._row_end_y
+    def _is_in_row(self, position_x: int, position_y: int) -> bool:
+        """True when this place is inside the row."""
+        is_in_width: bool = 0 <= position_x < self._row_width
+        is_in_height: bool = self._row_start_y <= position_y < self._row_end_y
+        return is_in_width and is_in_height
 
     def _set_hovered(self, is_hovered: bool) -> None:
         """Remember if the row is hovered and draw the switch again, only when it changed."""
         if is_hovered == self._is_hovered:
             return
         self._is_hovered = is_hovered
+        self._switch.draw(self._is_on, self._is_hovered)
+
+    def _toggle(self) -> None:
+        """Change on to off, or off to on, and draw the switch again."""
+        self._is_on = not self._is_on
         self._switch.draw(self._is_on, self._is_hovered)
 
     def _draw_switch(self, canvas: tk.Canvas, row_start_y: int, row_end_y: int, width: int) -> None:
