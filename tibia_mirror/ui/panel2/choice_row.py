@@ -6,10 +6,7 @@ from collections.abc import Sequence
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import SegmentedDrawing
-
-# Sizes at 100% display scaling; px() scales them where they are used.
-SIDE_PAD = 14  # left and right of the row's content
-ROW_PAD = 10  # above and below the row's content
+from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD
 
 
 class ChoiceRow:

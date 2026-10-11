@@ -9,7 +9,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.choice_row import SIDE_PAD, ChoiceRow
+from tibia_mirror.ui.panel2.row import SIDE_PAD, Row
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 RADIUS = 8  # of the rounded corners
@@ -18,7 +18,7 @@ RADIUS = 8  # of the rounded corners
 class SettingsCard(tk.Canvas):
     """A rounded box for one group of settings. It is as high as its rows."""
 
-    def __init__(self, parent: tk.Misc, width: int, rows: Sequence[ChoiceRow]) -> None:
+    def __init__(self, parent: tk.Misc, width: int, rows: Sequence[Row]) -> None:
         super().__init__(
             parent,
             width=width,

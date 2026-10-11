@@ -8,6 +8,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import ScrollList
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
+from tibia_mirror.ui.panel2.row import Row
 from tibia_mirror.ui.panel2.settings_card import SettingsCard
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -73,7 +74,7 @@ class SettingsPage(tk.Frame):
             pady=(px(CAPTION_TOP_PAD), px(CAPTION_BOTTOM_PAD)),
         )
 
-    def _add_card(self, rows: Sequence[ChoiceRow]) -> None:
+    def _add_card(self, rows: Sequence[Row]) -> None:
         """The rounded box under a caption, with the rows of one group."""
         card = SettingsCard(self._column, self._width, rows)
         card.pack(side="top", anchor="w")
