@@ -2,10 +2,13 @@
 
 import tkinter as tk
 
+from tibia_mirror.core.timers import clock
+from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.mirror_card.icon_button import IconButton
 from tibia_mirror.ui.panel2.mirror_card.layout import TOP_ROW_Y
+from tibia_mirror.ui.panel2.mirror_card.tip import Tip
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
 REMOVE_ICON = "✕"
@@ -67,6 +70,8 @@ class MirrorCardButtonBar:
         """Do what the button does, if the mouse button went down and up on it."""
 
     def _draw_remove_button(self) -> None:
+        tip = Tip(tr("Remove region"))
+
         self._remove_button = IconButton(
             self._canvas,
             self._button_position_x(0),
@@ -75,6 +80,7 @@ class MirrorCardButtonBar:
             theme.FONT,
             theme.SUBTEXT,
             theme.RED,
+            tip,
         )
 
     def _draw_lock_button(self) -> None:
@@ -83,6 +89,7 @@ class MirrorCardButtonBar:
         icon = LOCKED_ICON if is_locked else UNLOCKED_ICON
         colour = theme.ACCENT if is_locked else theme.SUBTEXT
         hovered_colour = theme.ACCENT if is_locked else theme.TEXT
+        tip = self._get_lock_tip()
 
         self._lock_button = IconButton(
             self._canvas,
@@ -92,6 +99,7 @@ class MirrorCardButtonBar:
             theme.FONT_ICON,
             colour,
             hovered_colour,
+            tip,
         )
 
     def _draw_eye_button(self) -> None:
@@ -100,6 +108,7 @@ class MirrorCardButtonBar:
         icon = HIDDEN_ICON if is_hidden else SHOWN_ICON
         colour = theme.ACCENT if is_hidden else theme.SUBTEXT
         hovered_colour = theme.ACCENT if is_hidden else theme.TEXT
+        tip = self._get_eye_tip()
 
         self._eye_button = IconButton(
             self._canvas,
@@ -109,6 +118,7 @@ class MirrorCardButtonBar:
             theme.FONT_ICON,
             colour,
             hovered_colour,
+            tip,
         )
 
     def _draw_timer_button(self) -> None:
@@ -116,6 +126,7 @@ class MirrorCardButtonBar:
         is_timer_on: bool = self._mirror.is_timer_on
         colour = theme.ACCENT if is_timer_on else theme.SUBTEXT
         hovered_colour = theme.ACCENT if is_timer_on else theme.TEXT
+        tip = self._get_timer_tip()
 
         self._timer_button = IconButton(
             self._canvas,
@@ -125,6 +136,7 @@ class MirrorCardButtonBar:
             theme.FONT_ICON,
             colour,
             hovered_colour,
+            tip,
         )
 
     def _button_position_x(self, place: int) -> int:
@@ -132,3 +144,34 @@ class MirrorCardButtonBar:
         size = px(IconButton.SIZE)
         step = size + px(BUTTON_GAP)  # from the middle of one button to the middle of the next
         return self._width - px(RIGHT_PAD) - size // 2 - place * step
+
+    def _get_lock_tip(self) -> Tip:
+        """The hint of the lock button. It says what a click does now."""
+        if self._mirror.is_locked:
+            return Tip(
+                tr("Unlock mirror"),
+                tr("Lets you move it again. Clicks land on the mirror."),
+            )
+        return Tip(
+            tr("Lock mirror"),
+            tr("Pins it in place. Clicks pass through it to the game."),
+        )
+
+    def _get_eye_tip(self) -> Tip:
+        """The hint of the show or hide button. It says what a click does now."""
+        if self._mirror.is_hidden:
+            return Tip(tr("Show mirror"))
+        return Tip(
+            tr("Hide mirror"),
+            tr("It stays in the profile; show it again any time."),
+        )
+
+    def _get_timer_tip(self) -> Tip:
+        """The hint of the timer button. For a timer that is on, it tells the alert time."""
+        if self._mirror.is_timer_on:
+            time = clock(self._mirror.timer_alert_seconds)
+            return Tip(tr("Timer"), tr("On: alerts after {time}.", time=time))
+        return Tip(
+            tr("Timer"),
+            tr("Counts time since you click this region or press its key."),
+        )

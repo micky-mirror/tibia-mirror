@@ -2,9 +2,12 @@
 
 import tkinter as tk
 
+from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.tooltip import Tooltip
+from tibia_mirror.ui.panel2.mirror_card.tip import Tip
 
 
 class IconButton:
@@ -26,6 +29,7 @@ class IconButton:
         font: theme.FontSpec,
         colour: str,
         hovered_colour: str,
+        tip: Tip,
     ) -> None:
         self._canvas = canvas
         self._middle_x = middle_x
@@ -34,6 +38,8 @@ class IconButton:
         self._font = font
         self._colour = colour
         self._hovered_colour = hovered_colour  # of the icon while the pointer is over the button
+        self._tip = tip  # the hint that opens while the pointer rests on the button
+        self._tooltip = Tooltip(canvas.winfo_toplevel())
         self._is_hovered = False  # True while the pointer is over the button
 
         # the shape first, so the icon lies on top of it
@@ -53,6 +59,7 @@ class IconButton:
             return
         self._is_hovered = is_hovered
         self._update_look()
+        self._update_tip()
 
     def _update_look(self) -> None:
         """While hovered: the shape behind the icon, and the icon in its hovered colour."""
@@ -61,6 +68,20 @@ class IconButton:
 
         self._canvas.itemconfigure(self._hover_shape, state=state)
         self._canvas.itemconfigure(self._icon_item, fill=icon_colour)
+
+    def _update_tip(self) -> None:
+        """Open the hint while the button is hovered, and close it when it is not."""
+        if self._is_hovered:
+            self._tooltip.show(self._tip.title, self._screen_box(), self._tip.detail)
+        else:
+            self._tooltip.hide()
+
+    def _screen_box(self) -> Box:
+        """The place of the button on the screen. The hint opens under it."""
+        half = px(self.SIZE) // 2
+        middle_x = self._canvas.winfo_rootx() + self._middle_x
+        middle_y = self._canvas.winfo_rooty() + self._middle_y
+        return (middle_x - half, middle_y - half, middle_x + half, middle_y + half)
 
     def _draw_hover_shape(self) -> None:
         """The rounded shape behind the icon. It is hidden until the pointer is over the button."""

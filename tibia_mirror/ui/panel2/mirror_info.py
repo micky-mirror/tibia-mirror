@@ -15,3 +15,4 @@ class MirrorInfo:
     is_hidden: bool
     is_locked: bool
     is_timer_on: bool
+    timer_alert_seconds: int  # the timer alerts this long after it starts
