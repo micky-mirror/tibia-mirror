@@ -13,6 +13,8 @@ from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 REMOVE_ICON = "✕"
 LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
 UNLOCKED_ICON = "\ue785"  # an open lock, from the same font
+SHOWN_ICON = "\ue890"  # an open eye, from the same font
+HIDDEN_ICON = "\ued1a"  # a crossed eye, from the same font
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 62
@@ -125,6 +127,7 @@ class MirrorCard(tk.Canvas):
         """
         self._draw_remove_button()
         self._draw_lock_button()
+        self._draw_eye_button()
 
     def _draw_remove_button(self) -> None:
         self._remove_button = IconButton(
@@ -145,6 +148,21 @@ class MirrorCard(tk.Canvas):
         self._lock_button = IconButton(
             self,
             self._button_position_x(1),
+            px(TOP_ROW_Y),
+            icon,
+            theme.FONT_ICON,
+            colour,
+        )
+
+    def _draw_eye_button(self) -> None:
+        """A crossed eye in the accent colour for a hidden mirror, an open grey eye if not."""
+        is_hidden: bool = self._mirror.is_hidden
+        icon = HIDDEN_ICON if is_hidden else SHOWN_ICON
+        colour = theme.ACCENT if is_hidden else theme.SUBTEXT
+
+        self._eye_button = IconButton(
+            self,
+            self._button_position_x(2),
             px(TOP_ROW_Y),
             icon,
             theme.FONT_ICON,
