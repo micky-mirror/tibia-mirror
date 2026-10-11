@@ -7,7 +7,7 @@ from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.base.text import elide
+from tibia_mirror.ui.base.text import elide, percent
 from tibia_mirror.ui.controls.slider import SliderDrawing
 from tibia_mirror.ui.panel2.icon_button import IconButton
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
@@ -57,6 +57,7 @@ class MirrorCard(tk.Canvas):
         self._draw_size()
         self._draw_buttons()
         self._draw_slider()
+        self._draw_percent()
 
     def _draw_background(self) -> None:
         """The rounded shape of the card, a little lighter than the page."""
@@ -212,4 +213,15 @@ class MirrorCard(tk.Canvas):
             hi=1.0,
             step=OPACITY_STEP,
             floor=MIN_OPACITY,
+        )
+
+    def _draw_percent(self) -> None:
+        """The opacity as a percent, at the right of the slider."""
+        self._percent = self.create_text(
+            self._width - px(SLIDER_SIDE_PAD),
+            px(SLIDER_Y),
+            text=percent(self._mirror.opacity),
+            anchor="e",
+            font=theme.FONT,
+            fill=theme.SUBTEXT,
         )

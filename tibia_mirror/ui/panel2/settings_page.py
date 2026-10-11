@@ -5,15 +5,11 @@ import tkinter as tk
 from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.text import percent
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
 from tibia_mirror.ui.panel2.scroll_cards import ScrollCards
 from tibia_mirror.ui.panel2.slider_row import SliderRow
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow
-
-
-def percent(value: float) -> str:
-    """A part of one as a whole percent: 0.5 becomes "50%"."""
-    return f"{round(value * 100)}%"
 
 
 class SettingsPage(tk.Frame):
