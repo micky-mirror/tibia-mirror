@@ -53,6 +53,8 @@ class SettingsCard(tk.Canvas):
         self.bind("<Enter>", self._on_mouse_move)
         self.bind("<Motion>", self._on_mouse_move)
         self.bind("<Leave>", self._on_mouse_leave)
+        self.bind("<ButtonPress-1>", self._on_mouse_down)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
         """Tell every row where the pointer is. Show a hand over a place that can be clicked."""
@@ -66,3 +68,13 @@ class SettingsCard(tk.Canvas):
         for row in self._rows:
             row.pointer_left()
         self.configure(cursor="")
+
+    def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
+        for row in self._rows:
+            row.pointer_pressed(event.x, event.y)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        for row in self._rows:
+            row.pointer_released(event.x, event.y)
+        # A click can change what is under the pointer, so look at that place again.
+        self._on_mouse_move(event)

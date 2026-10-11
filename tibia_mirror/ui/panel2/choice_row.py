@@ -20,6 +20,7 @@ class ChoiceRow:
         self._options = options  # (key, text) of each option, from left to right
         self._selected = selected  # the key of the chosen option
         self._hovered: str | None = None  # the key of the option under the pointer
+        self._pressed: str | None = None  # the key of the option the button went down on
 
     def draw(self, canvas: tk.Canvas, top: int, width: int) -> int:
         """Draw the row on the card, starting at `top`. Return where the row ends."""
@@ -33,10 +34,7 @@ class ChoiceRow:
 
         Return True when a click at this place would choose an option.
         """
-        option = self._options_drawing.at(position_x, position_y)
-        # the chosen option does not react
-        if option == self._selected:
-            option = None
+        option = self._option_at(position_x, position_y)
         self._set_hovered(option)
         return option is not None
 
@@ -44,11 +42,35 @@ class ChoiceRow:
         """The pointer went out of the card: no option is hovered."""
         self._set_hovered(None)
 
+    def pointer_pressed(self, position_x: int, position_y: int) -> None:
+        """Remember the option the mouse button went down on."""
+        self._pressed = self._option_at(position_x, position_y)
+
+    def pointer_released(self, position_x: int, position_y: int) -> None:
+        """Choose the option if the button went down and up on it, like a normal button."""
+        option = self._option_at(position_x, position_y)
+        if option is not None and option == self._pressed:
+            self._select(option)
+        self._pressed = None
+
     def _set_hovered(self, option: str | None) -> None:
         """Remember the hovered option and draw the options again, only when it changed."""
         if option == self._hovered:
             return
         self._hovered = option
+        self._options_drawing.draw(self._selected, self._hovered)
+
+    def _option_at(self, position_x: int, position_y: int) -> str | None:
+        """The key of the option at this place, or None. The chosen option does not count."""
+        option = self._options_drawing.at(position_x, position_y)
+        if option == self._selected:
+            return None
+        return option
+
+    def _select(self, option: str) -> None:
+        """Make `option` the chosen one and draw the options again."""
+        self._selected = option
+        self._hovered = None  # the chosen option has no hover look
         self._options_drawing.draw(self._selected, self._hovered)
 
     def _draw_label(self, canvas: tk.Canvas, top: int) -> int:
