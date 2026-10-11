@@ -249,16 +249,37 @@ class MirrorCard(tk.Canvas):
         self.bind("<Leave>", self._on_mouse_leave)
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
-        """Show the hover look of the button under the pointer, and a hand over it."""
-        is_clickable: bool = False
-        for button in self._buttons:
-            is_hovered: bool = button.contains(event.x, event.y)
-            button.set_hovered(is_hovered)
-            if is_hovered:
-                is_clickable = True
-        self.configure(cursor="hand2" if is_clickable else "")
+        """Show the hover look of the part under the pointer, and a hand over it."""
+        positions = event.x, event.y
+        is_over_button: bool = self._hover_buttons(*positions)
+        is_over_slider: bool = self._hover_slider(*positions)
+
+        is_clickable: bool = is_over_button or is_over_slider
+        cursor = "hand2" if is_clickable else ""
+
+        self.configure(cursor=cursor)
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
         for button in self._buttons:
             button.set_hovered(False)
+
+        self._slider.set_active(False)
         self.configure(cursor="")
+
+    def _hover_buttons(self, position_x: int, position_y: int) -> bool:
+        """Show the hover look of the button at this place. Return True if there is one."""
+        is_over_button: bool = False
+
+        for button in self._buttons:
+            is_hovered: bool = button.contains(position_x, position_y)
+            button.set_hovered(is_hovered)
+            if is_hovered:
+                is_over_button = True
+
+        return is_over_button
+
+    def _hover_slider(self, position_x: int, position_y: int) -> bool:
+        """Show the knob as active when this place is on the slider. Return True if it is."""
+        is_over_slider: bool = self._slider.contains(position_x, position_y)
+        self._slider.set_active(is_over_slider)
+        return is_over_slider
