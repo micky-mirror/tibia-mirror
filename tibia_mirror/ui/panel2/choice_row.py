@@ -19,6 +19,7 @@ class ChoiceRow:
         self._label = label
         self._options = options  # (key, text) of each option, from left to right
         self._selected = selected  # the key of the chosen option
+        self._hovered: str | None = None  # the key of the option under the pointer
 
     def draw(self, canvas: tk.Canvas, top: int, width: int) -> int:
         """Draw the row on the card, starting at `top`. Return where the row ends."""
@@ -26,6 +27,29 @@ class ChoiceRow:
         bottom = label_bottom + px(ROW_PAD)
         self._draw_options(canvas, top, bottom, width)
         return bottom
+
+    def pointer_moved(self, position_x: int, position_y: int) -> bool:
+        """Show the option under the pointer as hovered.
+
+        Return True when a click at this place would choose an option.
+        """
+        option = self._options_drawing.at(position_x, position_y)
+        # the chosen option does not react
+        if option == self._selected:
+            option = None
+        self._set_hovered(option)
+        return option is not None
+
+    def pointer_left(self) -> None:
+        """The pointer went out of the card: no option is hovered."""
+        self._set_hovered(None)
+
+    def _set_hovered(self, option: str | None) -> None:
+        """Remember the hovered option and draw the options again, only when it changed."""
+        if option == self._hovered:
+            return
+        self._hovered = option
+        self._options_drawing.draw(self._selected, self._hovered)
 
     def _draw_label(self, canvas: tk.Canvas, top: int) -> int:
         """The name of the setting, at the left. Return where the text ends."""

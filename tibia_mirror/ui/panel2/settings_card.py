@@ -1,5 +1,7 @@
 """A card on the Settings page: a rounded box that holds the rows of one group."""
 
+from __future__ import annotations
+
 import tkinter as tk
 from collections.abc import Sequence
 
@@ -24,14 +26,16 @@ class SettingsCard(tk.Canvas):
             highlightthickness=0,
             bd=0,
         )
-        height = self._draw_rows(rows, width)
+        self._rows = rows
+        height = self._draw_rows(width)
         self._draw_background(width, height)
         self.configure(height=height)
+        self._bind_events()
 
-    def _draw_rows(self, rows: Sequence[ChoiceRow], width: int) -> int:
+    def _draw_rows(self, width: int) -> int:
         """Draw the rows one under another. Return the height they take together."""
         position_y = 0
-        for row in rows:
+        for row in self._rows:
             position_y = row.draw(self, position_y, width)
         return position_y
 
@@ -43,3 +47,22 @@ class SettingsCard(tk.Canvas):
         background = self.create_image(0, 0, anchor="nw", image=self._background)
         # The rows are drawn first, so the background must go under them.
         self.tag_lower(background)
+
+    def _bind_events(self) -> None:
+        # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
+        self.bind("<Enter>", self._on_mouse_move)
+        self.bind("<Motion>", self._on_mouse_move)
+        self.bind("<Leave>", self._on_mouse_leave)
+
+    def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
+        """Tell every row where the pointer is. Show a hand over a place that can be clicked."""
+        is_clickable: bool = False
+        for row in self._rows:
+            if row.pointer_moved(event.x, event.y):
+                is_clickable = True
+        self.configure(cursor="hand2" if is_clickable else "")
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        for row in self._rows:
+            row.pointer_left()
+        self.configure(cursor="")
