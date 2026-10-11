@@ -25,6 +25,7 @@ class IconButton:
         icon: str,
         font: theme.FontSpec,
         colour: str,
+        hovered_colour: str,
     ) -> None:
         self._canvas = canvas
         self._middle_x = middle_x
@@ -32,6 +33,7 @@ class IconButton:
         self._icon = icon
         self._font = font
         self._colour = colour
+        self._hovered_colour = hovered_colour  # of the icon while the pointer is over the button
         self._is_hovered = False  # True while the pointer is over the button
 
         # the shape first, so the icon lies on top of it
@@ -46,11 +48,19 @@ class IconButton:
         return is_in_width and is_in_height
 
     def set_hovered(self, is_hovered: bool) -> None:
-        """Show the shape behind the icon, or hide it. Do nothing when nothing changed."""
+        """Show the hover look, or take it away. Do nothing when nothing changed."""
         if is_hovered == self._is_hovered:
             return
         self._is_hovered = is_hovered
-        self._canvas.itemconfigure(self._hover_shape, state="normal" if is_hovered else "hidden")
+        self._update_look()
+
+    def _update_look(self) -> None:
+        """While hovered: the shape behind the icon, and the icon in its hovered colour."""
+        state = "normal" if self._is_hovered else "hidden"
+        icon_colour = self._hovered_colour if self._is_hovered else self._colour
+
+        self._canvas.itemconfigure(self._hover_shape, state=state)
+        self._canvas.itemconfigure(self._icon_item, fill=icon_colour)
 
     def _draw_hover_shape(self) -> None:
         """The rounded shape behind the icon. It is hidden until the pointer is over the button."""
@@ -71,7 +81,7 @@ class IconButton:
         )
 
     def _draw_icon(self) -> None:
-        self._canvas.create_text(
+        self._icon_item = self._canvas.create_text(
             self._middle_x,
             self._middle_y,
             text=self._icon,

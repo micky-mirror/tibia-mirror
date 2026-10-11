@@ -155,6 +155,7 @@ class MirrorCard(tk.Canvas):
             REMOVE_ICON,
             theme.FONT,
             theme.SUBTEXT,
+            theme.RED,
         )
 
     def _draw_lock_button(self) -> None:
@@ -162,6 +163,7 @@ class MirrorCard(tk.Canvas):
         is_locked: bool = self._mirror.is_locked
         icon = LOCKED_ICON if is_locked else UNLOCKED_ICON
         colour = theme.ACCENT if is_locked else theme.SUBTEXT
+        hovered_colour = theme.ACCENT if is_locked else theme.TEXT
 
         self._lock_button = IconButton(
             self,
@@ -170,6 +172,7 @@ class MirrorCard(tk.Canvas):
             icon,
             theme.FONT_ICON,
             colour,
+            hovered_colour,
         )
 
     def _draw_eye_button(self) -> None:
@@ -177,6 +180,7 @@ class MirrorCard(tk.Canvas):
         is_hidden: bool = self._mirror.is_hidden
         icon = HIDDEN_ICON if is_hidden else SHOWN_ICON
         colour = theme.ACCENT if is_hidden else theme.SUBTEXT
+        hovered_colour = theme.ACCENT if is_hidden else theme.TEXT
 
         self._eye_button = IconButton(
             self,
@@ -185,12 +189,14 @@ class MirrorCard(tk.Canvas):
             icon,
             theme.FONT_ICON,
             colour,
+            hovered_colour,
         )
 
     def _draw_timer_button(self) -> None:
         """A clock, in the accent colour for a mirror with its timer on, grey if not."""
         is_timer_on: bool = self._mirror.is_timer_on
         colour = theme.ACCENT if is_timer_on else theme.SUBTEXT
+        hovered_colour = theme.ACCENT if is_timer_on else theme.TEXT
 
         self._timer_button = IconButton(
             self,
@@ -199,6 +205,7 @@ class MirrorCard(tk.Canvas):
             TIMER_ICON,
             theme.FONT_ICON,
             colour,
+            hovered_colour,
         )
 
     def _button_position_x(self, place: int) -> int:
