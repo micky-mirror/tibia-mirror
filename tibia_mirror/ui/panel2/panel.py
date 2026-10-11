@@ -8,6 +8,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.about_page import AboutPage
 from tibia_mirror.ui.panel2.footer import Footer
+from tibia_mirror.ui.panel2.mirrors_page import MirrorsPage
 from tibia_mirror.ui.panel2.nav import NavRail
 from tibia_mirror.ui.panel2.settings_page import SettingsPage
 from tibia_mirror.ui.panel2.shortcuts_page import ShortcutsPage
@@ -83,7 +84,7 @@ class Panel(tk.Frame):
         The keys are the keys of the menu entries.
         """
         self._pages: dict[str, tk.Frame] = {
-            "mirrors": tk.Frame(self._content, bg=theme.BG),
+            "mirrors": MirrorsPage(self._content, content_width(), px(SIDE_PAD)),
             "shortcuts": ShortcutsPage(self._content, content_width(), px(SIDE_PAD)),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD)),
