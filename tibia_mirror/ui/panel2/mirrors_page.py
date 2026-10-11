@@ -26,9 +26,33 @@ CARD_GAP = 6  # under each mirror card
 
 # Three mirrors to build the page with. They go away when the page gets the real mirrors.
 SAMPLE_MIRRORS = (
-    MirrorInfo("Cooldowns", 320, 64, opacity=0.5, colour="", is_hidden=False, is_locked=False),
-    MirrorInfo("Minimap", 176, 176, opacity=1.0, colour="", is_hidden=False, is_locked=True),
-    MirrorInfo("Health and mana", 240, 40, opacity=0.8, colour="", is_hidden=True, is_locked=False),
+    MirrorInfo(
+        name="Cooldowns",
+        area_width=320,
+        area_height=64,
+        opacity=0.5,
+        colour="default",
+        is_hidden=False,
+        is_locked=False,
+    ),
+    MirrorInfo(
+        name="Minimap",
+        area_width=176,
+        area_height=176,
+        opacity=1.0,
+        colour="blue",
+        is_hidden=False,
+        is_locked=True,
+    ),
+    MirrorInfo(
+        name="Health and mana",
+        area_width=240,
+        area_height=40,
+        opacity=0.8,
+        colour="red",
+        is_hidden=True,
+        is_locked=False,
+    ),
 )
 BOTTOM_PAD = 14  # below the line that tells if the changes are saved
 

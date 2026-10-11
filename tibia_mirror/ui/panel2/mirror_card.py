@@ -13,6 +13,8 @@ from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 HEIGHT = 62
 RADIUS = 8  # of the rounded corners
 TOP_ROW_Y = 20  # from the top of the card to the middle line of the name and the buttons
+DOT_X = 18  # from the left side of the card to the middle of the colour dot
+DOT_SIZE = 10
 NAME_X = 33  # from the left side of the card to the start of the name
 BUTTONS_ROOM = 126  # kept free at the right side of the card, for the four buttons
 TEXT_GAP = 8  # between the name and the size, and between the size and the buttons
@@ -34,6 +36,7 @@ class MirrorCard(tk.Canvas):
         self._width = width
         self._mirror = mirror  # what the card shows
         self._draw_background()
+        self._draw_colour_dot()
         self._draw_name()
         self._draw_size()
 
@@ -48,6 +51,22 @@ class MirrorCard(tk.Canvas):
             background=theme.BG,
         )
         self.create_image(0, 0, anchor="nw", image=self._background)
+
+    def _draw_colour_dot(self) -> None:
+        """The round dot before the name, in the colour of the mirror's frame.
+
+        A click on it opens the choice of colours.
+        """
+        size = px(DOT_SIZE)
+        self._dot_image = rounded_image(
+            self,
+            width=size,
+            height=size,
+            radius=size // 2,  # half of the size: a full circle
+            colour=theme.frame_color(self._mirror.colour),
+            background=theme.SURFACE,  # the colour of the card around the dot
+        )
+        self.create_image(px(DOT_X), px(TOP_ROW_Y), image=self._dot_image)
 
     def _draw_name(self) -> None:
         """The name of the mirror in bold, cut short with "…" when it is too long.
@@ -84,7 +103,7 @@ class MirrorCard(tk.Canvas):
         )
 
     def _size_text(self) -> str:
-        return f"{self._mirror.width}×{self._mirror.height}"
+        return f"{self._mirror.area_width}×{self._mirror.area_height}"
 
     def _size_width(self) -> int:
         """The width of the size text on the screen, in pixels."""
