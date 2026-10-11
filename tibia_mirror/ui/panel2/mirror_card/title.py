@@ -4,16 +4,15 @@ import tkinter as tk
 import tkinter.font as tkfont
 
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
+from tibia_mirror.ui.panel2.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel2.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel2.mirror_card.text_link import TextLink
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 DOT_X = 18  # from the left side of the card to the middle of the colour dot
-DOT_SIZE = 10
 NAME_X = 33  # from the left side of the card to the start of the name
 TEXT_GAP = 8  # between the name and the size, and between the size and the buttons
 
@@ -35,16 +34,20 @@ class MirrorCardTitle:
         self._draw_size()
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
-        """Show the hover look of the size link when the pointer is on it.
+        """Show the hover look of the dot or of the size link when the pointer is on it.
 
-        Return True if it is.
+        Return True if it is on one of them.
         """
+        is_over_dot: bool = self._colour_dot.contains(position_x, position_y)
         is_over_link: bool = self._size_link.contains(position_x, position_y)
+
+        self._colour_dot.set_hovered(is_over_dot)
         self._size_link.set_hovered(is_over_link)
-        return is_over_link
+        return is_over_dot or is_over_link
 
     def pointer_left(self) -> None:
-        """The pointer went out of the card: the size link has no hover look."""
+        """The pointer went out of the card: the dot and the size link have no hover look."""
+        self._colour_dot.set_hovered(False)
         self._size_link.set_hovered(False)
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
@@ -61,16 +64,9 @@ class MirrorCardTitle:
 
         A click on it opens the choice of colours.
         """
-        size = px(DOT_SIZE)
-        self._dot_image = rounded_image(
-            self._canvas,
-            width=size,
-            height=size,
-            radius=size // 2,  # half of the size: a full circle
-            colour=theme.frame_color(self._mirror.colour),
-            background=theme.SURFACE,  # the colour of the card around the dot
-        )
-        self._canvas.create_image(px(DOT_X), px(TOP_ROW_Y), image=self._dot_image)
+        colour = theme.frame_color(self._mirror.colour)
+
+        self._colour_dot = ColourDot(self._canvas, px(DOT_X), px(TOP_ROW_Y), colour)
 
     def _draw_name(self) -> None:
         """The name of the mirror in bold, cut short with "…" when it is too long.
