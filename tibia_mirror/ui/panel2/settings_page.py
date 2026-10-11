@@ -28,6 +28,7 @@ class SettingsPage(tk.Frame):
         self._add_column(side_pad)
         self._add_general_group()
         self._add_profiles_group()
+        self._add_saving_group()
 
     def _add_column(self, side_pad: int) -> None:
         """The column that holds the groups of the page, one under another.
@@ -75,6 +76,16 @@ class SettingsPage(tk.Frame):
             is_on=False,
         )
         self._add_card([per_character_row])
+
+    def _add_saving_group(self) -> None:
+        """The third group: when changes are saved."""
+        self._add_caption(tr("SAVING"))
+        autosave_row = ToggleRow(
+            tr("Save automatically"),
+            tr("Saves every change as you make it."),
+            is_on=False,
+        )
+        self._add_card([autosave_row])
 
     def _add_caption(self, text: str) -> None:
         """The small grey title above one group of settings."""
