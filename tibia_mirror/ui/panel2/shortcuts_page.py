@@ -4,6 +4,7 @@ import tkinter as tk
 
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.panel2.key_row import KeyRow
 from tibia_mirror.ui.panel2.scroll_cards import ScrollCards
 
 
@@ -27,3 +28,8 @@ class ShortcutsPage(tk.Frame):
     def _add_mirrors_group(self) -> None:
         """The only group: keys that act on all mirrors at once."""
         self._scroll_cards.add_caption(tr("MIRRORS"))
+        hide_all_row = KeyRow(
+            tr("Hide all mirrors"),
+            tr("Press again to bring them back. Works while Tibia is active."),
+        )
+        self._scroll_cards.add_card([hide_all_row])
