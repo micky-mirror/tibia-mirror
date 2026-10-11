@@ -6,6 +6,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import ScrollList
+from tibia_mirror.ui.panel2.settings_card import SettingsCard
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 8  # above the first line of the page
@@ -22,6 +23,7 @@ class SettingsPage(tk.Frame):
         self._width = width  # the width of the content, in pixels
         self._add_column(side_pad)
         self._add_caption(tr("GENERAL"))
+        self._add_card()
 
     def _add_column(self, side_pad: int) -> None:
         """The column that holds the groups of the page, one under another.
@@ -53,3 +55,8 @@ class SettingsPage(tk.Frame):
             anchor="w",
             pady=(px(CAPTION_TOP_PAD), px(CAPTION_BOTTOM_PAD)),
         )
+
+    def _add_card(self) -> None:
+        """The rounded box under a caption."""
+        card = SettingsCard(self._column, self._width)
+        card.pack(side="top", anchor="w")
