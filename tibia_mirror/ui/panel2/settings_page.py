@@ -61,6 +61,7 @@ class SettingsPage(tk.Frame):
         on_top_row = ToggleRow(
             tr("Keep this panel on top"),
             tr("Stays above other windows."),
+            is_on=False,
         )
         self._add_card([language_row, theme_row, on_top_row])
 
