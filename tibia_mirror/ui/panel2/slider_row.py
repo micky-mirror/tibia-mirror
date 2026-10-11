@@ -51,10 +51,13 @@ class SliderRow:
         With no drag, show the knob as active when the pointer is over the slider.
         Return True when a press at this place would move the knob.
         """
-        return False
+        is_over_slider: bool = self._slider.contains(position_x, position_y)
+        self._slider.set_active(is_over_slider)
+        return is_over_slider
 
     def pointer_left(self) -> None:
         """The pointer went out of the card: the knob is not shown as active."""
+        self._slider.set_active(False)
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
         """Start a drag if the button went down on the slider: the knob jumps to the pointer."""
