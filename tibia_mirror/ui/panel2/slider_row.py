@@ -35,6 +35,7 @@ class SliderRow:
         self._step = step  # the knob moves in steps of this size
         self._lowest = lowest  # the knob does not go below this value
         self._value_text = value_text  # makes the text that shows a value, such as "50%"
+        self._is_dragging = False  # True from a press on the slider until the button goes up
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
@@ -51,23 +52,34 @@ class SliderRow:
         With no drag, show the knob as active when the pointer is over the slider.
         Return True when a press at this place would move the knob.
         """
+        if self._is_dragging:
+            self._move_knob(position_x)
+            return True
         is_over_slider: bool = self._slider.contains(position_x, position_y)
         self._slider.set_active(is_over_slider)
         return is_over_slider
 
     def pointer_left(self) -> None:
         """The pointer went out of the card: the knob is not shown as active."""
-        self._slider.set_active(False)
+        # a drag goes on outside the card, and the knob stays active until it ends
+        if not self._is_dragging:
+            self._slider.set_active(False)
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
         """Start a drag if the button went down on the slider: the knob jumps to the pointer."""
+        if self._slider.contains(position_x, position_y):
+            self._is_dragging = True
+            self._move_knob(position_x)
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """End the drag."""
+        self._is_dragging = False
 
     def _draw_value(self, canvas: tk.Canvas, row_start_y: int, width: int) -> None:
         """The value as text, at the right, on the same line as the label."""
-        canvas.create_text(
+        # both are kept to change the text when the value changes
+        self._canvas = canvas
+        self._value_item = canvas.create_text(
             width - px(SIDE_PAD),
             row_start_y + px(ROW_PAD),
             text=self._value_text(self._value),
@@ -95,3 +107,15 @@ class SliderRow:
         )
         # the knob is the highest part of the slider, and half of it is under the middle line
         return position_y + px(SliderDrawing.KNOB) // 2
+
+    def _move_knob(self, position_x: int) -> None:
+        """Put the knob as near to this x as the steps and the lowest value allow.
+
+        Show the new value as text too. Do nothing when the value did not change.
+        """
+        value = self._slider.value_at(position_x)
+        if value == self._value:
+            return
+        self._value = value
+        self._slider.set_value(value)
+        self._canvas.itemconfigure(self._value_item, text=self._value_text(value))
