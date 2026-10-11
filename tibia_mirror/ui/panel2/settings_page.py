@@ -46,8 +46,17 @@ class SettingsPage(tk.Frame):
         """The first group: settings of the app as a whole."""
         self._add_caption(tr("GENERAL"))
         # The names of languages are written in their own language, never translated.
-        language = ChoiceRow(tr("Language"), (("en", "English"), ("pl", "Polski")), "en")
-        self._add_card([language])
+        language_row = ChoiceRow(
+            tr("Language"),
+            (("en", "English"), ("pl", "Polski")),
+            "en",
+        )
+        theme_row = ChoiceRow(
+            tr("Theme"),
+            (("dark", tr("Dark")), ("light", tr("Light"))),
+            "dark",
+        )
+        self._add_card([language_row, theme_row])
 
     def _add_caption(self, text: str) -> None:
         """The small grey title above one group of settings."""
