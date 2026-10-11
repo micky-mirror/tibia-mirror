@@ -6,11 +6,14 @@ from tibia_mirror.config import DEFAULT_PROFILE
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.widgets import RaisedButton
 from tibia_mirror.ui.panel2.profile_picker import ProfilePicker
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 18  # above the profile picker
 CAPTION_TOP_PAD = 20  # between the profile picker and the caption
+CAPTION_BOTTOM_PAD = 7  # between the caption and the Add region button
+ADD_BUTTON_HEIGHT = 42
 
 
 class MirrorsPage(tk.Frame):
@@ -23,6 +26,7 @@ class MirrorsPage(tk.Frame):
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
+        self._add_region_button()
 
     def _add_profile_picker(self) -> None:
         """The box at the top with the name of the active profile."""
@@ -49,3 +53,30 @@ class MirrorsPage(tk.Frame):
             padx=self._side_pad,
             pady=(px(CAPTION_TOP_PAD), 0),
         )
+
+    def _add_region_button(self) -> None:
+        """The big button that starts the adding of a new mirror."""
+        button = RaisedButton(
+            self,
+            "+  " + tr("Add region"),
+            self._on_add_region,
+            width=self._width,
+            height=px(ADD_BUTTON_HEIGHT),
+            style=theme.PRIMARY_BUTTON,
+            hover_fill=theme.ACCENT_HI,
+            font=theme.FONT_BUTTON,
+            fg=theme.ON_ACCENT,
+            background=theme.BG,
+        )
+        # The widget is bigger than the button we see: it has room for the shadow around it.
+        # The spaces are made smaller by that room, so the button itself lands in line.
+        shadow = button.margins
+        button.pack(
+            side="top",
+            anchor="w",
+            padx=(self._side_pad - shadow.left, 0),
+            pady=(max(0, px(CAPTION_BOTTOM_PAD) - shadow.top), 0),
+        )
+
+    def _on_add_region(self) -> None:
+        """Let the user drag a box over the part of the game that the new mirror will show."""
