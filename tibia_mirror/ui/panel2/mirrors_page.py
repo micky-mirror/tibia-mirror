@@ -133,5 +133,24 @@ class MirrorsPage(tk.Frame):
         save.set_enabled(False)
         save.pack(side="left")
 
+        revert = RaisedButton(
+            row,
+            tr("Revert"),
+            self._on_revert,
+            width=button_width,
+            height=px(SAVE_BUTTON_HEIGHT),
+            style=theme.SECONDARY_BUTTON,
+            hover_fill=theme.SURFACE_HI,
+            font=theme.FONT_BOLD,
+            fg=theme.TEXT,
+            background=theme.BG,
+        )
+        revert.set_enabled(False)
+        # the two shadow rooms between the buttons are already a part of the gap
+        revert.pack(side="left", padx=(gap - shadow.right - shadow.left, 0))
+
     def _on_save(self) -> None:
         """Save the mirrors of the active profile."""
+
+    def _on_revert(self) -> None:
+        """Drop the changes and show the mirrors as they were last saved."""
