@@ -1,5 +1,7 @@
 """The box on the Mirrors page that shows the active profile and opens the profile menu."""
 
+from __future__ import annotations
+
 import tkinter as tk
 import tkinter.font as tkfont
 
@@ -32,25 +34,34 @@ class ProfilePicker(tk.Canvas):
             bg=theme.BG,
             highlightthickness=0,
             bd=0,
+            cursor="hand2",
         )
         self._width = width
         self._profile_name = name  # the name of the active profile
+
+        self._normal_box = self._render_box(theme.SURFACE)
+        self._bright_box = self._render_box(theme.SURFACE_HI)
+
         self._draw_box()
         self._draw_icon()
         self._draw_name()
         self._draw_arrow()
+        self._bind_events()
 
-    def _draw_box(self) -> None:
-        """The rounded shape of the box, a little lighter than the page."""
-        self._box_image = rounded_image(
+    def _render_box(self, colour: str) -> tk.PhotoImage:
+        """The rounded shape of the box, as an image in the given colour."""
+        return rounded_image(
             self,
             width=self._width,
             height=px(HEIGHT),
             radius=px(RADIUS),
-            colour=theme.SURFACE,
+            colour=colour,
             background=theme.BG,
         )
-        self.create_image(0, 0, anchor="nw", image=self._box_image)
+
+    def _draw_box(self) -> None:
+        """The box in its normal look, a little lighter than the page."""
+        self._box = self.create_image(0, 0, anchor="nw", image=self._normal_box)
 
     def _draw_icon(self) -> None:
         """The small person icon at the left, in the middle of the box's height."""
@@ -84,3 +95,18 @@ class ProfilePicker(tk.Canvas):
             font=theme.FONT_ICON,
             fill=theme.SUBTEXT,
         )
+
+    def _bind_events(self) -> None:
+        self.bind("<Enter>", self._on_mouse_enter)
+        self.bind("<Leave>", self._on_mouse_leave)
+
+    def _on_mouse_enter(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered(True)
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered(False)
+
+    def _set_hovered(self, is_hovered: bool) -> None:
+        """Show the box brighter while the pointer is over it."""
+        box_image = self._bright_box if is_hovered else self._normal_box
+        self.itemconfigure(self._box, image=box_image)
