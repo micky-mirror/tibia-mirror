@@ -1,4 +1,4 @@
-"""What every row of a settings card has in common.
+"""What every row of a card has in common.
 
 How the rows are placed: a canvas places nothing for us, and a row does not know
 its height before it is drawn, because the height depends on the font and on how
@@ -26,7 +26,7 @@ HINT_GAP = 2  # between a label and the help text under it
 
 
 class Row(Protocol):
-    """What a settings card needs from a row. Every kind of row has these methods."""
+    """What a card needs from a row. Every kind of row has these methods."""
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""

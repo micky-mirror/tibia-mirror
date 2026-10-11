@@ -1,4 +1,4 @@
-"""A card on the Settings page: a rounded box that holds the rows of one group."""
+"""A card of rows: a rounded box that holds the rows of one group."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from tibia_mirror.ui.panel2.row import SIDE_PAD, Row
 RADIUS = 8  # of the rounded corners
 
 
-class SettingsCard(tk.Canvas):
+class RowCard(tk.Canvas):
     """A rounded box for one group of settings. It is as high as its rows."""
 
     def __init__(self, parent: tk.Misc, width: int, rows: Sequence[Row]) -> None:

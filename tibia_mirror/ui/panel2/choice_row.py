@@ -1,4 +1,4 @@
-"""A row of a settings card with a few options to choose from, such as the language."""
+"""A row of a card with a few options to choose from, such as the language."""
 
 import tkinter as tk
 from collections.abc import Sequence

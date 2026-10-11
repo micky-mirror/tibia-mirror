@@ -1,4 +1,4 @@
-"""A row of a settings card that turns one thing on or off."""
+"""A row of a card that turns one thing on or off."""
 
 import tkinter as tk
 

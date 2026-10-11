@@ -1,4 +1,4 @@
-"""A row of a settings card with a slider that sets a number, such as an opacity."""
+"""A row of a card with a slider that sets a number, such as an opacity."""
 
 import tkinter as tk
 from collections.abc import Callable
