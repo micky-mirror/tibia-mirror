@@ -30,6 +30,8 @@ class MirrorCardTitle:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
+        # the dot or the link that the mouse button went down on
+        self._pressed_piece: ColourDot | TextLink | None = None
 
         self._draw_colour_dot()
         self._draw_name()
@@ -54,12 +56,19 @@ class MirrorCardTitle:
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
         """Remember if the mouse button went down on the dot or on the size link."""
+        self._pressed_piece = self._get_piece_at(position_x, position_y)
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """Open the choice of colours, or the settings of the area.
 
         Only if the mouse button went down and up on the dot, or on the size link.
         """
+        piece = self._get_piece_at(position_x, position_y)
+        pressed_piece = self._pressed_piece
+        self._pressed_piece = None
+
+        if piece is not None and piece is pressed_piece:
+            piece.click()
 
     def _draw_colour_dot(self) -> None:
         """The round dot before the name, in the colour of the mirror's frame.
@@ -69,7 +78,14 @@ class MirrorCardTitle:
         colour = theme.frame_color(self._mirror.colour)
         tip = Tip(tr("Frame colour"))
 
-        self._colour_dot = ColourDot(self._canvas, px(DOT_X), px(TOP_ROW_Y), colour, tip)
+        self._colour_dot = ColourDot(
+            self._canvas,
+            px(DOT_X),
+            px(TOP_ROW_Y),
+            colour,
+            tip,
+            self._pick_colour,
+        )
 
     def _draw_name(self) -> None:
         """The name of the mirror in bold, cut short with "…" when it is too long.
@@ -100,7 +116,14 @@ class MirrorCardTitle:
         text = self._get_size_text()
         tip = Tip(tr("Edit region"), tr("Position, size and zoom."))
 
-        self._size_link = TextLink(self._canvas, position_x, px(TOP_ROW_Y), text, tip)
+        self._size_link = TextLink(
+            self._canvas,
+            position_x,
+            px(TOP_ROW_Y),
+            text,
+            tip,
+            self._edit_area,
+        )
 
     def _get_size_text(self) -> str:
         return f"{self._mirror.area_width}×{self._mirror.area_height}"
@@ -108,3 +131,18 @@ class MirrorCardTitle:
     def _get_size_width(self) -> int:
         """The width of the size text on the screen, in pixels."""
         return tkfont.Font(font=theme.FONT).measure(self._get_size_text())
+
+    def _get_piece_at(self, position_x: int, position_y: int) -> ColourDot | TextLink | None:
+        """The dot or the size link at this place, or None."""
+        if self._colour_dot.contains(position_x, position_y):
+            return self._colour_dot
+        if self._size_link.contains(position_x, position_y):
+            return self._size_link
+
+        return None
+
+    def _pick_colour(self) -> None:
+        """Open the choice of colours for the mirror's frame."""
+
+    def _edit_area(self) -> None:
+        """Open the settings of the mirrored area: its position, size and zoom."""

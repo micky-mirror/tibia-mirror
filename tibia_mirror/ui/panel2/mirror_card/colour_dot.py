@@ -1,6 +1,7 @@
 """The dot in the colour of a mirror's frame, drawn on a canvas that something else owns."""
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
@@ -22,7 +23,13 @@ class ColourDot:
     SHAPE_RADIUS = 6  # of the corners of the shape behind the dot
 
     def __init__(
-        self, canvas: tk.Canvas, middle_x: int, middle_y: int, colour: str, tip: Tip
+        self,
+        canvas: tk.Canvas,
+        middle_x: int,
+        middle_y: int,
+        colour: str,
+        tip: Tip,
+        on_click: Callable[[], None],
     ) -> None:
         self._canvas = canvas
         self._middle_x = middle_x
@@ -30,6 +37,7 @@ class ColourDot:
         self._colour = colour
         self._tip = tip  # the hint that opens while the pointer rests on the dot
         self._tooltip = Tooltip(canvas.winfo_toplevel())
+        self._on_click = on_click  # what the dot does when it is clicked
         self._is_hovered = False  # True while the pointer is over the dot
 
         # the dot has smooth edges, so it needs one picture for each colour behind it
@@ -54,6 +62,10 @@ class ColourDot:
         self._is_hovered = is_hovered
         self._update_look()
         self._update_tip()
+
+    def click(self) -> None:
+        """Do what the dot is for."""
+        self._on_click()
 
     def _update_look(self) -> None:
         """While hovered: the shape behind the dot, and the dot made for that shape."""

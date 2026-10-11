@@ -1,6 +1,7 @@
 """A text that works like a link, drawn on a canvas that something else owns."""
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
@@ -20,7 +21,13 @@ class TextLink:
     SLACK_Y = 2  # and this far above and below it
 
     def __init__(
-        self, canvas: tk.Canvas, position_x: int, middle_y: int, text: str, tip: Tip
+        self,
+        canvas: tk.Canvas,
+        position_x: int,
+        middle_y: int,
+        text: str,
+        tip: Tip,
+        on_click: Callable[[], None],
     ) -> None:
         self._canvas = canvas
         self._position_x = position_x  # where the text starts
@@ -28,6 +35,7 @@ class TextLink:
         self._text = text
         self._tip = tip  # the hint that opens while the pointer rests on the link
         self._tooltip = Tooltip(canvas.winfo_toplevel())
+        self._on_click = on_click  # what the link does when it is clicked
         self._is_hovered = False  # True while the pointer is over the link
 
         self._draw_text()
@@ -49,6 +57,10 @@ class TextLink:
         self._is_hovered = is_hovered
         self._update_look()
         self._update_tip()
+
+    def click(self) -> None:
+        """Do what the link is for."""
+        self._on_click()
 
     def _update_look(self) -> None:
         """The text in the accent colour while hovered, in grey when not."""
