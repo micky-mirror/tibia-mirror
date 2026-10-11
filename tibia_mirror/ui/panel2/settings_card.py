@@ -9,7 +9,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.choice_row import ChoiceRow
+from tibia_mirror.ui.panel2.choice_row import SIDE_PAD, ChoiceRow
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 RADIUS = 8  # of the rounded corners
@@ -33,11 +33,31 @@ class SettingsCard(tk.Canvas):
         self._bind_events()
 
     def _draw_rows(self, width: int) -> int:
-        """Draw the rows one under another. Return the height they take together."""
+        """Draw the rows one under another, with a thin line between them.
+
+        Return the height they take together.
+        """
         position_y = 0
         for row in self._rows:
+            is_first: bool = position_y == 0
+            if not is_first:
+                self._draw_line(position_y, width)
             position_y = row.draw(self, position_y, width)
         return position_y
+
+    def _draw_line(self, position_y: int, width: int) -> None:
+        """A thin line across the card, in the colour of the page.
+
+        It starts and ends where the content of the rows does.
+        """
+        self.create_line(
+            px(SIDE_PAD),
+            position_y,
+            width - px(SIDE_PAD),
+            position_y,
+            fill=theme.BG,
+            width=px(1),
+        )
 
     def _draw_background(self, width: int, height: int) -> None:
         """The rounded shape of the card, a little lighter than the page."""
