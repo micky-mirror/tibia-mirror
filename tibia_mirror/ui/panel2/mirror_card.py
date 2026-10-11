@@ -15,6 +15,7 @@ LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
 UNLOCKED_ICON = "\ue785"  # an open lock, from the same font
 SHOWN_ICON = "\ue890"  # an open eye, from the same font
 HIDDEN_ICON = "\ued1a"  # a crossed eye, from the same font
+TIMER_ICON = "\ue916"  # a clock, from the same font
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 62
@@ -128,6 +129,7 @@ class MirrorCard(tk.Canvas):
         self._draw_remove_button()
         self._draw_lock_button()
         self._draw_eye_button()
+        self._draw_timer_button()
 
     def _draw_remove_button(self) -> None:
         self._remove_button = IconButton(
@@ -165,6 +167,20 @@ class MirrorCard(tk.Canvas):
             self._button_position_x(2),
             px(TOP_ROW_Y),
             icon,
+            theme.FONT_ICON,
+            colour,
+        )
+
+    def _draw_timer_button(self) -> None:
+        """A clock, in the accent colour for a mirror with its timer on, grey if not."""
+        is_timer_on: bool = self._mirror.is_timer_on
+        colour = theme.ACCENT if is_timer_on else theme.SUBTEXT
+
+        self._timer_button = IconButton(
+            self,
+            self._button_position_x(3),
+            px(TOP_ROW_Y),
+            TIMER_ICON,
             theme.FONT_ICON,
             colour,
         )

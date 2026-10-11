@@ -14,3 +14,4 @@ class MirrorInfo:
     colour: str  # the name of the frame colour, one of config.FRAME_COLORS
     is_hidden: bool
     is_locked: bool
+    is_timer_on: bool

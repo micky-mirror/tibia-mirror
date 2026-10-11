@@ -34,6 +34,7 @@ SAMPLE_MIRRORS = (
         colour="default",
         is_hidden=False,
         is_locked=False,
+        is_timer_on=True,
     ),
     MirrorInfo(
         name="Minimap",
@@ -43,6 +44,7 @@ SAMPLE_MIRRORS = (
         colour="blue",
         is_hidden=False,
         is_locked=True,
+        is_timer_on=False,
     ),
     MirrorInfo(
         name="Health and mana",
@@ -52,6 +54,7 @@ SAMPLE_MIRRORS = (
         colour="red",
         is_hidden=True,
         is_locked=False,
+        is_timer_on=False,
     ),
 )
 BOTTOM_PAD = 14  # below the line that tells if the changes are saved
