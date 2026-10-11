@@ -3,6 +3,7 @@
 import tkinter as tk
 from collections.abc import Sequence
 
+from tibia_mirror.config import DEFAULT_OPACITY
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
@@ -18,6 +19,11 @@ TOP_PAD = 8  # above the first line of the page
 BOTTOM_PAD = 8  # below the last line of the page
 CAPTION_TOP_PAD = 10  # above each caption
 CAPTION_BOTTOM_PAD = 6  # between a caption and its group
+
+
+def percent(value: float) -> str:
+    """A part of one as a whole percent: 0.5 becomes "50%"."""
+    return f"{round(value * 100)}%"
 
 
 class SettingsPage(tk.Frame):
@@ -95,6 +101,8 @@ class SettingsPage(tk.Frame):
         opacity_row = SliderRow(
             tr("Opacity of new mirrors"),
             tr("Each mirror can still be set on its card."),
+            value=DEFAULT_OPACITY,
+            value_text=percent,
         )
         self._add_card([opacity_row])
 
