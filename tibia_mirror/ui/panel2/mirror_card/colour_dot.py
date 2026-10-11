@@ -2,9 +2,12 @@
 
 import tkinter as tk
 
+from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.tooltip import Tooltip
+from tibia_mirror.ui.panel2.mirror_card.tip import Tip
 
 
 class ColourDot:
@@ -18,11 +21,15 @@ class ColourDot:
     SIZE = 22  # of the shape behind the dot, and of the place that reacts to the pointer
     SHAPE_RADIUS = 6  # of the corners of the shape behind the dot
 
-    def __init__(self, canvas: tk.Canvas, middle_x: int, middle_y: int, colour: str) -> None:
+    def __init__(
+        self, canvas: tk.Canvas, middle_x: int, middle_y: int, colour: str, tip: Tip
+    ) -> None:
         self._canvas = canvas
         self._middle_x = middle_x
         self._middle_y = middle_y
         self._colour = colour
+        self._tip = tip  # the hint that opens while the pointer rests on the dot
+        self._tooltip = Tooltip(canvas.winfo_toplevel())
         self._is_hovered = False  # True while the pointer is over the dot
 
         # the dot has smooth edges, so it needs one picture for each colour behind it
@@ -45,11 +52,30 @@ class ColourDot:
         if is_hovered == self._is_hovered:
             return
         self._is_hovered = is_hovered
-        state = "normal" if is_hovered else "hidden"
-        dot_image = self._hovered_dot if is_hovered else self._normal_dot
+        self._update_look()
+        self._update_tip()
+
+    def _update_look(self) -> None:
+        """While hovered: the shape behind the dot, and the dot made for that shape."""
+        state = "normal" if self._is_hovered else "hidden"
+        dot_image = self._hovered_dot if self._is_hovered else self._normal_dot
 
         self._canvas.itemconfigure(self._hover_shape, state=state)
         self._canvas.itemconfigure(self._dot, image=dot_image)
+
+    def _update_tip(self) -> None:
+        """Open the hint while the dot is hovered, and close it when it is not."""
+        if self._is_hovered:
+            self._tooltip.show(self._tip.title, self._get_screen_box(), self._tip.detail)
+        else:
+            self._tooltip.hide()
+
+    def _get_screen_box(self) -> Box:
+        """The place of the dot's hover shape on the screen. The hint opens under it."""
+        half = px(self.SIZE) // 2
+        middle_x = self._canvas.winfo_rootx() + self._middle_x
+        middle_y = self._canvas.winfo_rooty() + self._middle_y
+        return (middle_x - half, middle_y - half, middle_x + half, middle_y + half)
 
     def _render_dot(self, background: str) -> tk.PhotoImage:
         """The dot as an image, with its smooth edge made for the given colour behind it."""

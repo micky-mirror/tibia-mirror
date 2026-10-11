@@ -3,12 +3,14 @@
 import tkinter as tk
 import tkinter.font as tkfont
 
+from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel2.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel2.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel2.mirror_card.text_link import TextLink
+from tibia_mirror.ui.panel2.mirror_card.tip import Tip
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -65,8 +67,9 @@ class MirrorCardTitle:
         A click on it opens the choice of colours.
         """
         colour = theme.frame_color(self._mirror.colour)
+        tip = Tip(tr("Frame colour"))
 
-        self._colour_dot = ColourDot(self._canvas, px(DOT_X), px(TOP_ROW_Y), colour)
+        self._colour_dot = ColourDot(self._canvas, px(DOT_X), px(TOP_ROW_Y), colour, tip)
 
     def _draw_name(self) -> None:
         """The name of the mirror in bold, cut short with "…" when it is too long.
@@ -94,8 +97,10 @@ class MirrorCardTitle:
         It works like a link: a click on it opens the settings of the area.
         """
         position_x = self._name_end_x + px(TEXT_GAP)
+        text = self._get_size_text()
+        tip = Tip(tr("Edit region"), tr("Position, size and zoom."))
 
-        self._size_link = TextLink(self._canvas, position_x, px(TOP_ROW_Y), self._get_size_text())
+        self._size_link = TextLink(self._canvas, position_x, px(TOP_ROW_Y), text, tip)
 
     def _get_size_text(self) -> str:
         return f"{self._mirror.area_width}×{self._mirror.area_height}"
