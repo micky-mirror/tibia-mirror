@@ -5,18 +5,35 @@ from collections.abc import Callable
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.slider import SliderDrawing
 from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
+
+# Sizes at 100% display scaling; px() scales them where they are used.
+SLIDER_GAP = 16  # from the end of the help text to the middle line of the slider
 
 
 class SliderRow:
     """One setting that is a number, set with a slider."""
 
     def __init__(
-        self, label: str, hint: str, value: float, value_text: Callable[[float], str]
+        self,
+        label: str,
+        hint: str,
+        *,
+        value: float,
+        start: float,
+        end: float,
+        step: float,
+        lowest: float,
+        value_text: Callable[[float], str],
     ) -> None:
         self._label = label
         self._hint = hint  # the help text under the label
         self._value = value
+        self._start = start  # the value at the left end of the slider
+        self._end = end  # the value at the right end of the slider
+        self._step = step  # the knob moves in steps of this size
+        self._lowest = lowest  # the knob does not go below this value
         self._value_text = value_text  # makes the text that shows a value, such as "50%"
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
@@ -25,7 +42,8 @@ class SliderRow:
         self._draw_value(canvas, row_start_y, width)
         hint_width = width - 2 * px(SIDE_PAD)  # as wide as the content of the row
         hint_end_y = draw_hint(canvas, label_end_y, self._hint, hint_width)
-        return hint_end_y + px(ROW_PAD)
+        slider_end_y = self._draw_slider(canvas, hint_end_y, width)
+        return slider_end_y + px(ROW_PAD)
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Move the knob with the pointer while the user drags it.
@@ -54,3 +72,23 @@ class SliderRow:
             font=theme.FONT,
             fill=theme.SUBTEXT,
         )
+
+    def _draw_slider(self, canvas: tk.Canvas, hint_end_y: int, width: int) -> int:
+        """The slider under the help text, as wide as the content of the row.
+
+        Return the y where the slider ends.
+        """
+        position_y = hint_end_y + px(SLIDER_GAP)  # the middle line of the slider
+        self._slider = SliderDrawing(
+            canvas,
+            px(SIDE_PAD),
+            width - px(SIDE_PAD),
+            position_y,
+            self._value,
+            lo=self._start,
+            hi=self._end,
+            step=self._step,
+            floor=self._lowest,
+        )
+        # the knob is the highest part of the slider, and half of it is under the middle line
+        return position_y + px(SliderDrawing.KNOB) // 2

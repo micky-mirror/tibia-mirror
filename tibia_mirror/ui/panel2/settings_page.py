@@ -3,7 +3,7 @@
 import tkinter as tk
 from collections.abc import Sequence
 
-from tibia_mirror.config import DEFAULT_OPACITY
+from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
@@ -102,6 +102,10 @@ class SettingsPage(tk.Frame):
             tr("Opacity of new mirrors"),
             tr("Each mirror can still be set on its card."),
             value=DEFAULT_OPACITY,
+            start=0.0,
+            end=1.0,
+            step=OPACITY_STEP,
+            lowest=MIN_OPACITY,
             value_text=percent,
         )
         self._add_card([opacity_row])
