@@ -11,9 +11,9 @@ from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide, percent
 from tibia_mirror.ui.controls.slider import SliderDrawing
-from tibia_mirror.ui.panel2.icon_button import IconButton
+from tibia_mirror.ui.panel2.mirror_card.icon_button import IconButton
+from tibia_mirror.ui.panel2.mirror_card.text_link import TextLink
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
-from tibia_mirror.ui.panel2.text_link import TextLink
 
 REMOVE_ICON = "✕"
 LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
