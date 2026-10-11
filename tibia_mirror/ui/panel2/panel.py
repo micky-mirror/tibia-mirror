@@ -9,6 +9,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.about_page import AboutPage
 from tibia_mirror.ui.panel2.footer import Footer
 from tibia_mirror.ui.panel2.nav import NavRail
+from tibia_mirror.ui.panel2.settings_page import SettingsPage
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 SIDE_PAD = 20  # left and right of the content
@@ -84,7 +85,7 @@ class Panel(tk.Frame):
             "mirrors": tk.Frame(self._content, bg=theme.BG),
             "shortcuts": tk.Frame(self._content, bg=theme.BG),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
-            "settings": tk.Frame(self._content, bg=theme.BG),
+            "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD)),
         }
         self._open_page = START_PAGE  # the key of the page that is shown
         self._pack_page(START_PAGE)
