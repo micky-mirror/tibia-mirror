@@ -24,8 +24,7 @@ class SettingsPage(tk.Frame):
         super().__init__(parent, bg=theme.BG)
         self._width = width  # the width of the content, in pixels
         self._add_column(side_pad)
-        self._add_caption(tr("GENERAL"))
-        self._add_card([ChoiceRow(tr("Language"))])
+        self._add_general_group()
 
     def _add_column(self, side_pad: int) -> None:
         """The column that holds the groups of the page, one under another.
@@ -42,6 +41,13 @@ class SettingsPage(tk.Frame):
             pady=(px(TOP_PAD), px(BOTTOM_PAD)),
         )
         self._column = scroll_list.inner
+
+    def _add_general_group(self) -> None:
+        """The first group: settings of the app as a whole."""
+        self._add_caption(tr("GENERAL"))
+        # The names of languages are written in their own language, never translated.
+        language = ChoiceRow(tr("Language"), (("en", "English"), ("pl", "Polski")), "en")
+        self._add_card([language])
 
     def _add_caption(self, text: str) -> None:
         """The small grey title above one group of settings."""

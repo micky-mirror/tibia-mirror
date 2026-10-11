@@ -24,15 +24,15 @@ class SettingsCard(tk.Canvas):
             highlightthickness=0,
             bd=0,
         )
-        height = self._draw_rows(rows)
+        height = self._draw_rows(rows, width)
         self._draw_background(width, height)
         self.configure(height=height)
 
-    def _draw_rows(self, rows: Sequence[ChoiceRow]) -> int:
+    def _draw_rows(self, rows: Sequence[ChoiceRow], width: int) -> int:
         """Draw the rows one under another. Return the height they take together."""
         position_y = 0
         for row in rows:
-            position_y = row.draw(self, position_y)
+            position_y = row.draw(self, position_y, width)
         return position_y
 
     def _draw_background(self, width: int, height: int) -> None:
