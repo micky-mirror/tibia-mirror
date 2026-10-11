@@ -2,8 +2,17 @@
 
 import tkinter as tk
 
+from tibia_mirror.core.timers import KeyCombo
+from tibia_mirror.i18n import tr
+from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.dialogs import key_combo_name
+from tibia_mirror.ui.controls.widgets import KeyField
 from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
+from tibia_mirror.winapi import win32
+
+# Sizes at 100% display scaling; px() scales them where they are used.
+FIELD_GAP = 8  # between the help text and the field for the key
 
 
 class KeyRow:
@@ -13,16 +22,18 @@ class KeyRow:
     keyboard by itself, so the pointer methods of the row have nothing to do.
     """
 
-    def __init__(self, label: str, hint: str) -> None:
+    def __init__(self, label: str, hint: str, key: KeyCombo | None) -> None:
         self._label = label
         self._hint = hint  # the help text under the label
+        self._key = key  # the key that is set now, or None when no key is set
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
         label_end_y = draw_label(canvas, row_start_y, self._label)
-        hint_width = width - 2 * px(SIDE_PAD)  # as wide as the content of the row
-        hint_end_y = draw_hint(canvas, label_end_y, self._hint, hint_width)
-        return hint_end_y + px(ROW_PAD)
+        content_width = width - 2 * px(SIDE_PAD)
+        hint_end_y = draw_hint(canvas, label_end_y, self._hint, content_width)
+        field_end_y = self._add_field(canvas, hint_end_y, content_width)
+        return field_end_y + px(ROW_PAD)
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Nothing to do: the field for the key hears the pointer by itself."""
@@ -36,3 +47,19 @@ class KeyRow:
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """Nothing to do: the field for the key hears the pointer by itself."""
+
+    def _add_field(self, canvas: tk.Canvas, hint_end_y: int, width: int) -> int:
+        """The field for the key, under the help text. Return the y where the field ends."""
+        field = KeyField(
+            canvas,
+            self._key,
+            width=width,
+            background=theme.SURFACE,
+            name=key_combo_name,
+            empty=tr("Click to set a key"),
+            waiting=tr("Press a key..."),
+            modifiers=win32.modifiers_down,
+        )
+        field_start_y = hint_end_y + px(FIELD_GAP)
+        canvas.create_window(px(SIDE_PAD), field_start_y, window=field, anchor="nw")
+        return field_start_y + px(KeyField.HEIGHT)

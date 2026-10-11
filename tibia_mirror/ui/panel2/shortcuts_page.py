@@ -31,5 +31,6 @@ class ShortcutsPage(tk.Frame):
         hide_all_row = KeyRow(
             tr("Hide all mirrors"),
             tr("Press again to bring them back. Works while Tibia is active."),
+            key=None,
         )
         self._scroll_cards.add_card([hide_all_row])
