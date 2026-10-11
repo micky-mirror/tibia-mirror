@@ -23,7 +23,7 @@ class MirrorsPage(tk.Frame):
 
     def _add_profile_picker(self) -> None:
         """The box at the top with the name of the active profile."""
-        profile_picker = ProfilePicker(self, self._width, DEFAULT_PROFILE)
+        profile_picker = ProfilePicker(self, self._width, DEFAULT_PROFILE, [DEFAULT_PROFILE])
         profile_picker.pack(
             side="top",
             anchor="w",

@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import tkinter as tk
 import tkinter.font as tkfont
+from collections.abc import Sequence
+from functools import partial
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
+from tibia_mirror.ui.controls.menu import MenuItem, PopupMenu
 
 ICON = "\ue77b"  # a person, from the Segoe MDL2 Assets icon font
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the same icon font
@@ -25,7 +28,9 @@ ARROW_X = 18  # from the right side of the box to the middle of the arrow
 class ProfilePicker(tk.Canvas):
     """A box with the name of the active profile. A click on it opens the profile menu."""
 
-    def __init__(self, parent: tk.Misc, width: int, name: str) -> None:
+    def __init__(
+        self, parent: tk.Misc, width: int, name: str, profile_names: Sequence[str]
+    ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
             parent,
@@ -38,6 +43,8 @@ class ProfilePicker(tk.Canvas):
         )
         self._width = width
         self._profile_name = name  # the name of the active profile
+        self._profile_names = profile_names  # the names of all profiles, for the menu
+        self._is_open = False  # True while the profile menu is open
 
         self._normal_box = self._render_box(theme.SURFACE)
         self._bright_box = self._render_box(theme.SURFACE_HI)
@@ -99,6 +106,7 @@ class ProfilePicker(tk.Canvas):
     def _bind_events(self) -> None:
         self.bind("<Enter>", self._on_mouse_enter)
         self.bind("<Leave>", self._on_mouse_leave)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_mouse_enter(self, event: tk.Event[tk.Canvas]) -> None:
         self._set_hovered(True)
@@ -110,3 +118,32 @@ class ProfilePicker(tk.Canvas):
         """Show the box brighter while the pointer is over it."""
         box_image = self._bright_box if is_hovered else self._normal_box
         self.itemconfigure(self._box, image=box_image)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        """Open the profile menu if the button went up inside the box."""
+        # after a drag the button can go up outside the box
+        is_inside: bool = 0 <= event.x < self._width and 0 <= event.y < px(HEIGHT)
+        if is_inside and not self._is_open:
+            self._open_menu()
+
+    def _open_menu(self) -> None:
+        """Open the profile menu under the box, as wide as the box."""
+        self._is_open = True
+        # the menu is its own small window, so it needs the place of the box on the screen
+        left = self.winfo_rootx()
+        top = self.winfo_rooty()
+        box = (left, top, left + self._width, top + px(HEIGHT))
+        PopupMenu(self.winfo_toplevel(), box, self._menu_items(), on_close=self._on_menu_closed)
+
+    def _on_menu_closed(self) -> None:
+        self._is_open = False
+
+    def _menu_items(self) -> list[MenuItem | None]:
+        """The entries of the menu: every profile, with a check mark at the active one."""
+        return [
+            MenuItem(name, partial(self._select, name), checked=name == self._profile_name)
+            for name in self._profile_names
+        ]
+
+    def _select(self, name: str) -> None:
+        """Make the profile `name` the active one."""
