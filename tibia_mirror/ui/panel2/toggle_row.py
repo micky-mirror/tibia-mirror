@@ -3,19 +3,25 @@
 import tkinter as tk
 
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.row import ROW_PAD, draw_label
+from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
+
+# Sizes at 100% display scaling; px() scales them where they are used.
+SWITCH_WIDTH = 36  # of the switch at the right of the row
+SWITCH_GAP = 20  # between the texts and the switch
 
 
 class ToggleRow:
     """One setting that is on or off."""
 
-    def __init__(self, label: str) -> None:
+    def __init__(self, label: str, hint: str) -> None:
         self._label = label
+        self._hint = hint  # the help text under the label
 
     def draw(self, canvas: tk.Canvas, top: int, width: int) -> int:
         """Draw the row on the card, starting at `top`. Return where the row ends."""
         label_bottom = draw_label(canvas, top, self._label)
-        return label_bottom + px(ROW_PAD)
+        hint_bottom = draw_hint(canvas, label_bottom, self._hint, self._hint_width(width))
+        return hint_bottom + px(ROW_PAD)
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Show the switch as hovered when the pointer is anywhere in the row.
@@ -32,3 +38,7 @@ class ToggleRow:
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """Turn the setting on or off if the button went down and up in the row."""
+
+    def _hint_width(self, width: int) -> int:
+        """The width the help text can take: the row without its side space and the switch."""
+        return width - 2 * px(SIDE_PAD) - px(SWITCH_WIDTH) - px(SWITCH_GAP)

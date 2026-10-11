@@ -9,6 +9,7 @@ from tibia_mirror.ui.base.scale import px
 # Sizes at 100% display scaling; px() scales them where they are used.
 SIDE_PAD = 14  # left and right of a row's content
 ROW_PAD = 10  # above and below a row's content
+HINT_GAP = 2  # between a label and the help text under it
 
 
 class Row(Protocol):
@@ -42,3 +43,21 @@ def draw_label(canvas: tk.Canvas, top: int, text: str) -> int:
     )
     label_bottom: int = canvas.bbox(label)[3]
     return label_bottom
+
+
+def draw_hint(canvas: tk.Canvas, top: int, text: str, width: int) -> int:
+    """Draw the help text of a setting under its label, which ends at `top`.
+
+    Long text breaks into lines at `width`. Return where the text ends.
+    """
+    hint = canvas.create_text(
+        px(SIDE_PAD),
+        top + px(HINT_GAP),
+        text=text,
+        anchor="nw",
+        width=width,
+        font=theme.FONT_SMALL,
+        fill=theme.SUBTEXT,
+    )
+    hint_bottom: int = canvas.bbox(hint)[3]
+    return hint_bottom
