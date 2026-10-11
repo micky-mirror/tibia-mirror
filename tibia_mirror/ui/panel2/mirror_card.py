@@ -11,6 +11,8 @@ from tibia_mirror.ui.panel2.icon_button import IconButton
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
 REMOVE_ICON = "✕"
+LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
+UNLOCKED_ICON = "\ue785"  # an open lock, from the same font
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 62
@@ -121,11 +123,35 @@ class MirrorCard(tk.Canvas):
 
         From the right: remove, lock, show or hide, timer.
         """
+        self._draw_remove_button()
+        self._draw_lock_button()
+
+    def _draw_remove_button(self) -> None:
         self._remove_button = IconButton(
-            self, self._button_x(0), px(TOP_ROW_Y), REMOVE_ICON, theme.FONT
+            self,
+            self._button_position_x(0),
+            px(TOP_ROW_Y),
+            REMOVE_ICON,
+            theme.FONT,
+            theme.SUBTEXT,
         )
 
-    def _button_x(self, place: int) -> int:
+    def _draw_lock_button(self) -> None:
+        """A closed lock in the accent colour for a locked mirror, an open grey lock if not."""
+        is_locked: bool = self._mirror.is_locked
+        icon = LOCKED_ICON if is_locked else UNLOCKED_ICON
+        colour = theme.ACCENT if is_locked else theme.SUBTEXT
+
+        self._lock_button = IconButton(
+            self,
+            self._button_position_x(1),
+            px(TOP_ROW_Y),
+            icon,
+            theme.FONT_ICON,
+            colour,
+        )
+
+    def _button_position_x(self, place: int) -> int:
         """The middle of a button. `place` counts the buttons from the right, from 0."""
         size = px(IconButton.SIZE)
         step = size + px(BUTTON_GAP)  # from the middle of one button to the middle of the next

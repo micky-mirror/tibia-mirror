@@ -15,7 +15,13 @@ class IconButton:
     SIZE = 26  # the button is square, so this is its width and its height
 
     def __init__(
-        self, canvas: tk.Canvas, middle_x: int, middle_y: int, icon: str, font: theme.FontSpec
+        self,
+        canvas: tk.Canvas,
+        middle_x: int,
+        middle_y: int,
+        icon: str,
+        font: theme.FontSpec,
+        colour: str,
     ) -> None:
         self._canvas = canvas
         self._icon = canvas.create_text(
@@ -23,5 +29,5 @@ class IconButton:
             middle_y,
             text=icon,
             font=font,
-            fill=theme.SUBTEXT,
+            fill=colour,
         )
