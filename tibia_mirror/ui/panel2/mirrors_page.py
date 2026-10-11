@@ -7,7 +7,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import margins
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.widgets import RaisedButton
+from tibia_mirror.ui.controls.widgets import RaisedButton, ScrollList
 from tibia_mirror.ui.panel2.profile_picker import ProfilePicker
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -17,6 +17,9 @@ CAPTION_BOTTOM_PAD = 7  # between the caption and the Add region button
 ADD_BUTTON_HEIGHT = 42
 SAVE_BUTTON_HEIGHT = 34
 SAVE_BUTTON_GAP = 12  # between the Save button and the Revert button
+LIST_TOP_PAD = 2  # between the shadow of the Add region button and the list
+LIST_BOTTOM_PAD = 8  # between the list and the Save buttons
+HINT_TOP_PAD = 10  # above the sentence that shows when there are no mirrors
 BOTTOM_PAD = 14  # below the line that tells if the changes are saved
 
 
@@ -34,6 +37,9 @@ class MirrorsPage(tk.Frame):
         # add the parts at the bottom of the page, from the bottom up
         self._add_save_state()
         self._add_save_buttons()
+        # add the list last: it takes the space that the other parts leave
+        self._add_mirror_list()
+        self._add_empty_hint()
 
     def _add_profile_picker(self) -> None:
         """The box at the top with the name of the active profile."""
@@ -154,3 +160,32 @@ class MirrorsPage(tk.Frame):
 
     def _on_revert(self) -> None:
         """Drop the changes and show the mirrors as they were last saved."""
+
+    def _add_mirror_list(self) -> None:
+        """The list of the mirrors, in the middle of the page.
+
+        It scrolls when the mirrors do not fit between the top and the bottom parts.
+        """
+        scroll_list = ScrollList(self, width=self._width)
+        scroll_list.pack(
+            side="top",
+            anchor="w",
+            fill="y",
+            expand=True,
+            padx=(self._side_pad, 0),
+            pady=(px(LIST_TOP_PAD), px(LIST_BOTTOM_PAD)),
+        )
+        self._mirror_list = scroll_list.inner
+
+    def _add_empty_hint(self) -> None:
+        """The sentence that tells how to add the first mirror. It is for a list with no mirrors."""
+        hint = tk.Label(
+            self._mirror_list,
+            text=tr("Click Add region, then drag a box over the part of the game to mirror."),
+            bg=theme.BG,
+            fg=theme.SUBTEXT,
+            font=theme.FONT,
+            justify="left",
+            wraplength=self._width,
+        )
+        hint.pack(side="top", anchor="w", pady=(px(HINT_TOP_PAD), 0))
