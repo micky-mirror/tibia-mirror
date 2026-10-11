@@ -15,6 +15,7 @@ RADIUS = 8  # of the rounded corners
 TOP_ROW_Y = 20  # from the top of the card to the middle line of the name and the buttons
 NAME_X = 33  # from the left side of the card to the start of the name
 BUTTONS_ROOM = 126  # kept free at the right side of the card, for the four buttons
+TEXT_GAP = 8  # between the name and the size, and between the size and the buttons
 
 
 class MirrorCard(tk.Canvas):
@@ -34,6 +35,7 @@ class MirrorCard(tk.Canvas):
         self._mirror = mirror  # what the card shows
         self._draw_background()
         self._draw_name()
+        self._draw_size()
 
     def _draw_background(self) -> None:
         """The rounded shape of the card, a little lighter than the page."""
@@ -53,12 +55,37 @@ class MirrorCard(tk.Canvas):
         The name of a hidden mirror is grey.
         """
         font = tkfont.Font(font=theme.FONT_BOLD)
-        room = self._width - px(NAME_X) - px(BUTTONS_ROOM)  # the width the name can take
+        # the name can take the width that the size and the buttons leave
+        room = self._width - px(NAME_X) - self._size_width() - px(TEXT_GAP) - px(BUTTONS_ROOM)
+        name = elide(self._mirror.name, font, room)
         self.create_text(
             px(NAME_X),
             px(TOP_ROW_Y),
-            text=elide(self._mirror.name, font, room),
+            text=name,
             anchor="w",
             font=font,
             fill=theme.SUBTEXT if self._mirror.is_hidden else theme.TEXT,
         )
+        # remembered because the size starts right after the name
+        self._name_end_x = px(NAME_X) + font.measure(name)
+
+    def _draw_size(self) -> None:
+        """The size of the mirrored area, such as "320×64", in grey after the name.
+
+        It works like a link: a click on it opens the settings of the area.
+        """
+        self.create_text(
+            self._name_end_x + px(TEXT_GAP),
+            px(TOP_ROW_Y),
+            text=self._size_text(),
+            anchor="w",
+            font=theme.FONT,
+            fill=theme.SUBTEXT,
+        )
+
+    def _size_text(self) -> str:
+        return f"{self._mirror.width}×{self._mirror.height}"
+
+    def _size_width(self) -> int:
+        """The width of the size text on the screen, in pixels."""
+        return tkfont.Font(font=theme.FONT).measure(self._size_text())
