@@ -9,29 +9,18 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.panel2.mirror_card.icon_button import IconButton
+from tibia_mirror.ui.panel2.mirror_card.button_bar import MirrorCardButtonBar
+from tibia_mirror.ui.panel2.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel2.mirror_card.slider import MirrorCardSlider
 from tibia_mirror.ui.panel2.mirror_card.text_link import TextLink
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
-REMOVE_ICON = "✕"
-LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
-UNLOCKED_ICON = "\ue785"  # an open lock, from the same font
-SHOWN_ICON = "\ue890"  # an open eye, from the same font
-HIDDEN_ICON = "\ued1a"  # a crossed eye, from the same font
-TIMER_ICON = "\ue916"  # a clock, from the same font
-
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 62
 RADIUS = 8  # of the rounded corners
-TOP_ROW_Y = 20  # from the top of the card to the middle line of the name and the buttons
 DOT_X = 18  # from the left side of the card to the middle of the colour dot
 DOT_SIZE = 10
 NAME_X = 33  # from the left side of the card to the start of the name
-# four buttons of 26, three gaps of 2, 8 at the right of them and 8 at the left
-BUTTONS_ROOM = 126  # kept free at the right side of the card, for the four buttons
-BUTTONS_RIGHT_PAD = 8  # from the right side of the card to the last button
-BUTTON_GAP = 2  # between two buttons
 TEXT_GAP = 8  # between the name and the size, and between the size and the buttons
 
 
@@ -54,10 +43,10 @@ class MirrorCard(tk.Canvas):
         self._draw_colour_dot()
         self._draw_name()
         self._draw_size()
-        self._draw_buttons()
+        self._button_bar = MirrorCardButtonBar(self, self._width, self._mirror)
         self._slider = MirrorCardSlider(self, self._width, self._mirror)
-        # the parts of the card that react to the pointer in the same way
-        self._hover_parts = (*self._buttons, self._size_link)
+        # the parts of the card: each one hears what the mouse does
+        self._parts = (self._button_bar, self._slider)
         self._bind_events()
 
     def _draw_background(self) -> None:
@@ -124,89 +113,6 @@ class MirrorCard(tk.Canvas):
         """The width of the size text on the screen, in pixels."""
         return tkfont.Font(font=theme.FONT).measure(self._size_text())
 
-    def _draw_buttons(self) -> None:
-        """The small buttons at the right of the top row.
-
-        From the right: remove, lock, show or hide, timer.
-        """
-        self._draw_remove_button()
-        self._draw_lock_button()
-        self._draw_eye_button()
-        self._draw_timer_button()
-        self._buttons = (
-            self._remove_button,
-            self._lock_button,
-            self._eye_button,
-            self._timer_button,
-        )
-
-    def _draw_remove_button(self) -> None:
-        self._remove_button = IconButton(
-            self,
-            self._button_position_x(0),
-            px(TOP_ROW_Y),
-            REMOVE_ICON,
-            theme.FONT,
-            theme.SUBTEXT,
-            theme.RED,
-        )
-
-    def _draw_lock_button(self) -> None:
-        """A closed lock in the accent colour for a locked mirror, an open grey lock if not."""
-        is_locked: bool = self._mirror.is_locked
-        icon = LOCKED_ICON if is_locked else UNLOCKED_ICON
-        colour = theme.ACCENT if is_locked else theme.SUBTEXT
-        hovered_colour = theme.ACCENT if is_locked else theme.TEXT
-
-        self._lock_button = IconButton(
-            self,
-            self._button_position_x(1),
-            px(TOP_ROW_Y),
-            icon,
-            theme.FONT_ICON,
-            colour,
-            hovered_colour,
-        )
-
-    def _draw_eye_button(self) -> None:
-        """A crossed eye in the accent colour for a hidden mirror, an open grey eye if not."""
-        is_hidden: bool = self._mirror.is_hidden
-        icon = HIDDEN_ICON if is_hidden else SHOWN_ICON
-        colour = theme.ACCENT if is_hidden else theme.SUBTEXT
-        hovered_colour = theme.ACCENT if is_hidden else theme.TEXT
-
-        self._eye_button = IconButton(
-            self,
-            self._button_position_x(2),
-            px(TOP_ROW_Y),
-            icon,
-            theme.FONT_ICON,
-            colour,
-            hovered_colour,
-        )
-
-    def _draw_timer_button(self) -> None:
-        """A clock, in the accent colour for a mirror with its timer on, grey if not."""
-        is_timer_on: bool = self._mirror.is_timer_on
-        colour = theme.ACCENT if is_timer_on else theme.SUBTEXT
-        hovered_colour = theme.ACCENT if is_timer_on else theme.TEXT
-
-        self._timer_button = IconButton(
-            self,
-            self._button_position_x(3),
-            px(TOP_ROW_Y),
-            TIMER_ICON,
-            theme.FONT_ICON,
-            colour,
-            hovered_colour,
-        )
-
-    def _button_position_x(self, place: int) -> int:
-        """The middle of a button. `place` counts the buttons from the right, from 0."""
-        size = px(IconButton.SIZE)
-        step = size + px(BUTTON_GAP)  # from the middle of one button to the middle of the next
-        return self._width - px(BUTTONS_RIGHT_PAD) - size // 2 - place * step
-
     def _bind_events(self) -> None:
         # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
         self.bind("<Enter>", self._on_mouse_move)
@@ -216,42 +122,39 @@ class MirrorCard(tk.Canvas):
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
-        """Show the hover look of the part under the pointer, and a hand over it."""
+        """Tell the parts where the pointer is. Show a hand over a place that can be clicked."""
         positions = event.x, event.y
-        is_over_part: bool = self._hover_part_at(*positions)
-        is_over_slider: bool = self._slider.pointer_moved(*positions)
+        is_clickable: bool = self._hover_size_link(*positions)
 
-        is_clickable: bool = is_over_part or is_over_slider
+        for part in self._parts:
+            if part.pointer_moved(*positions):
+                is_clickable = True
+
         cursor = "hand2" if is_clickable else ""
 
         self.configure(cursor=cursor)
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
-        for part in self._hover_parts:
-            part.set_hovered(False)
+        self._size_link.set_hovered(False)
 
-        self._slider.pointer_left()
+        for part in self._parts:
+            part.pointer_left()
+
         self.configure(cursor="")
 
     def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
-        self._slider.pointer_pressed(event.x, event.y)
+        for part in self._parts:
+            part.pointer_pressed(event.x, event.y)
 
     def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
-        """Tell the slider, and look at the place under the pointer again."""
-        self._slider.pointer_released(event.x, event.y)
+        """Tell the parts, and look at the place under the pointer again."""
+        for part in self._parts:
+            part.pointer_released(event.x, event.y)
+
         self._on_mouse_move(event)
 
-    def _hover_part_at(self, position_x: int, position_y: int) -> bool:
-        """Show the hover look of the button or the link at this place.
-
-        Return True if there is one.
-        """
-        is_over_part: bool = False
-
-        for part in self._hover_parts:
-            is_hovered: bool = part.contains(position_x, position_y)
-            part.set_hovered(is_hovered)
-            if is_hovered:
-                is_over_part = True
-
-        return is_over_part
+    def _hover_size_link(self, position_x: int, position_y: int) -> bool:
+        """Show the hover look of the size link when this place is on it. Return True if it is."""
+        is_over_link: bool = self._size_link.contains(position_x, position_y)
+        self._size_link.set_hovered(is_over_link)
+        return is_over_link
