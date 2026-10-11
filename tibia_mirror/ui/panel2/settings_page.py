@@ -10,6 +10,7 @@ from tibia_mirror.ui.controls.widgets import ScrollList
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
 from tibia_mirror.ui.panel2.row import Row
 from tibia_mirror.ui.panel2.settings_card import SettingsCard
+from tibia_mirror.ui.panel2.slider_row import SliderRow
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -29,6 +30,7 @@ class SettingsPage(tk.Frame):
         self._add_general_group()
         self._add_profiles_group()
         self._add_saving_group()
+        self._add_mirrors_group()
 
     def _add_column(self, side_pad: int) -> None:
         """The column that holds the groups of the page, one under another.
@@ -86,6 +88,15 @@ class SettingsPage(tk.Frame):
             is_on=False,
         )
         self._add_card([autosave_row])
+
+    def _add_mirrors_group(self) -> None:
+        """The fourth group: how the mirrors look."""
+        self._add_caption(tr("MIRRORS"))
+        opacity_row = SliderRow(
+            tr("Opacity of new mirrors"),
+            tr("Each mirror can still be set on its card."),
+        )
+        self._add_card([opacity_row])
 
     def _add_caption(self, text: str) -> None:
         """The small grey title above one group of settings."""
