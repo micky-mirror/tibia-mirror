@@ -9,6 +9,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 
 ICON = "\ue77b"  # a person, from the Segoe MDL2 Assets icon font
+ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the same icon font
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 36
@@ -16,6 +17,7 @@ RADIUS = 8  # of the rounded corners
 ICON_X = 20  # from the left side of the box to the middle of the icon
 NAME_X = 38  # from the left side of the box to the start of the name
 ARROW_ROOM = 34  # kept free at the right side of the box, for the small arrow
+ARROW_X = 18  # from the right side of the box to the middle of the arrow
 
 
 class ProfilePicker(tk.Canvas):
@@ -36,6 +38,7 @@ class ProfilePicker(tk.Canvas):
         self._draw_box()
         self._draw_icon()
         self._draw_name()
+        self._draw_arrow()
 
     def _draw_box(self) -> None:
         """The rounded shape of the box, a little lighter than the page."""
@@ -70,4 +73,14 @@ class ProfilePicker(tk.Canvas):
             anchor="w",
             font=font,
             fill=theme.TEXT,
+        )
+
+    def _draw_arrow(self) -> None:
+        """The small arrow at the right, in the middle of the box's height."""
+        self.create_text(
+            self._width - px(ARROW_X),
+            px(HEIGHT) // 2,
+            text=ARROW_DOWN,
+            font=theme.FONT_ICON,
+            fill=theme.SUBTEXT,
         )
