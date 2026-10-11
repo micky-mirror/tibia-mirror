@@ -3,10 +3,9 @@
 import tkinter as tk
 from collections.abc import Sequence
 
-from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import SegmentedDrawing
-from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD
+from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_label
 
 
 class ChoiceRow:
@@ -21,7 +20,7 @@ class ChoiceRow:
 
     def draw(self, canvas: tk.Canvas, top: int, width: int) -> int:
         """Draw the row on the card, starting at `top`. Return where the row ends."""
-        label_bottom = self._draw_label(canvas, top)
+        label_bottom = draw_label(canvas, top, self._label)
         bottom = label_bottom + px(ROW_PAD)
         self._draw_options(canvas, top, bottom, width)
         return bottom
@@ -69,19 +68,6 @@ class ChoiceRow:
         self._selected = option
         self._hovered = None  # the chosen option has no hover look
         self._options_drawing.draw(self._selected, self._hovered)
-
-    def _draw_label(self, canvas: tk.Canvas, top: int) -> int:
-        """The name of the setting, at the left. Return where the text ends."""
-        label = canvas.create_text(
-            px(SIDE_PAD),
-            top + px(ROW_PAD),
-            text=self._label,
-            anchor="nw",
-            font=theme.FONT,
-            fill=theme.TEXT,
-        )
-        label_bottom: int = canvas.bbox(label)[3]
-        return label_bottom
 
     def _draw_options(self, canvas: tk.Canvas, top: int, bottom: int, width: int) -> None:
         """The options side by side, at the right, in the middle of the row's height."""

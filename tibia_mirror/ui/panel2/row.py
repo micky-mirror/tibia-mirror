@@ -3,6 +3,9 @@
 import tkinter as tk
 from typing import Protocol
 
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.scale import px
+
 # Sizes at 100% display scaling; px() scales them where they are used.
 SIDE_PAD = 14  # left and right of a row's content
 ROW_PAD = 10  # above and below a row's content
@@ -25,3 +28,17 @@ class Row(Protocol):
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
         """The mouse button went up at this place."""
+
+
+def draw_label(canvas: tk.Canvas, top: int, text: str) -> int:
+    """Draw the name of a setting at the left of its row. Return where the text ends."""
+    label = canvas.create_text(
+        px(SIDE_PAD),
+        top + px(ROW_PAD),
+        text=text,
+        anchor="nw",
+        font=theme.FONT,
+        fill=theme.TEXT,
+    )
+    label_bottom: int = canvas.bbox(label)[3]
+    return label_bottom

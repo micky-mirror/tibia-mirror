@@ -10,6 +10,7 @@ from tibia_mirror.ui.controls.widgets import ScrollList
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
 from tibia_mirror.ui.panel2.row import Row
 from tibia_mirror.ui.panel2.settings_card import SettingsCard
+from tibia_mirror.ui.panel2.toggle_row import ToggleRow
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 8  # above the first line of the page
@@ -57,7 +58,8 @@ class SettingsPage(tk.Frame):
             (("dark", tr("Dark")), ("light", tr("Light"))),
             "dark",
         )
-        self._add_card([language_row, theme_row])
+        on_top_row = ToggleRow(tr("Keep this panel on top"))
+        self._add_card([language_row, theme_row, on_top_row])
 
     def _add_caption(self, text: str) -> None:
         """The small grey title above one group of settings."""
