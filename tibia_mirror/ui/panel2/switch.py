@@ -26,26 +26,26 @@ class Switch:
         self._track = canvas.create_image(self._left, top, anchor="nw")
         # draw() puts the knob at its place
         self._knob = canvas.create_image(0, middle_y, anchor="w")
-        self.draw(is_on)
+        self.draw(is_on, is_hovered=False)
 
-    def draw(self, is_on: bool) -> None:
-        """Show the switch as on or off."""
-        self._draw_track(is_on)
-        self._draw_knob(is_on)
+    def draw(self, is_on: bool, is_hovered: bool) -> None:
+        """Show the switch as on or off, and a little brighter when it is hovered."""
+        self._draw_track(is_on, is_hovered)
+        self._draw_knob(is_on, is_hovered)
 
-    def _draw_track(self, is_on: bool) -> None:
+    def _draw_track(self, is_on: bool, is_hovered: bool) -> None:
         """The rounded track, in the accent colour when the switch is on."""
         self._track_image = rounded_image(
             self._canvas,
             width=px(self.WIDTH),
             height=px(self.HEIGHT),
             radius=px(self.HEIGHT) // 2,  # half of the height: fully round ends
-            colour=self._track_colour(is_on),
+            colour=self._track_colour(is_on, is_hovered),
             background=theme.SURFACE,  # the colour of the card around the track
         )
         self._canvas.itemconfigure(self._track, image=self._track_image)
 
-    def _draw_knob(self, is_on: bool) -> None:
+    def _draw_knob(self, is_on: bool, is_hovered: bool) -> None:
         """The round knob, at the left when the switch is off and at the right when it is on."""
         size = px(self.KNOB_SIZE)
         self._knob_image = rounded_image(
@@ -54,7 +54,7 @@ class Switch:
             height=size,
             radius=size // 2,
             colour=theme.ON_ACCENT if is_on else theme.TEXT,
-            background=self._track_colour(is_on),  # the track is seen around the knob
+            background=self._track_colour(is_on, is_hovered),  # the track is seen around the knob
         )
         self._canvas.itemconfigure(self._knob, image=self._knob_image)
         self._canvas.coords(self._knob, self._knob_x(is_on), self._middle_y)
@@ -67,5 +67,8 @@ class Switch:
             return self._left + px(self.WIDTH) - space - px(self.KNOB_SIZE)
         return self._left + space
 
-    def _track_colour(self, is_on: bool) -> str:
-        return theme.ACCENT if is_on else theme.SURFACE_HI
+    def _track_colour(self, is_on: bool, is_hovered: bool) -> str:
+        """Accent when the switch is on, grey when it is off; brighter when hovered."""
+        if is_on:
+            return theme.ACCENT_HI if is_hovered else theme.ACCENT
+        return theme.OVERLAY if is_hovered else theme.SURFACE_HI
