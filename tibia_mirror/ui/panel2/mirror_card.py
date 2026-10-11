@@ -1,5 +1,7 @@
 """The card of one mirror on the Mirrors page."""
 
+from __future__ import annotations
+
 import tkinter as tk
 import tkinter.font as tkfont
 
@@ -58,6 +60,7 @@ class MirrorCard(tk.Canvas):
         self._draw_buttons()
         self._draw_slider()
         self._draw_percent()
+        self._bind_events()
 
     def _draw_background(self) -> None:
         """The rounded shape of the card, a little lighter than the page."""
@@ -137,6 +140,12 @@ class MirrorCard(tk.Canvas):
         self._draw_lock_button()
         self._draw_eye_button()
         self._draw_timer_button()
+        self._buttons = (
+            self._remove_button,
+            self._lock_button,
+            self._eye_button,
+            self._timer_button,
+        )
 
     def _draw_remove_button(self) -> None:
         self._remove_button = IconButton(
@@ -225,3 +234,24 @@ class MirrorCard(tk.Canvas):
             font=theme.FONT,
             fill=theme.SUBTEXT,
         )
+
+    def _bind_events(self) -> None:
+        # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
+        self.bind("<Enter>", self._on_mouse_move)
+        self.bind("<Motion>", self._on_mouse_move)
+        self.bind("<Leave>", self._on_mouse_leave)
+
+    def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
+        """Show the hover look of the button under the pointer, and a hand over it."""
+        is_clickable: bool = False
+        for button in self._buttons:
+            is_hovered: bool = button.contains(event.x, event.y)
+            button.set_hovered(is_hovered)
+            if is_hovered:
+                is_clickable = True
+        self.configure(cursor="hand2" if is_clickable else "")
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        for button in self._buttons:
+            button.set_hovered(False)
+        self.configure(cursor="")
