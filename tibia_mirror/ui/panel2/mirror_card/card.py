@@ -5,13 +5,12 @@ from __future__ import annotations
 import tkinter as tk
 import tkinter.font as tkfont
 
-from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.base.text import elide, percent
-from tibia_mirror.ui.controls.slider import SliderDrawing
+from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel2.mirror_card.icon_button import IconButton
+from tibia_mirror.ui.panel2.mirror_card.slider import MirrorCardSlider
 from tibia_mirror.ui.panel2.mirror_card.text_link import TextLink
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
@@ -34,9 +33,6 @@ BUTTONS_ROOM = 126  # kept free at the right side of the card, for the four butt
 BUTTONS_RIGHT_PAD = 8  # from the right side of the card to the last button
 BUTTON_GAP = 2  # between two buttons
 TEXT_GAP = 8  # between the name and the size, and between the size and the buttons
-SLIDER_Y = 44  # from the top of the card to the middle line of the slider
-SLIDER_SIDE_PAD = 14  # from the left side of the card to the slider
-PERCENT_ROOM = 48  # kept free between the slider and the right side space, for the percent
 
 
 class MirrorCard(tk.Canvas):
@@ -54,14 +50,12 @@ class MirrorCard(tk.Canvas):
         )
         self._width = width
         self._mirror = mirror  # what the card shows
-        self._is_dragging = False  # True from a press on the slider until the button goes up
         self._draw_background()
         self._draw_colour_dot()
         self._draw_name()
         self._draw_size()
         self._draw_buttons()
-        self._draw_slider()
-        self._draw_percent()
+        self._slider = MirrorCardSlider(self, self._width, self._mirror)
         # the parts of the card that react to the pointer in the same way
         self._hover_parts = (*self._buttons, self._size_link)
         self._bind_events()
@@ -213,34 +207,6 @@ class MirrorCard(tk.Canvas):
         step = size + px(BUTTON_GAP)  # from the middle of one button to the middle of the next
         return self._width - px(BUTTONS_RIGHT_PAD) - size // 2 - place * step
 
-    def _draw_slider(self) -> None:
-        """The slider under the top row that sets how see-through the mirror is."""
-        position_x_start = px(SLIDER_SIDE_PAD)
-        position_x_end = self._width - px(SLIDER_SIDE_PAD) - px(PERCENT_ROOM)
-
-        self._slider = SliderDrawing(
-            self,
-            position_x_start,
-            position_x_end,
-            px(SLIDER_Y),
-            self._mirror.opacity,
-            lo=0.0,
-            hi=1.0,
-            step=OPACITY_STEP,
-            floor=MIN_OPACITY,
-        )
-
-    def _draw_percent(self) -> None:
-        """The opacity as a percent, at the right of the slider."""
-        self._percent = self.create_text(
-            self._width - px(SLIDER_SIDE_PAD),
-            px(SLIDER_Y),
-            text=percent(self._mirror.opacity),
-            anchor="e",
-            font=theme.FONT,
-            fill=theme.SUBTEXT,
-        )
-
     def _bind_events(self) -> None:
         # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
         self.bind("<Enter>", self._on_mouse_move)
@@ -250,17 +216,10 @@ class MirrorCard(tk.Canvas):
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
-        """Move the knob while the user drags it.
-
-        With no drag, show the hover look of the part under the pointer, and a hand over it.
-        """
-        if self._is_dragging:
-            self._move_knob(event.x)
-            return
-
+        """Show the hover look of the part under the pointer, and a hand over it."""
         positions = event.x, event.y
         is_over_part: bool = self._hover_part_at(*positions)
-        is_over_slider: bool = self._hover_slider(*positions)
+        is_over_slider: bool = self._slider.pointer_moved(*positions)
 
         is_clickable: bool = is_over_part or is_over_slider
         cursor = "hand2" if is_clickable else ""
@@ -271,33 +230,16 @@ class MirrorCard(tk.Canvas):
         for part in self._hover_parts:
             part.set_hovered(False)
 
-        # a drag goes on outside the card, and the knob stays active until it ends
-        if not self._is_dragging:
-            self._slider.set_active(False)
+        self._slider.pointer_left()
         self.configure(cursor="")
 
     def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
-        """Start a drag if the button went down on the slider: the knob jumps to the pointer."""
-        if self._slider.contains(event.x, event.y):
-            self._is_dragging = True
-            self._move_knob(event.x)
+        self._slider.pointer_pressed(event.x, event.y)
 
     def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
-        """End the drag, and look at the place under the pointer again."""
-        self._is_dragging = False
+        """Tell the slider, and look at the place under the pointer again."""
+        self._slider.pointer_released(event.x, event.y)
         self._on_mouse_move(event)
-
-    def _move_knob(self, position_x: int) -> None:
-        """Put the knob as near to this x as the steps and the lowest value allow.
-
-        Show the new opacity as a percent too. Do nothing when the opacity did not change.
-        """
-        opacity = self._slider.value_at(position_x)
-        if opacity == self._slider.value:
-            return
-
-        self._slider.set_value(opacity)
-        self.itemconfigure(self._percent, text=percent(opacity))
 
     def _hover_part_at(self, position_x: int, position_y: int) -> bool:
         """Show the hover look of the button or the link at this place.
@@ -313,9 +255,3 @@ class MirrorCard(tk.Canvas):
                 is_over_part = True
 
         return is_over_part
-
-    def _hover_slider(self, position_x: int, position_y: int) -> bool:
-        """Show the knob as active when this place is on the slider. Return True if it is."""
-        is_over_slider: bool = self._slider.contains(position_x, position_y)
-        self._slider.set_active(is_over_slider)
-        return is_over_slider
