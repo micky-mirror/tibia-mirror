@@ -13,6 +13,7 @@ from tibia_mirror.ui.base.text import elide, percent
 from tibia_mirror.ui.controls.slider import SliderDrawing
 from tibia_mirror.ui.panel2.icon_button import IconButton
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.text_link import TextLink
 
 REMOVE_ICON = "✕"
 LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
@@ -61,6 +62,8 @@ class MirrorCard(tk.Canvas):
         self._draw_buttons()
         self._draw_slider()
         self._draw_percent()
+        # the parts of the card that react to the pointer in the same way
+        self._hover_parts = (*self._buttons, self._size_link)
         self._bind_events()
 
     def _draw_background(self) -> None:
@@ -116,14 +119,9 @@ class MirrorCard(tk.Canvas):
 
         It works like a link: a click on it opens the settings of the area.
         """
-        self.create_text(
-            self._name_end_x + px(TEXT_GAP),
-            px(TOP_ROW_Y),
-            text=self._size_text(),
-            anchor="w",
-            font=theme.FONT,
-            fill=theme.SUBTEXT,
-        )
+        position_x = self._name_end_x + px(TEXT_GAP)
+
+        self._size_link = TextLink(self, position_x, px(TOP_ROW_Y), self._size_text())
 
     def _size_text(self) -> str:
         return f"{self._mirror.area_width}×{self._mirror.area_height}"
@@ -261,17 +259,17 @@ class MirrorCard(tk.Canvas):
             return
 
         positions = event.x, event.y
-        is_over_button: bool = self._hover_buttons(*positions)
+        is_over_part: bool = self._hover_part_at(*positions)
         is_over_slider: bool = self._hover_slider(*positions)
 
-        is_clickable: bool = is_over_button or is_over_slider
+        is_clickable: bool = is_over_part or is_over_slider
         cursor = "hand2" if is_clickable else ""
 
         self.configure(cursor=cursor)
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
-        for button in self._buttons:
-            button.set_hovered(False)
+        for part in self._hover_parts:
+            part.set_hovered(False)
 
         # a drag goes on outside the card, and the knob stays active until it ends
         if not self._is_dragging:
@@ -301,17 +299,20 @@ class MirrorCard(tk.Canvas):
         self._slider.set_value(opacity)
         self.itemconfigure(self._percent, text=percent(opacity))
 
-    def _hover_buttons(self, position_x: int, position_y: int) -> bool:
-        """Show the hover look of the button at this place. Return True if there is one."""
-        is_over_button: bool = False
+    def _hover_part_at(self, position_x: int, position_y: int) -> bool:
+        """Show the hover look of the button or the link at this place.
 
-        for button in self._buttons:
-            is_hovered: bool = button.contains(position_x, position_y)
-            button.set_hovered(is_hovered)
+        Return True if there is one.
+        """
+        is_over_part: bool = False
+
+        for part in self._hover_parts:
+            is_hovered: bool = part.contains(position_x, position_y)
+            part.set_hovered(is_hovered)
             if is_hovered:
-                is_over_button = True
+                is_over_part = True
 
-        return is_over_button
+        return is_over_part
 
     def _hover_slider(self, position_x: int, position_y: int) -> bool:
         """Show the knob as active when this place is on the slider. Return True if it is."""
