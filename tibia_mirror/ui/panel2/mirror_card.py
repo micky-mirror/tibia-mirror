@@ -53,6 +53,7 @@ class MirrorCard(tk.Canvas):
         )
         self._width = width
         self._mirror = mirror  # what the card shows
+        self._is_dragging = False  # True from a press on the slider until the button goes up
         self._draw_background()
         self._draw_colour_dot()
         self._draw_name()
@@ -247,9 +248,18 @@ class MirrorCard(tk.Canvas):
         self.bind("<Enter>", self._on_mouse_move)
         self.bind("<Motion>", self._on_mouse_move)
         self.bind("<Leave>", self._on_mouse_leave)
+        self.bind("<ButtonPress-1>", self._on_mouse_down)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
-        """Show the hover look of the part under the pointer, and a hand over it."""
+        """Move the knob while the user drags it.
+
+        With no drag, show the hover look of the part under the pointer, and a hand over it.
+        """
+        if self._is_dragging:
+            self._move_knob(event.x)
+            return
+
         positions = event.x, event.y
         is_over_button: bool = self._hover_buttons(*positions)
         is_over_slider: bool = self._hover_slider(*positions)
@@ -263,8 +273,33 @@ class MirrorCard(tk.Canvas):
         for button in self._buttons:
             button.set_hovered(False)
 
-        self._slider.set_active(False)
+        # a drag goes on outside the card, and the knob stays active until it ends
+        if not self._is_dragging:
+            self._slider.set_active(False)
         self.configure(cursor="")
+
+    def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
+        """Start a drag if the button went down on the slider: the knob jumps to the pointer."""
+        if self._slider.contains(event.x, event.y):
+            self._is_dragging = True
+            self._move_knob(event.x)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        """End the drag, and look at the place under the pointer again."""
+        self._is_dragging = False
+        self._on_mouse_move(event)
+
+    def _move_knob(self, position_x: int) -> None:
+        """Put the knob as near to this x as the steps and the lowest value allow.
+
+        Show the new opacity as a percent too. Do nothing when the opacity did not change.
+        """
+        opacity = self._slider.value_at(position_x)
+        if opacity == self._slider.value:
+            return
+
+        self._slider.set_value(opacity)
+        self.itemconfigure(self._percent, text=percent(opacity))
 
     def _hover_buttons(self, position_x: int, position_y: int) -> bool:
         """Show the hover look of the button at this place. Return True if there is one."""
