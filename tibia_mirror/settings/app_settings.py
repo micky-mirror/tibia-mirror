@@ -8,6 +8,7 @@ from typing import Any
 
 from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
 from tibia_mirror.core.regions import clamp_opacity
+from tibia_mirror.core.timers import KeyCombo, canonical_modifiers, parse_key
 
 
 @dataclass(frozen=True)
@@ -26,6 +27,8 @@ class AppSettings:
     last_profile: str = DEFAULT_PROFILE  # the profile that was open, opened again at the start
     # Who logged out last. Their paused timers are shown until somebody logs in.
     last_character: str = ""
+    # The key combination that hides every mirror and brings them back. None: no key is set.
+    hide_all_key: KeyCombo | None = None
 
     @classmethod
     def from_json(cls, data: object) -> AppSettings:
@@ -53,6 +56,8 @@ class AppSettings:
             # texts
             last_profile=saved.get_text("profile", default=cls.last_profile),
             last_character=saved.get_text("last_character", default=cls.last_character),
+            # keys
+            hide_all_key=saved.get_key_combo("hide_all_key", "hide_all_modifiers"),
         )
 
 
@@ -101,3 +106,17 @@ class _SavedData:
             return value
 
         return default
+
+    def get_key_combo(self, key_name: str, modifiers_name: str) -> KeyCombo | None:
+        """The saved key with the modifiers held with it. None if no key is saved.
+
+        The file keeps the two parts in two places: the code of the key,
+        and the list of the modifiers.
+        """
+        key: int | None = parse_key(self._data.get(key_name))
+        modifiers = canonical_modifiers(self._data.get(modifiers_name))
+
+        if key is None:
+            return None
+
+        return key, modifiers

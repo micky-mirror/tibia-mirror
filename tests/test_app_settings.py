@@ -90,3 +90,18 @@ def test_wrong_profile_and_character_become_the_defaults() -> None:
     settings = AppSettings.from_json({"profile": "", "last_character": 12})
 
     assert settings == AppSettings()
+
+
+def test_saved_hide_all_key_is_read_with_its_modifiers() -> None:
+    data = {"hide_all_key": 120, "hide_all_modifiers": ["shift", "ctrl"]}
+
+    assert AppSettings.from_json(data).hide_all_key == (120, ("ctrl", "shift"))
+
+
+def test_saved_hide_all_key_without_modifiers_is_read() -> None:
+    assert AppSettings.from_json({"hide_all_key": 120}).hide_all_key == (120, ())
+
+
+def test_missing_or_wrong_hide_all_key_means_no_key() -> None:
+    assert AppSettings.from_json({"hide_all_modifiers": ["ctrl"]}).hide_all_key is None
+    assert AppSettings.from_json({"hide_all_key": "F9"}).hide_all_key is None
