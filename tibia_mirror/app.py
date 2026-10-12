@@ -1141,7 +1141,14 @@ class App2:
         self.root.mainloop()
 
     def _on_settings_changed(self, previous: AppSettings, current: AppSettings) -> None:
-        """Write settings.json a short moment after a setting changes.
+        """Save the settings on a delay, and make the app follow the settings that changed."""
+        self._save_settings_on_delay()
+
+        if current.is_panel_on_top != previous.is_panel_on_top:
+            self._use_panel_on_top()
+
+    def _save_settings_on_delay(self) -> None:
+        """Write settings.json a short moment from now.
 
         The wait joins many quick changes, like dragging a slider, into one save.
         """
