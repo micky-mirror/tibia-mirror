@@ -46,11 +46,13 @@ class SettingsPage(tk.Frame):
             tr("Language"),
             (("en", "English"), ("pl", "Polski")),
             current_settings.language,
+            on_change=lambda language: self._settings.update(language=language),
         )
         theme_row = ChoiceRow(
             tr("Theme"),
             (("dark", tr("Dark")), ("light", tr("Light"))),
             current_settings.theme,
+            on_change=lambda theme_name: self._settings.update(theme=theme_name),
         )
         on_top_row = ToggleRow(
             tr("Keep this panel on top"),

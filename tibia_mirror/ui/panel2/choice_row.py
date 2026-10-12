@@ -1,7 +1,7 @@
 """A row of a card with a few options to choose from, such as the language."""
 
 import tkinter as tk
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import SegmentedDrawing
@@ -11,10 +11,17 @@ from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_label
 class ChoiceRow:
     """One setting with a few options to choose from."""
 
-    def __init__(self, label: str, options: Sequence[tuple[str, str]], selected: str) -> None:
+    def __init__(
+        self,
+        label: str,
+        options: Sequence[tuple[str, str]],
+        selected: str,
+        on_change: Callable[[str], None],
+    ) -> None:
         self._label = label
         self._options = options  # (key, text) of each option, from left to right
         self._selected = selected  # the key of the chosen option
+        self._on_change = on_change  # called with the key of the option the user chose
         self._hovered: str | None = None  # the key of the option under the pointer
         self._pressed: str | None = None  # the key of the option the button went down on
 
@@ -64,10 +71,11 @@ class ChoiceRow:
         return option
 
     def _select(self, option: str) -> None:
-        """Make `option` the chosen one and draw the options again."""
+        """Make `option` the chosen one, draw the options again, and report the choice."""
         self._selected = option
         self._hovered = None  # the chosen option has no hover look
         self._options_drawing.draw(self._selected, self._hovered)
+        self._on_change(option)
 
     def _draw_options(
         self, canvas: tk.Canvas, row_start_y: int, row_end_y: int, width: int
