@@ -102,6 +102,7 @@ class SettingsPage(tk.Frame):
             step=OPACITY_STEP,
             lowest=MIN_OPACITY,
             value_text=percent,
+            on_change=lambda opacity: self._settings.update(new_mirror_opacity=opacity),
         )
         frame_row = ToggleRow(
             tr("Mirror frame"),

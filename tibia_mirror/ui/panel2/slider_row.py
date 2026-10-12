@@ -26,6 +26,7 @@ class SliderRow:
         step: float,
         lowest: float,
         value_text: Callable[[float], str],
+        on_change: Callable[[float], None],
     ) -> None:
         self._label = label
         self._hint = hint  # the help text under the label
@@ -35,6 +36,7 @@ class SliderRow:
         self._step = step  # the knob moves in steps of this size
         self._lowest = lowest  # the knob does not go below this value
         self._value_text = value_text  # makes the text that shows a value, such as "50%"
+        self._on_change = on_change  # called with the new value each time the knob moves a step
         self._is_dragging = False  # True from a press on the slider until the button goes up
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
@@ -111,11 +113,13 @@ class SliderRow:
     def _move_knob(self, position_x: int) -> None:
         """Put the knob as near to this x as the steps and the lowest value allow.
 
-        Show the new value as text too. Do nothing when the value did not change.
+        Show the new value as text too, and report it. Do nothing when the value did not change.
         """
         value = self._slider.value_at(position_x)
         if value == self._value:
             return
+
         self._value = value
         self._slider.set_value(value)
         self._canvas.itemconfigure(self._value_item, text=self._value_text(value))
+        self._on_change(value)
