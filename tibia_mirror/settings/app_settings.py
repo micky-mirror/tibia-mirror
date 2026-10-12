@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
 from tibia_mirror.core import characters
@@ -115,6 +115,27 @@ class AppSettings:
             "characters": characters.to_json(self.character_links),
             "timer_pauses": pauses_to_json(self.timer_pauses),
         }
+
+
+class AppSettingsUpdate(TypedDict, total=False):
+    """What one call of AppSettingsStore.update() may change."""
+
+    theme: str
+    language: str
+    is_panel_on_top: bool
+    is_profile_per_character_on: bool
+    is_autosave_on: bool
+    new_mirror_opacity: float
+    is_mirror_frame_on: bool
+    is_frame_tint_on: bool
+    is_rounded_corners_on: bool
+    is_fade_on: bool
+    last_profile: str
+    last_character: str
+    hide_all_key: KeyCombo | None
+    panel_rect: PanelRect | None
+    character_links: Links
+    timer_pauses: Pauses
 
 
 class _SavedData:

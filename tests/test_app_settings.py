@@ -1,9 +1,10 @@
 """Reading the settings from the content of settings.json, and writing them back."""
 
 import json
+from typing import get_type_hints
 
 from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY
-from tibia_mirror.settings.app_settings import AppSettings
+from tibia_mirror.settings.app_settings import AppSettings, AppSettingsUpdate
 from tibia_mirror.settings.settings import Settings
 
 # Settings where every value is different from its default.
@@ -177,3 +178,7 @@ def test_the_old_settings_class_reads_and_writes_the_same_file() -> None:
     file_content = CHANGED_SETTINGS.to_json()
 
     assert Settings.from_json(file_content).to_json() == file_content
+
+
+def test_update_type_has_every_setting_with_the_same_type() -> None:
+    assert get_type_hints(AppSettingsUpdate) == get_type_hints(AppSettings)

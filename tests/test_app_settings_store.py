@@ -31,3 +31,23 @@ def test_saved_settings_are_loaded(tmp_path: Path) -> None:
 
     assert store.current.theme == "light"
     assert store.current.is_autosave_on
+
+
+def test_update_changes_the_settings_and_tells_the_app(tmp_path: Path) -> None:
+    calls: list[str] = []
+    store = AppSettingsStore(tmp_path / "settings.json", lambda: calls.append("changed"))
+
+    store.update(theme="light", is_autosave_on=True)
+
+    assert store.current.theme == "light"
+    assert store.current.is_autosave_on
+    assert calls == ["changed"]
+
+
+def test_update_with_the_same_values_does_not_tell_the_app(tmp_path: Path) -> None:
+    calls: list[str] = []
+    store = AppSettingsStore(tmp_path / "settings.json", lambda: calls.append("changed"))
+
+    store.update(theme=store.current.theme)
+
+    assert calls == []
