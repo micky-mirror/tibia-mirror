@@ -14,6 +14,13 @@ class AppSettings:
     theme: str = THEMES[0]
     language: str = LANGUAGES[0]
     is_panel_on_top: bool = False  # the panel stays above other windows
+    # Logging in opens the profile of the character, and creates one the first time.
+    is_profile_per_character_on: bool = False
+    is_autosave_on: bool = False  # every change to a profile is saved at once
+    is_mirror_frame_on: bool = True  # a grey outline on mirrors without a colour
+    is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
+    is_rounded_corners_on: bool = False
+    is_fade_on: bool = True  # mirrors fade in and out, they do not jump
 
     @classmethod
     def from_json(cls, data: object) -> AppSettings:
@@ -25,6 +32,16 @@ class AppSettings:
             theme=_get_choice(data, "theme", THEMES),
             language=_get_choice(data, "language", LANGUAGES),
             is_panel_on_top=_get_bool(data, "panel_on_top", default=cls.is_panel_on_top),
+            is_profile_per_character_on=_get_bool(
+                data, "profile_per_character", default=cls.is_profile_per_character_on
+            ),
+            is_autosave_on=_get_bool(data, "autosave", default=cls.is_autosave_on),
+            is_mirror_frame_on=_get_bool(data, "mirror_frame", default=cls.is_mirror_frame_on),
+            is_frame_tint_on=_get_bool(data, "frame_tint", default=cls.is_frame_tint_on),
+            is_rounded_corners_on=_get_bool(
+                data, "rounded_corners", default=cls.is_rounded_corners_on
+            ),
+            is_fade_on=_get_bool(data, "fades", default=cls.is_fade_on),
         )
 
 
