@@ -1,6 +1,7 @@
 """A row of a card that turns one thing on or off."""
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
@@ -13,10 +14,13 @@ SWITCH_GAP = 20  # between the texts and the switch
 class ToggleRow:
     """One setting that is on or off."""
 
-    def __init__(self, label: str, hint: str, is_on: bool) -> None:
+    def __init__(
+        self, label: str, hint: str, is_on: bool, on_change: Callable[[bool], None]
+    ) -> None:
         self._label = label
         self._hint = hint  # the help text under the label
         self._is_on = is_on
+        self._on_change = on_change  # called with the new state when the user turns the row
         self._is_hovered = False  # True while the pointer is in the row
         self._is_pressed = False  # True when the mouse button went down in the row
 
@@ -69,9 +73,10 @@ class ToggleRow:
         self._switch.draw(self._is_on, self._is_hovered)
 
     def _toggle(self) -> None:
-        """Change on to off, or off to on, and draw the switch again."""
+        """Change on to off, or off to on, draw the switch again, and report the new state."""
         self._is_on = not self._is_on
         self._switch.draw(self._is_on, self._is_hovered)
+        self._on_change(self._is_on)
 
     def _draw_switch(self, canvas: tk.Canvas, row_start_y: int, row_end_y: int, width: int) -> None:
         """The switch at the right, in the middle of the row's height."""

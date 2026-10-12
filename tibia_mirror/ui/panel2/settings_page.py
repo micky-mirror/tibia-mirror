@@ -56,6 +56,7 @@ class SettingsPage(tk.Frame):
             tr("Keep this panel on top"),
             tr("Stays above other windows."),
             is_on=current_settings.is_panel_on_top,
+            on_change=lambda is_on: self._settings.update(is_panel_on_top=is_on),
         )
         self._scroll_cards.add_card([language_row, theme_row, on_top_row])
 
@@ -68,6 +69,7 @@ class SettingsPage(tk.Frame):
             tr("Profile per character"),
             tr("Logging in opens the character's profile, creating one the first time."),
             is_on=current_settings.is_profile_per_character_on,
+            on_change=lambda is_on: self._settings.update(is_profile_per_character_on=is_on),
         )
         self._scroll_cards.add_card([per_character_row])
 
@@ -80,6 +82,7 @@ class SettingsPage(tk.Frame):
             tr("Save automatically"),
             tr("Saves every change as you make it."),
             is_on=current_settings.is_autosave_on,
+            on_change=lambda is_on: self._settings.update(is_autosave_on=is_on),
         )
         self._scroll_cards.add_card([autosave_row])
 
@@ -102,20 +105,24 @@ class SettingsPage(tk.Frame):
             tr("Mirror frame"),
             tr("Grey outline on mirrors without a colour."),
             is_on=current_settings.is_mirror_frame_on,
+            on_change=lambda is_on: self._settings.update(is_mirror_frame_on=is_on),
         )
         tint_row = ToggleRow(
             tr("Tint with frame colour"),
             tr("Shades coloured mirrors in their colour."),
             is_on=current_settings.is_frame_tint_on,
+            on_change=lambda is_on: self._settings.update(is_frame_tint_on=is_on),
         )
         corners_row = ToggleRow(
             tr("Rounded corners"),
             tr("Clips a few pixels at each corner."),
             is_on=current_settings.is_rounded_corners_on,
+            on_change=lambda is_on: self._settings.update(is_rounded_corners_on=is_on),
         )
         fades_row = ToggleRow(
             tr("Fade animations"),
             tr("Off: mirrors appear and hide instantly."),
             is_on=current_settings.is_fade_on,
+            on_change=lambda is_on: self._settings.update(is_fade_on=is_on),
         )
         self._scroll_cards.add_card([opacity_row, frame_row, tint_row, corners_row, fades_row])
