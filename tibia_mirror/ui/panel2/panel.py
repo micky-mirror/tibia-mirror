@@ -34,9 +34,15 @@ def content_width() -> int:
 class Panel(tk.Frame):
     """Everything inside the main window."""
 
-    def __init__(self, root: tk.Misc, settings: AppSettingsStore) -> None:
+    def __init__(
+        self,
+        root: tk.Misc,
+        settings: AppSettingsStore,
+        start_page: str = START_PAGE,
+    ) -> None:
         super().__init__(root, bg=theme.BG)
         self._settings = settings
+        self.open_page = start_page  # the key of the page that is shown
         self._add_menu()
         self._add_content()
         self._add_connection_line()
@@ -44,7 +50,7 @@ class Panel(tk.Frame):
         self._add_pages()
 
     def _add_menu(self) -> None:
-        NavRail(self, START_PAGE, self._show_page).pack(side="left", fill="y")
+        NavRail(self, self.open_page, self._show_page).pack(side="left", fill="y")
 
     def _add_content(self) -> None:
         """The area to the right of the menu. It takes all the space the menu leaves."""
@@ -81,7 +87,7 @@ class Panel(tk.Frame):
         thin_line.pack(side="bottom", fill="x")
 
     def _add_pages(self) -> None:
-        """Create every page and show the start page.
+        """Create every page and show the open one.
 
         The keys are the keys of the menu entries.
         """
@@ -91,13 +97,12 @@ class Panel(tk.Frame):
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),
         }
-        self._open_page = START_PAGE  # the key of the page that is shown
-        self._pack_page(START_PAGE)
+        self._pack_page(self.open_page)
 
     def _show_page(self, key: str) -> None:
         """Show the page `key` in place of the open one. The menu calls this."""
-        self._pages[self._open_page].pack_forget()  # hide currently displayed page
-        self._open_page = key  # assign selected page
+        self._pages[self.open_page].pack_forget()  # hide currently displayed page
+        self.open_page = key  # assign selected page
         self._pack_page(key)  # open selected page
 
     def _pack_page(self, key: str) -> None:
