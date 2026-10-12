@@ -1,7 +1,7 @@
 import pytest
 
 from tibia_mirror.core.settings import Settings
-from tibia_mirror.services.settings_store import SettingsStore
+from tibia_mirror.settings.settings_store import SettingsStore
 
 
 @pytest.fixture

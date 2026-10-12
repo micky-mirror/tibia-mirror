@@ -18,7 +18,7 @@ from tibia_mirror.core.timers import (
     without_mirrors,
 )
 from tibia_mirror.services.mirrors import Mirrors
-from tibia_mirror.services.settings_store import SettingsStore
+from tibia_mirror.settings.settings_store import SettingsStore
 from tibia_mirror.ui.overlay.mirror import MirrorWindow
 
 

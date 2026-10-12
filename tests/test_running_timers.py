@@ -5,7 +5,7 @@ import pytest
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.timers import TimerSettings
 from tibia_mirror.services.running_timers import RunningTimers
-from tibia_mirror.services.settings_store import SettingsStore
+from tibia_mirror.settings.settings_store import SettingsStore
 
 PAUSING = TimerSettings(enabled=True, alert=60, direction="down")
 PLAIN = replace(PAUSING, offline_pause=False)

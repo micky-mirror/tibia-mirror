@@ -42,7 +42,6 @@ To make sure the window is really Tibia, it also reads the program's file path, 
   `Game` (`services/game.py`) knows the Tibia window: it finds it, reads its client area, and notices when it moves, changes size or closes.
   `Mirrors` (`services/mirrors.py`) owns the mirror windows: it creates and closes them, reconnects them after Tibia restarts, and passes changes on to all of them.
   `RunningTimers` (`services/running_timers.py`) starts the timers, remembers who is logged in, and pauses and continues the timers at logout and login.
-  `SettingsStore` (`services/settings_store.py`) holds the settings: other classes read them there and change them with `update()`.
   A service never imports the App.
 - **The UI** (`ui/`) is a pure view: it draws what the App gives it and calls back into the App.
 - **Pure logic** (geometry, regions, profiles, settings, timers, visibility, rendering) has no Windows or Tk code, so it is unit-tested.
@@ -118,7 +117,7 @@ Running timers' start times are kept in memory; at logout they become paused pro
   The App asks it to save, load, rename, duplicate or delete, and shows the result in the panel.
 - **Settings** (`core/settings.py`) are saved to `settings.json` shortly after each change.
   Bad or unknown values fall back to defaults, so a hand-edited file never stops the app from starting.
-  `SettingsStore` (`services/settings_store.py`) holds them while the app runs, and tells the App after each change, so the App can save the file.
+  `SettingsStore` (`settings/settings_store.py`) holds them while the app runs, and tells the App after each change, so the App can save the file.
 - **Profile per character** (`core/characters.py`) links character names to profiles in `settings.json`.
   A login switches profiles through the same "save changes first?" flow as switching by hand, and waits while a dialog is open.
 
@@ -167,7 +166,8 @@ These are deliberate and must stay true:
 | Area | Files |
 |---|---|
 | App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
-| Services | `services/active_profile.py`, `services/game.py`, `services/mirrors.py`, `services/running_timers.py`, `services/settings_store.py` |
+| Services | `services/active_profile.py`, `services/game.py`, `services/mirrors.py`, `services/running_timers.py` |
+| Settings | `settings/settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
 | Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/settings.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
 | Text | `i18n.py`, `about.py` |
@@ -179,7 +179,7 @@ These are deliberate and must stay true:
 ## Conventions
 
 - State lives on `App` and its services; UI classes get callbacks, never globals.
-- Imports point one way: `app.py` -> `services/` -> `ui/` and `winapi/` -> `core/`.
+- Imports point one way: `app.py` -> `services/` -> `ui/` and `winapi/` -> `settings/` -> `core/`.
   Inside `ui/`, `panel/` and `overlay/` may use `controls/` and `base/`, and `base/` uses none of them.
 - Every Win32 function is declared once, with its argument and return types, in `winapi/win32.py` or `winapi/dwm.py`.
 - Pure modules stay free of Win32 and Tk, so they stay testable.
