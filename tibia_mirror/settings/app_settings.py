@@ -7,8 +7,16 @@ from dataclasses import dataclass
 from typing import Any
 
 from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
+from tibia_mirror.core import characters
+from tibia_mirror.core.characters import Links
 from tibia_mirror.core.regions import clamp_opacity
-from tibia_mirror.core.timers import KeyCombo, canonical_modifiers, parse_key
+from tibia_mirror.core.timers import (
+    KeyCombo,
+    Pauses,
+    canonical_modifiers,
+    parse_key,
+    pauses_from_json,
+)
 
 # The place and the size of the panel on the screen: (x, y, width, height).
 PanelRect = tuple[int, int, int, int]
@@ -35,6 +43,10 @@ class AppSettings:
     # Where the panel was when the app closed, to open it there again.
     # None: nothing is saved, and the panel opens in the middle of the screen.
     panel_rect: PanelRect | None = None
+    # Which profile each character opens: pairs of (character, profile).
+    character_links: Links = ()
+    # Where the timers that pause at logout stopped: (character, mirror id, seconds).
+    timer_pauses: Pauses = ()
 
     @classmethod
     def from_json(cls, data: object) -> AppSettings:
@@ -66,6 +78,9 @@ class AppSettings:
             hide_all_key=saved.get_key_combo("hide_all_key", "hide_all_modifiers"),
             # the place of the panel
             panel_rect=saved.get_panel_rect("panel_rect"),
+            # lists the app keeps by itself
+            character_links=saved.get_character_links("characters"),
+            timer_pauses=saved.get_timer_pauses("timer_pauses"),
         )
 
 
@@ -148,3 +163,11 @@ class _SavedData:
             return None
 
         return x, y, width, height
+
+    def get_character_links(self, name: str) -> Links:
+        """The saved links from characters to profiles. Wrong entries are left out."""
+        return characters.from_json(self._data.get(name))
+
+    def get_timer_pauses(self, name: str) -> Pauses:
+        """The saved moments where the paused timers stopped. Wrong entries are left out."""
+        return pauses_from_json(self._data.get(name))

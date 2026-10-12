@@ -124,3 +124,15 @@ def test_wrong_panel_place_means_no_saved_place() -> None:
 
     for value in wrong_values:
         assert AppSettings.from_json({"panel_rect": value}).panel_rect is None
+
+
+def test_saved_character_links_are_read() -> None:
+    settings = AppSettings.from_json({"characters": {"Bubble": "Knight", "Eternal": 5}})
+
+    assert settings.character_links == (("Bubble", "Knight"),)
+
+
+def test_saved_timer_pauses_are_read() -> None:
+    data = {"timer_pauses": {"Bubble": {"mirror-1": 12.5, "mirror-2": "long"}}}
+
+    assert AppSettings.from_json(data).timer_pauses == (("Bubble", "mirror-1", 12.5),)
