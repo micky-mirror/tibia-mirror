@@ -25,41 +25,51 @@ class AppSettings:
     @classmethod
     def from_json(cls, data: object) -> AppSettings:
         """Make the settings from the content of settings.json."""
-        if not isinstance(data, dict):
-            return cls()
+        saved = _SavedData(data)
 
         return cls(
-            theme=_get_choice(data, "theme", THEMES),
-            language=_get_choice(data, "language", LANGUAGES),
-            is_panel_on_top=_get_bool(data, "panel_on_top", default=cls.is_panel_on_top),
-            is_profile_per_character_on=_get_bool(
-                data, "profile_per_character", default=cls.is_profile_per_character_on
+            # choices
+            theme=saved.get_choice("theme", THEMES),
+            language=saved.get_choice("language", LANGUAGES),
+            # on/off settings
+            is_panel_on_top=saved.get_bool("panel_on_top", default=cls.is_panel_on_top),
+            is_profile_per_character_on=saved.get_bool(
+                "profile_per_character", default=cls.is_profile_per_character_on
             ),
-            is_autosave_on=_get_bool(data, "autosave", default=cls.is_autosave_on),
-            is_mirror_frame_on=_get_bool(data, "mirror_frame", default=cls.is_mirror_frame_on),
-            is_frame_tint_on=_get_bool(data, "frame_tint", default=cls.is_frame_tint_on),
-            is_rounded_corners_on=_get_bool(
-                data, "rounded_corners", default=cls.is_rounded_corners_on
+            is_autosave_on=saved.get_bool("autosave", default=cls.is_autosave_on),
+            is_mirror_frame_on=saved.get_bool("mirror_frame", default=cls.is_mirror_frame_on),
+            is_frame_tint_on=saved.get_bool("frame_tint", default=cls.is_frame_tint_on),
+            is_rounded_corners_on=saved.get_bool(
+                "rounded_corners", default=cls.is_rounded_corners_on
             ),
-            is_fade_on=_get_bool(data, "fades", default=cls.is_fade_on),
+            is_fade_on=saved.get_bool("fades", default=cls.is_fade_on),
         )
 
 
-def _get_choice(data: dict[str, Any], name: str, choices: Sequence[str]) -> str:
-    """The saved text if it is one of the choices. If not, the first choice."""
-    value = data.get(name)
+class _SavedData:
+    """The content of settings.json, with one method for each kind of value.
 
-    if isinstance(value, str) and value in choices:
-        return value
+    A value that is missing or wrong in the file is replaced by its default.
+    """
 
-    return choices[0]
+    def __init__(self, data: object) -> None:
+        # Content that is not a JSON object is read as an empty one.
+        self._data: dict[str, Any] = data if isinstance(data, dict) else {}
 
+    def get_choice(self, name: str, choices: Sequence[str]) -> str:
+        """The saved text if it is one of the choices. If not, the first choice."""
+        value = self._data.get(name)
 
-def _get_bool(data: dict[str, Any], name: str, *, default: bool) -> bool:
-    """The saved value if it is true or false. If not, the default."""
-    value = data.get(name)
+        if isinstance(value, str) and value in choices:
+            return value
 
-    if isinstance(value, bool):
-        return value
+        return choices[0]
 
-    return default
+    def get_bool(self, name: str, *, default: bool) -> bool:
+        """The saved value if it is true or false. If not, the default."""
+        value = self._data.get(name)
+
+        if isinstance(value, bool):
+            return value
+
+        return default
