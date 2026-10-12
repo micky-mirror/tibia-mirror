@@ -105,3 +105,22 @@ def test_saved_hide_all_key_without_modifiers_is_read() -> None:
 def test_missing_or_wrong_hide_all_key_means_no_key() -> None:
     assert AppSettings.from_json({"hide_all_modifiers": ["ctrl"]}).hide_all_key is None
     assert AppSettings.from_json({"hide_all_key": "F9"}).hide_all_key is None
+
+
+def test_saved_panel_place_is_read() -> None:
+    settings = AppSettings.from_json({"panel_rect": [-300, 50, 400, 600]})
+
+    assert settings.panel_rect == (-300, 50, 400, 600)
+
+
+def test_wrong_panel_place_means_no_saved_place() -> None:
+    wrong_values = (
+        "100,50,400,600",  # not a list
+        [100, 50, 400],  # too short
+        [100, 50, 400.5, 600],  # not a whole number
+        [True, 50, 400, 600],  # true is not a number here
+        [100, 50, 0, 600],  # no width
+    )
+
+    for value in wrong_values:
+        assert AppSettings.from_json({"panel_rect": value}).panel_rect is None

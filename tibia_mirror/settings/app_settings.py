@@ -10,6 +10,9 @@ from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THE
 from tibia_mirror.core.regions import clamp_opacity
 from tibia_mirror.core.timers import KeyCombo, canonical_modifiers, parse_key
 
+# The place and the size of the panel on the screen: (x, y, width, height).
+PanelRect = tuple[int, int, int, int]
+
 
 @dataclass(frozen=True)
 class AppSettings:
@@ -29,6 +32,9 @@ class AppSettings:
     last_character: str = ""
     # The key combination that hides every mirror and brings them back. None: no key is set.
     hide_all_key: KeyCombo | None = None
+    # Where the panel was when the app closed, to open it there again.
+    # None: nothing is saved, and the panel opens in the middle of the screen.
+    panel_rect: PanelRect | None = None
 
     @classmethod
     def from_json(cls, data: object) -> AppSettings:
@@ -58,6 +64,8 @@ class AppSettings:
             last_character=saved.get_text("last_character", default=cls.last_character),
             # keys
             hide_all_key=saved.get_key_combo("hide_all_key", "hide_all_modifiers"),
+            # the place of the panel
+            panel_rect=saved.get_panel_rect("panel_rect"),
         )
 
 
@@ -120,3 +128,23 @@ class _SavedData:
             return None
 
         return key, modifiers
+
+    def get_panel_rect(self, name: str) -> PanelRect | None:
+        """The saved place and size of the panel. None if they are missing or wrong.
+
+        The file keeps them as a list of four whole numbers: x, y, width, height.
+        """
+        value = self._data.get(name)
+
+        if not isinstance(value, list) or len(value) != 4:
+            return None
+
+        if not all(type(number) is int for number in value):
+            return None
+
+        x, y, width, height = value
+
+        if width <= 0 or height <= 0:
+            return None
+
+        return x, y, width, height
