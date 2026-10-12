@@ -4,6 +4,7 @@ import tkinter as tk
 
 from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.about_page import AboutPage
@@ -33,8 +34,9 @@ def content_width() -> int:
 class Panel(tk.Frame):
     """Everything inside the main window."""
 
-    def __init__(self, root: tk.Misc) -> None:
+    def __init__(self, root: tk.Misc, settings: AppSettingsStore) -> None:
         super().__init__(root, bg=theme.BG)
+        self._settings = settings
         self._add_menu()
         self._add_content()
         self._add_connection_line()
@@ -87,7 +89,7 @@ class Panel(tk.Frame):
             "mirrors": MirrorsPage(self._content, content_width(), px(SIDE_PAD)),
             "shortcuts": ShortcutsPage(self._content, content_width(), px(SIDE_PAD)),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
-            "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD)),
+            "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),
         }
         self._open_page = START_PAGE  # the key of the page that is shown
         self._pack_page(START_PAGE)

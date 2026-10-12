@@ -4,6 +4,7 @@ import tkinter as tk
 
 from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.text import percent
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
@@ -15,10 +16,13 @@ from tibia_mirror.ui.panel2.toggle_row import ToggleRow
 class SettingsPage(tk.Frame):
     """The Settings page."""
 
-    def __init__(self, parent: tk.Misc, width: int, side_pad: int) -> None:
+    def __init__(
+        self, parent: tk.Misc, width: int, side_pad: int, settings: AppSettingsStore
+    ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
+        self._settings = settings
         # initialize scrollable card
         self._add_scroll_cards()
         # add card blocks to scrollable card
@@ -34,22 +38,24 @@ class SettingsPage(tk.Frame):
 
     def _add_general_group(self) -> None:
         """The first group: settings of the app as a whole."""
+        current_settings = self._settings.current
+
         self._scroll_cards.add_caption(tr("GENERAL"))
         # The names of languages are written in their own language, never translated.
         language_row = ChoiceRow(
             tr("Language"),
             (("en", "English"), ("pl", "Polski")),
-            "en",
+            current_settings.language,
         )
         theme_row = ChoiceRow(
             tr("Theme"),
             (("dark", tr("Dark")), ("light", tr("Light"))),
-            "dark",
+            current_settings.theme,
         )
         on_top_row = ToggleRow(
             tr("Keep this panel on top"),
             tr("Stays above other windows."),
-            is_on=False,
+            is_on=current_settings.is_panel_on_top,
         )
         self._scroll_cards.add_card([language_row, theme_row, on_top_row])
 

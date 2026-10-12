@@ -1184,7 +1184,7 @@ class App2:
         self.root.geometry(panel_geometry((width, height), min_height, title_bar, screen))
 
     def _show_panel(self) -> None:
-        self.panel = Panel(self.root)
+        self.panel = Panel(self.root, self.settings)
         self.panel.pack(fill="both", expand=True)
 
     def _style_title_bar(self) -> None:
