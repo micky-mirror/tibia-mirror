@@ -13,6 +13,7 @@ from tibia_mirror.config import LANGUAGES, THEMES
 class AppSettings:
     theme: str = THEMES[0]
     language: str = LANGUAGES[0]
+    is_panel_on_top: bool = False  # the panel stays above other windows
 
     @classmethod
     def from_json(cls, data: object) -> AppSettings:
@@ -23,6 +24,7 @@ class AppSettings:
         return cls(
             theme=_get_choice(data, "theme", THEMES),
             language=_get_choice(data, "language", LANGUAGES),
+            is_panel_on_top=_get_bool(data, "panel_on_top", default=cls.is_panel_on_top),
         )
 
 
@@ -34,3 +36,13 @@ def _get_choice(data: dict[str, Any], name: str, choices: Sequence[str]) -> str:
         return value
 
     return choices[0]
+
+
+def _get_bool(data: dict[str, Any], name: str, *, default: bool) -> bool:
+    """The saved value if it is true or false. If not, the default."""
+    value = data.get(name)
+
+    if isinstance(value, bool):
+        return value
+
+    return default
