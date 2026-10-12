@@ -1120,9 +1120,13 @@ class App2:
 
     def __init__(self, instance: SingleInstance) -> None:
         self._instance = instance
+        # Read settings.json. A missing or broken file gives the default settings.
+        self.settings = SettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self._prepare_windows()
         self.root = _Root()
+        # run window configuration
         self._use_display_scaling()
+        self._use_saved_theme_and_language()
         self._set_title_and_colour()
         self._set_icon()
         self._set_size_and_place()
@@ -1131,6 +1135,12 @@ class App2:
 
     def run(self) -> None:
         self.root.mainloop()
+
+    def _on_settings_changed(self) -> None:
+        """Write settings.json a short moment after a setting changes.
+
+        The wait joins many quick changes, like dragging a slider, into one save.
+        """
 
     def _prepare_windows(self) -> None:
         """Keep the app sharp on scaled displays and give it its own taskbar button.
@@ -1143,8 +1153,11 @@ class App2:
     def _use_display_scaling(self) -> None:
         """Make our pixel sizes grow with the display scaling (125%, 150%, ...)."""
         scale.init(self.root)
-        # Button styles contain pixel sizes, so the theme is loaded again after scaling.
-        theme.use(theme.current)
+
+    def _use_saved_theme_and_language(self) -> None:
+        # Button styles contain pixel sizes, so the theme is loaded after the scaling.
+        theme.use(self.settings.current.theme)
+        i18n.use(self.settings.current.language)
 
     def _set_title_and_colour(self) -> None:
         self.root.title("Tibia Mirror")
