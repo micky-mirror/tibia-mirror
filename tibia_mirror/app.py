@@ -1133,6 +1133,7 @@ class App2:
         self._set_title_and_colour()
         self._set_icon()
         self._set_size_and_place()
+        self._use_panel_on_top()
         self._show_panel()
         self._style_title_bar()
 
@@ -1195,6 +1196,10 @@ class App2:
         screen = win32.work_area_at((0, 0))
         self.root.minsize(min_width, min_height)
         self.root.geometry(panel_geometry((width, height), min_height, title_bar, screen))
+
+    def _use_panel_on_top(self) -> None:
+        """Keep the window above other windows, or not, as the setting says."""
+        self.root.attributes("-topmost", self.settings.current.is_panel_on_top)
 
     def _show_panel(self) -> None:
         self.panel = Panel(self.root, self.settings)
