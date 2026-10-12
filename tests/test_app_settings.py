@@ -77,3 +77,16 @@ def test_opacity_outside_the_range_is_moved_into_it() -> None:
 def test_wrong_opacity_becomes_the_default() -> None:
     assert AppSettings.from_json({"new_opacity": True}).new_mirror_opacity == DEFAULT_OPACITY
     assert AppSettings.from_json({"new_opacity": "half"}).new_mirror_opacity == DEFAULT_OPACITY
+
+
+def test_saved_profile_and_character_are_read() -> None:
+    settings = AppSettings.from_json({"profile": "Knight", "last_character": "Bubble"})
+
+    assert settings.last_profile == "Knight"
+    assert settings.last_character == "Bubble"
+
+
+def test_wrong_profile_and_character_become_the_defaults() -> None:
+    settings = AppSettings.from_json({"profile": "", "last_character": 12})
+
+    assert settings == AppSettings()

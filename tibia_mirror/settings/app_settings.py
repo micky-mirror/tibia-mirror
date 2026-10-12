@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from tibia_mirror.config import DEFAULT_OPACITY, LANGUAGES, THEMES
+from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
 from tibia_mirror.core.regions import clamp_opacity
 
 
@@ -23,6 +23,9 @@ class AppSettings:
     is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
     is_rounded_corners_on: bool = False
     is_fade_on: bool = True  # mirrors fade in and out, they do not jump
+    last_profile: str = DEFAULT_PROFILE  # the profile that was open, opened again at the start
+    # Who logged out last. Their paused timers are shown until somebody logs in.
+    last_character: str = ""
 
     @classmethod
     def from_json(cls, data: object) -> AppSettings:
@@ -47,6 +50,9 @@ class AppSettings:
             is_fade_on=saved.get_bool("fades", default=cls.is_fade_on),
             # numbers
             new_mirror_opacity=saved.get_opacity("new_opacity", default=cls.new_mirror_opacity),
+            # texts
+            last_profile=saved.get_text("profile", default=cls.last_profile),
+            last_character=saved.get_text("last_character", default=cls.last_character),
         )
 
 
@@ -86,3 +92,12 @@ class _SavedData:
             return default
 
         return clamp_opacity(value)
+
+    def get_text(self, name: str, *, default: str) -> str:
+        """The saved text if it is a text and not empty. If not, the default."""
+        value = self._data.get(name)
+
+        if isinstance(value, str) and value != "":
+            return value
+
+        return default
