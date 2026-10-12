@@ -1,7 +1,30 @@
-"""Reading the new settings class from the content of settings.json."""
+"""Reading the settings from the content of settings.json, and writing them back."""
+
+import json
 
 from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY
 from tibia_mirror.settings.app_settings import AppSettings
+from tibia_mirror.settings.settings import Settings
+
+# Settings where every value is different from its default.
+CHANGED_SETTINGS = AppSettings(
+    theme="light",
+    language="pl",
+    is_panel_on_top=True,
+    is_profile_per_character_on=True,
+    is_autosave_on=True,
+    new_mirror_opacity=0.8,
+    is_mirror_frame_on=False,
+    is_frame_tint_on=True,
+    is_rounded_corners_on=True,
+    is_fade_on=False,
+    last_profile="Knight",
+    last_character="Bubble",
+    hide_all_key=(120, ("ctrl", "shift")),
+    panel_rect=(-300, 50, 400, 600),
+    character_links=(("Bubble", "Knight"),),
+    timer_pauses=(("Bubble", "mirror-1", 12.5),),
+)
 
 
 def test_empty_file_content_gives_the_defaults() -> None:
@@ -136,3 +159,21 @@ def test_saved_timer_pauses_are_read() -> None:
     data = {"timer_pauses": {"Bubble": {"mirror-1": 12.5, "mirror-2": "long"}}}
 
     assert AppSettings.from_json(data).timer_pauses == (("Bubble", "mirror-1", 12.5),)
+
+
+def test_written_settings_are_read_back_the_same() -> None:
+    file_content = json.loads(json.dumps(CHANGED_SETTINGS.to_json()))
+
+    assert AppSettings.from_json(file_content) == CHANGED_SETTINGS
+
+
+def test_written_default_settings_are_read_back_the_same() -> None:
+    file_content = json.loads(json.dumps(AppSettings().to_json()))
+
+    assert AppSettings.from_json(file_content) == AppSettings()
+
+
+def test_the_old_settings_class_reads_and_writes_the_same_file() -> None:
+    file_content = CHANGED_SETTINGS.to_json()
+
+    assert Settings.from_json(file_content).to_json() == file_content

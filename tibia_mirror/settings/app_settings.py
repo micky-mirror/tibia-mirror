@@ -16,6 +16,7 @@ from tibia_mirror.core.timers import (
     canonical_modifiers,
     parse_key,
     pauses_from_json,
+    pauses_to_json,
 )
 
 # The place and the size of the panel on the screen: (x, y, width, height).
@@ -82,6 +83,38 @@ class AppSettings:
             character_links=saved.get_character_links("characters"),
             timer_pauses=saved.get_timer_pauses("timer_pauses"),
         )
+
+    def to_json(self) -> dict[str, Any]:
+        """The settings as they are written to settings.json."""
+        hide_all_key, hide_all_modifiers = self.hide_all_key or (None, ())
+        panel_rect = None if self.panel_rect is None else list(self.panel_rect)
+
+        return {
+            # choices
+            "theme": self.theme,
+            "language": self.language,
+            # on/off settings
+            "panel_on_top": self.is_panel_on_top,
+            "profile_per_character": self.is_profile_per_character_on,
+            "autosave": self.is_autosave_on,
+            "mirror_frame": self.is_mirror_frame_on,
+            "frame_tint": self.is_frame_tint_on,
+            "rounded_corners": self.is_rounded_corners_on,
+            "fades": self.is_fade_on,
+            # numbers
+            "new_opacity": round(self.new_mirror_opacity, 2),
+            # texts
+            "profile": self.last_profile,
+            "last_character": self.last_character,
+            # keys
+            "hide_all_key": hide_all_key,
+            "hide_all_modifiers": list(hide_all_modifiers),
+            # the place of the panel
+            "panel_rect": panel_rect,
+            # lists the app keeps by itself
+            "characters": characters.to_json(self.character_links),
+            "timer_pauses": pauses_to_json(self.timer_pauses),
+        }
 
 
 class _SavedData:
