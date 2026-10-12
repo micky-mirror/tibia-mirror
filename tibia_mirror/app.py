@@ -1123,6 +1123,7 @@ class App2:
         self._instance = instance
         # Read settings.json. A missing or broken file gives the default settings.
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
+        self._settings_save_job: str | None = None  # the waiting save of the settings, if any
         self._prepare_windows()
         self.root = _Root()
         # run window configuration
@@ -1142,10 +1143,16 @@ class App2:
 
         The wait joins many quick changes, like dragging a slider, into one save.
         """
-        self._save_settings()
+        # throw away the save that is still waiting, if there is one
+        if self._settings_save_job is not None:
+            self.root.after_cancel(self._settings_save_job)
+
+        # plan a new save for a short moment from now
+        self._settings_save_job = self.root.after(SETTINGS_SAVE_DELAY_MS, self._save_settings)
 
     def _save_settings(self) -> None:
         """Write settings.json now."""
+        self._settings_save_job = None
         self.settings.save()
 
     def _prepare_windows(self) -> None:
