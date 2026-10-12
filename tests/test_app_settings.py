@@ -1,5 +1,6 @@
 """Reading the new settings class from the content of settings.json."""
 
+from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY
 from tibia_mirror.settings.app_settings import AppSettings
 
 
@@ -60,3 +61,19 @@ def test_wrong_on_off_settings_become_the_defaults() -> None:
     settings = AppSettings.from_json({"autosave": 1, "mirror_frame": "no", "fades": None})
 
     assert settings == AppSettings()
+
+
+def test_saved_opacity_of_new_mirrors_is_read() -> None:
+    settings = AppSettings.from_json({"new_opacity": 0.8})
+
+    assert settings.new_mirror_opacity == 0.8
+
+
+def test_opacity_outside_the_range_is_moved_into_it() -> None:
+    assert AppSettings.from_json({"new_opacity": 0}).new_mirror_opacity == MIN_OPACITY
+    assert AppSettings.from_json({"new_opacity": 7}).new_mirror_opacity == 1.0
+
+
+def test_wrong_opacity_becomes_the_default() -> None:
+    assert AppSettings.from_json({"new_opacity": True}).new_mirror_opacity == DEFAULT_OPACITY
+    assert AppSettings.from_json({"new_opacity": "half"}).new_mirror_opacity == DEFAULT_OPACITY

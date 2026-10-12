@@ -6,7 +6,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from tibia_mirror.config import LANGUAGES, THEMES
+from tibia_mirror.config import DEFAULT_OPACITY, LANGUAGES, THEMES
+from tibia_mirror.core.regions import clamp_opacity
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class AppSettings:
     # Logging in opens the profile of the character, and creates one the first time.
     is_profile_per_character_on: bool = False
     is_autosave_on: bool = False  # every change to a profile is saved at once
+    new_mirror_opacity: float = DEFAULT_OPACITY  # the opacity a new mirror starts with
     is_mirror_frame_on: bool = True  # a grey outline on mirrors without a colour
     is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
     is_rounded_corners_on: bool = False
@@ -43,6 +45,8 @@ class AppSettings:
                 "rounded_corners", default=cls.is_rounded_corners_on
             ),
             is_fade_on=saved.get_bool("fades", default=cls.is_fade_on),
+            # numbers
+            new_mirror_opacity=saved.get_opacity("new_opacity", default=cls.new_mirror_opacity),
         )
 
 
@@ -73,3 +77,12 @@ class _SavedData:
             return value
 
         return default
+
+    def get_opacity(self, name: str, *, default: float) -> float:
+        """The saved number, moved into the allowed range. If it is not a number, the default."""
+        value = self._data.get(name)
+
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return default
+
+        return clamp_opacity(value)
