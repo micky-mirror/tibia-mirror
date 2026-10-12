@@ -49,6 +49,7 @@ from tibia_mirror.services.active_profile import LOAD_ERRORS, ActiveProfile
 from tibia_mirror.services.game import Game
 from tibia_mirror.services.mirrors import Mirrors
 from tibia_mirror.services.running_timers import RunningTimers
+from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.settings.settings_store import SettingsStore
 from tibia_mirror.ui.base import scale, theme
@@ -1138,7 +1139,7 @@ class App2:
     def run(self) -> None:
         self.root.mainloop()
 
-    def _on_settings_changed(self) -> None:
+    def _on_settings_changed(self, previous: AppSettings, current: AppSettings) -> None:
         """Write settings.json a short moment after a setting changes.
 
         The wait joins many quick changes, like dragging a slider, into one save.

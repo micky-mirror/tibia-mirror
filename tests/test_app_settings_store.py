@@ -6,7 +6,7 @@ from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 
-def do_nothing() -> None:
+def do_nothing(previous: AppSettings, current: AppSettings) -> None:
     pass
 
 
@@ -34,19 +34,26 @@ def test_saved_settings_are_loaded(tmp_path: Path) -> None:
 
 
 def test_update_changes_the_settings_and_tells_the_app(tmp_path: Path) -> None:
-    calls: list[str] = []
-    store = AppSettingsStore(tmp_path / "settings.json", lambda: calls.append("changed"))
+    calls: list[tuple[AppSettings, AppSettings]] = []
+    store = AppSettingsStore(
+        tmp_path / "settings.json",
+        lambda previous, current: calls.append((previous, current)),
+    )
+    settings_at_start = store.current
 
     store.update(theme="light", is_autosave_on=True)
 
     assert store.current.theme == "light"
     assert store.current.is_autosave_on
-    assert calls == ["changed"]
+    assert calls == [(settings_at_start, store.current)]
 
 
 def test_update_with_the_same_values_does_not_tell_the_app(tmp_path: Path) -> None:
-    calls: list[str] = []
-    store = AppSettingsStore(tmp_path / "settings.json", lambda: calls.append("changed"))
+    calls: list[tuple[AppSettings, AppSettings]] = []
+    store = AppSettingsStore(
+        tmp_path / "settings.json",
+        lambda previous, current: calls.append((previous, current)),
+    )
 
     store.update(theme=store.current.theme)
 

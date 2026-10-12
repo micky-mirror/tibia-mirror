@@ -20,22 +20,23 @@ if TYPE_CHECKING:
 
 
 class AppSettingsStore:
-    def __init__(self, file: Path, on_changed: Callable[[], None]) -> None:
+    def __init__(self, file: Path, on_changed: Callable[[AppSettings, AppSettings], None]) -> None:
         self._file = file
-        # Called after every change. The app uses it to write the file a moment later.
+        # Called after every change, with the settings before it and after it.
         self._on_changed = on_changed
         # The settings as they are now.
         self.current = self._load()
 
     def update(self, **new_values: Unpack[AppSettingsUpdate]) -> None:
         """Change one or more settings, for example update(theme="dark")."""
-        changed_settings = replace(self.current, **new_values)
+        previous_settings = self.current
+        changed_settings = replace(previous_settings, **new_values)
 
-        if changed_settings == self.current:
+        if changed_settings == previous_settings:
             return
 
         self.current = changed_settings
-        self._on_changed()
+        self._on_changed(previous_settings, changed_settings)
 
     def save(self) -> None:
         """Write the settings to the file. If that fails, this raises OSError."""
