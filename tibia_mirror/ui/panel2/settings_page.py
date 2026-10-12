@@ -2,7 +2,7 @@
 
 import tkinter as tk
 
-from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY, OPACITY_STEP
+from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
@@ -61,31 +61,37 @@ class SettingsPage(tk.Frame):
 
     def _add_profiles_group(self) -> None:
         """The second group: how the app chooses a profile."""
+        current_settings = self._settings.current
+
         self._scroll_cards.add_caption(tr("PROFILES"))
         per_character_row = ToggleRow(
             tr("Profile per character"),
             tr("Logging in opens the character's profile, creating one the first time."),
-            is_on=False,
+            is_on=current_settings.is_profile_per_character_on,
         )
         self._scroll_cards.add_card([per_character_row])
 
     def _add_saving_group(self) -> None:
         """The third group: when changes are saved."""
+        current_settings = self._settings.current
+
         self._scroll_cards.add_caption(tr("SAVING"))
         autosave_row = ToggleRow(
             tr("Save automatically"),
             tr("Saves every change as you make it."),
-            is_on=False,
+            is_on=current_settings.is_autosave_on,
         )
         self._scroll_cards.add_card([autosave_row])
 
     def _add_mirrors_group(self) -> None:
         """The fourth group: how the mirrors look."""
+        current_settings = self._settings.current
+
         self._scroll_cards.add_caption(tr("MIRRORS"))
         opacity_row = SliderRow(
             tr("Opacity of new mirrors"),
             tr("Each mirror can still be set on its card."),
-            value=DEFAULT_OPACITY,
+            value=current_settings.new_mirror_opacity,
             start=0.0,
             end=1.0,
             step=OPACITY_STEP,
@@ -95,21 +101,21 @@ class SettingsPage(tk.Frame):
         frame_row = ToggleRow(
             tr("Mirror frame"),
             tr("Grey outline on mirrors without a colour."),
-            is_on=True,
+            is_on=current_settings.is_mirror_frame_on,
         )
         tint_row = ToggleRow(
             tr("Tint with frame colour"),
             tr("Shades coloured mirrors in their colour."),
-            is_on=False,
+            is_on=current_settings.is_frame_tint_on,
         )
         corners_row = ToggleRow(
             tr("Rounded corners"),
             tr("Clips a few pixels at each corner."),
-            is_on=False,
+            is_on=current_settings.is_rounded_corners_on,
         )
         fades_row = ToggleRow(
             tr("Fade animations"),
             tr("Off: mirrors appear and hide instantly."),
-            is_on=True,
+            is_on=current_settings.is_fade_on,
         )
         self._scroll_cards.add_card([opacity_row, frame_row, tint_row, corners_row, fades_row])
