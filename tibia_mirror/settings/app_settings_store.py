@@ -37,6 +37,14 @@ class AppSettingsStore:
         self.current = changed_settings
         self._on_changed()
 
+    def save(self) -> None:
+        """Write the settings to the file. If that fails, this raises OSError."""
+        data = self.current.to_json()
+        file_content: str = json.dumps(data, indent=2)
+
+        self._file.parent.mkdir(parents=True, exist_ok=True)
+        self._file.write_text(file_content, encoding="utf-8")
+
     def _load(self) -> AppSettings:
         """Read the settings from the file. A missing or broken file gives the defaults."""
         try:

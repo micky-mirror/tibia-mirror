@@ -51,3 +51,21 @@ def test_update_with_the_same_values_does_not_tell_the_app(tmp_path: Path) -> No
     store.update(theme=store.current.theme)
 
     assert calls == []
+
+
+def test_save_writes_what_the_next_store_loads(tmp_path: Path) -> None:
+    file = tmp_path / "settings.json"
+    store = AppSettingsStore(file, do_nothing)
+    store.update(theme="light", hide_all_key=(120, ("shift",)))
+
+    store.save()
+
+    assert AppSettingsStore(file, do_nothing).current == store.current
+
+
+def test_save_creates_the_folder_of_the_file(tmp_path: Path) -> None:
+    file = tmp_path / "new folder" / "settings.json"
+
+    AppSettingsStore(file, do_nothing).save()
+
+    assert file.exists()
