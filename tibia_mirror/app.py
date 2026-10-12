@@ -73,7 +73,7 @@ from tibia_mirror.ui.panel.mirrors_page import (
 )
 from tibia_mirror.ui.panel.panel import ControlPanel
 from tibia_mirror.ui.panel.settings_page import SettingValue
-from tibia_mirror.ui.panel2.panel import Panel
+from tibia_mirror.ui.panel2.panel import START_PAGE, Panel
 from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.instance import SingleInstance
 from tibia_mirror.winapi.rawinput import InputWatcher
@@ -1147,6 +1147,11 @@ class App2:
         if current.is_panel_on_top != previous.is_panel_on_top:
             self._use_panel_on_top()
 
+        if current.theme != previous.theme or current.language != previous.language:
+            # The panel is still handling the mouse click on the option, so it cannot be
+            # destroyed yet. after_idle runs the rebuild when the panel has finished.
+            self.root.after_idle(self._rebuild_panel)
+
     def _save_settings_on_delay(self) -> None:
         """Write settings.json a short moment from now.
 
@@ -1163,6 +1168,16 @@ class App2:
         """Write settings.json now."""
         self._settings_save_job = None
         self.settings.save()
+
+    def _rebuild_panel(self) -> None:
+        """Build the panel again in the saved theme and language, on the same page."""
+        open_page = self.panel.open_page
+        self.panel.destroy()
+
+        self._use_saved_theme_and_language()
+        self._set_title_and_colour()
+        self._show_panel(open_page)
+        self._style_title_bar()
 
     def _prepare_windows(self) -> None:
         """Keep the app sharp on scaled displays and give it its own taskbar button.
@@ -1208,8 +1223,8 @@ class App2:
         """Keep the window above other windows, or not, as the setting says."""
         self.root.attributes("-topmost", self.settings.current.is_panel_on_top)
 
-    def _show_panel(self) -> None:
-        self.panel = Panel(self.root, self.settings)
+    def _show_panel(self, start_page: str = START_PAGE) -> None:
+        self.panel = Panel(self.root, self.settings, start_page)
         self.panel.pack(fill="both", expand=True)
 
     def _style_title_bar(self) -> None:
