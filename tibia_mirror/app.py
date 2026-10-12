@@ -1142,6 +1142,11 @@ class App2:
 
         The wait joins many quick changes, like dragging a slider, into one save.
         """
+        self._save_settings()
+
+    def _save_settings(self) -> None:
+        """Write settings.json now."""
+        self.settings.save()
 
     def _prepare_windows(self) -> None:
         """Keep the app sharp on scaled displays and give it its own taskbar button.
