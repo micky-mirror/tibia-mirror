@@ -9,8 +9,8 @@ from datetime import date
 
 from tibia_mirror.about import AUTHOR, TIP_CHARACTER, copyright_years
 from tibia_mirror.config import PANEL_SIZE
-from tibia_mirror.core.settings import Settings
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.settings import Settings
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import CopyText

@@ -1,6 +1,6 @@
 import pytest
 
-from tibia_mirror.core.settings import Settings
+from tibia_mirror.settings.settings import Settings
 from tibia_mirror.settings.settings_store import SettingsStore
 
 

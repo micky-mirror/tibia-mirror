@@ -9,9 +9,9 @@ from functools import partial
 from typing import TypedDict
 
 from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
-from tibia_mirror.core.settings import Settings
 from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.settings import Settings
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.animation import Tween
 from tibia_mirror.ui.base.images import photo

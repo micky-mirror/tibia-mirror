@@ -11,7 +11,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from tibia_mirror.core import settings
+from tibia_mirror.settings import settings
 
 
 class SettingsStore:

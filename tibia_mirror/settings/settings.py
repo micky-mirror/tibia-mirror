@@ -64,7 +64,7 @@ class Settings:
         """The hide-all key as a (virtual-key code, modifiers) pair, or None."""
         if self.hide_all_key is None:
             return None
-        return (self.hide_all_key, self.hide_all_modifiers)
+        return self.hide_all_key, self.hide_all_modifiers
 
     def to_json(self) -> dict[str, Any]:
         data = asdict(self)
@@ -119,7 +119,8 @@ def _panel_rect(value: object) -> PanelRect | None:
 
 def load(path: Path) -> Settings:
     try:
-        return Settings.from_json(json.loads(path.read_text(encoding="utf-8")))
+        file_content: str = path.read_text(encoding="utf-8")
+        return Settings.from_json(json.loads(file_content))
     except (OSError, ValueError):
         return Settings()
 

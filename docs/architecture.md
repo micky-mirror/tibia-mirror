@@ -115,7 +115,7 @@ Running timers' start times are kept in memory; at logout they become paused pro
 - **Unsaved changes** are found by comparing what Save would write with the file as loaded, so undoing a change by hand clears the flag.
 - **The active profile** (`services/active_profile.py`) keeps that copy of the file as loaded.
   The App asks it to save, load, rename, duplicate or delete, and shows the result in the panel.
-- **Settings** (`core/settings.py`) are saved to `settings.json` shortly after each change.
+- **Settings** (`settings/settings.py`) are saved to `settings.json` shortly after each change.
   Bad or unknown values fall back to defaults, so a hand-edited file never stops the app from starting.
   `SettingsStore` (`settings/settings_store.py`) holds them while the app runs, and tells the App after each change, so the App can save the file.
 - **Profile per character** (`core/characters.py`) links character names to profiles in `settings.json`.
@@ -167,9 +167,9 @@ These are deliberate and must stay true:
 |---|---|
 | App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
 | Services | `services/active_profile.py`, `services/game.py`, `services/mirrors.py`, `services/running_timers.py` |
-| Settings | `settings/settings_store.py` |
+| Settings | `settings/settings.py`, `settings/settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
-| Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/settings.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
+| Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
 | Text | `i18n.py`, `about.py` |
 | Mirrors | `ui/overlay/mirror.py`, `ui/overlay/badge.py`, `ui/overlay/selector.py`, `ui/overlay/loupe.py` |
 | Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, and the pages: `ui/panel/mirrors_page.py`, `ui/panel/settings_page.py`, `ui/panel/shortcuts_page.py`, `ui/panel/about_page.py` |
