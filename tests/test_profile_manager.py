@@ -5,6 +5,7 @@ import json
 import pytest
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
+from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.profiles import ProfileStore
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
@@ -24,6 +25,21 @@ def make_settings(tmp_path, last_profile):
     file = tmp_path / "settings.json"
     file.write_text(json.dumps({"profile": last_profile}), encoding="utf-8")
     return AppSettingsStore(file, lambda previous, current: None)
+
+
+# One mirror as a profile file holds it.
+MIRROR_JSON = {
+    "id": "mirror-1",
+    "name": "Minimap",
+    "layouts": {"1920x1080": {"region": [10, 20, 300, 40], "offset": [5, 6]}},
+}
+
+
+def write_profile_file(folder, name, data):
+    """Write `data` as the file of the profile `name`."""
+    folder.mkdir(parents=True, exist_ok=True)
+    file = folder / f"{name}.json"
+    file.write_text(json.dumps(data), encoding="utf-8")
 
 
 def test_the_first_start_creates_the_default_profile(tmp_path, folder):
@@ -58,3 +74,28 @@ def test_the_first_profile_is_opened_when_the_last_one_is_gone(tmp_path, folder)
     manager = ProfileManager(folder, make_settings(tmp_path, "Druid"))
 
     assert manager.active_name == "Knight"
+
+
+def test_the_mirrors_of_the_open_profile_are_read(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    write_profile_file(folder, "Sorcerer", {"version": 2, "mirrors": []})
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    mirrors = manager.read_mirrors()
+
+    assert mirrors == [MirrorSettings.from_json(MIRROR_JSON)]
+
+
+def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
+    manager = ProfileManager(folder, make_settings(tmp_path, "Default"))
+
+    assert manager.read_mirrors() == []
+
+
+def test_a_file_that_is_only_a_list_of_mirrors_is_read(tmp_path, folder):
+    write_profile_file(folder, "Knight", [MIRROR_JSON])
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    mirrors = manager.read_mirrors()
+
+    assert mirrors == [MirrorSettings.from_json(MIRROR_JSON)]
