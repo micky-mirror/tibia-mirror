@@ -99,3 +99,38 @@ def test_a_file_that_is_only_a_list_of_mirrors_is_read(tmp_path, folder):
     mirrors = manager.read_mirrors()
 
     assert mirrors == [MirrorSettings.from_json(MIRROR_JSON)]
+
+
+def test_broken_json_raises_value_error(tmp_path, folder):
+    folder.mkdir()
+    (folder / "Knight.json").write_text("{ this is not JSON", encoding="utf-8")
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    with pytest.raises(ValueError):
+        manager.read_mirrors()
+
+
+def test_a_file_without_mirrors_raises_value_error(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2})
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    with pytest.raises(ValueError, match="the profile file is invalid"):
+        manager.read_mirrors()
+
+
+def test_a_layout_without_region_raises_value_error(tmp_path, folder):
+    broken_mirror = {**MIRROR_JSON, "layouts": {"1920x1080": {"offset": [5, 6]}}}
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [broken_mirror]})
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    with pytest.raises(ValueError, match="the profile file is invalid"):
+        manager.read_mirrors()
+
+
+def test_a_deleted_file_raises_os_error(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": []})
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+    (folder / "Knight.json").unlink()
+
+    with pytest.raises(OSError):
+        manager.read_mirrors()
