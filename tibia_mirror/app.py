@@ -13,6 +13,7 @@ from types import TracebackType
 
 from tibia_mirror import errors, i18n
 from tibia_mirror.app_parts.app_window import AppWindow
+from tibia_mirror.app_parts.settings_writer import SettingsWriter
 from tibia_mirror.config import (
     APP_ID,
     ATTACH_POLL_MS,
@@ -1125,8 +1126,8 @@ class App2:
         self._instance = instance
         # Read settings.json. A missing or broken file gives the default settings.
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
-        self._settings_save_job: str | None = None  # the waiting save of the settings, if any
         self.window = AppWindow(self.settings)
+        self.settings_writer = SettingsWriter(self.window, self.settings)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
@@ -1137,7 +1138,7 @@ class App2:
 
     def _on_settings_changed(self, previous: AppSettings, current: AppSettings) -> None:
         """Save the settings on a delay, and make the app follow the settings that changed."""
-        self._save_settings_on_delay()
+        self.settings_writer.write_on_delay()
 
         if current.is_panel_on_top != previous.is_panel_on_top:
             self.window.set_panel_on_top()
@@ -1146,23 +1147,6 @@ class App2:
             # The panel is still handling the mouse click on the option, so it cannot be
             # destroyed yet. after_idle runs the rebuild when the panel has finished.
             self.window.after_idle(self._rebuild_panel)
-
-    def _save_settings_on_delay(self) -> None:
-        """Write settings.json a short moment from now.
-
-        The wait joins many quick changes, like dragging a slider, into one save.
-        """
-        # throw away the save that is still waiting, if there is one
-        if self._settings_save_job is not None:
-            self.window.after_cancel(self._settings_save_job)
-
-        # plan a new save for a short moment from now
-        self._settings_save_job = self.window.after(SETTINGS_SAVE_DELAY_MS, self._save_settings)
-
-    def _save_settings(self) -> None:
-        """Write settings.json now."""
-        self._settings_save_job = None
-        self.settings.save()
 
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, on the same page."""
