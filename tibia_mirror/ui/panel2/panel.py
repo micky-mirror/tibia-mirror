@@ -22,6 +22,18 @@ FOOTER_BOTTOM_PAD = 12  # below the footer
 
 START_PAGE = "mirrors"  # the page that is open when the app starts
 
+# The states of the connection to Tibia.
+WAITING = "waiting"  # Tibia is not found yet
+MINIMIZED = "minimized"  # Tibia is found, but it is minimized
+CONNECTED = "connected"  # Tibia is found and its window is open
+
+# The texts of the connection line: state -> text in English.
+CONNECTION_TEXTS = {
+    WAITING: "Waiting for Tibia...",
+    MINIMIZED: "Tibia is minimized",
+    CONNECTED: "Tibia connected",
+}
+
 
 def content_width() -> int:
     """The width of the content: the normal window width without the menu and the side space.
@@ -59,19 +71,23 @@ class Panel(tk.Frame):
 
     def _add_connection_line(self) -> None:
         """The line at the top that says if the app has found Tibia."""
-        self._connection = tk.Label(
-            self._content,
-            text="● " + tr("Waiting for Tibia..."),
-            bg=theme.BG,
-            fg=theme.SUBTEXT,
-            font=theme.FONT,
-        )
+        self._connection = tk.Label(self._content, bg=theme.BG, font=theme.FONT)
         self._connection.pack(
             side="top",
             anchor="w",
             padx=px(SIDE_PAD),
             pady=(px(CONNECTION_TOP_PAD), 0),
         )
+        self.set_connection_state(WAITING)
+
+    def set_connection_state(self, state: str) -> None:
+        """Set Tibia connection state."""
+        is_connected: bool = state == CONNECTED
+
+        text = tr(CONNECTION_TEXTS[state])
+        colour = theme.GREEN if is_connected else theme.SUBTEXT
+
+        self._connection.configure(text="● " + text, fg=colour)
 
     def _add_footer(self) -> None:
         """The footer at the bottom, under a thin line."""
