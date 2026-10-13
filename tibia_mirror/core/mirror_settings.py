@@ -50,6 +50,22 @@ class MirrorSettings:
             timer=saved.get_timer(),
         )
 
+    def to_json(self) -> dict[str, Any]:
+        """The settings as they are written to a profile file."""
+        layouts = {size: self.layouts[size].to_json() for size in sorted(self.layouts)}
+
+        return {
+            "id": self.mirror_id,
+            "name": self.name,
+            "opacity": round(self.opacity, 2),
+            "zoom": round(self.zoom, 2),
+            "color": self.colour,
+            "timer": self.timer.to_json(),
+            "hidden": self.is_hidden,
+            "locked": self.is_locked,
+            "layouts": layouts,
+        }
+
 
 class _SavedMirror:
     """One mirror of a profile file, with one method for each value."""
