@@ -1129,7 +1129,7 @@ class App2:
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self.window = AppWindow(self.settings)
         self.settings_writer = SettingsWriter(self.window, self.settings)
-        self.connection = TibiaConnection()
+        self.connection = TibiaConnection(self.window, self._on_connection_changed)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
@@ -1149,6 +1149,10 @@ class App2:
             # The panel is still handling the mouse click on the option, so it cannot be
             # destroyed yet. after_idle runs the rebuild when the panel has finished.
             self.window.after_idle(self._rebuild_panel)
+
+    def _on_connection_changed(self, state: str) -> None:
+        """Show the new state of the connection to Tibia on the panel."""
+        self.panel.set_connection_state(state)
 
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, on the same page."""
