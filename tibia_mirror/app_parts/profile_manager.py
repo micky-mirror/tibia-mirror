@@ -10,6 +10,7 @@ class ProfileManager:
     """Knows which profiles exist and which one is open."""
 
     def __init__(self, folder: Path, settings: AppSettingsStore) -> None:
+        self._folder = folder
         self._settings = settings
         self._store = ProfileStore(folder)
         # the first start has no profile, so an empty "Default" is created
@@ -23,7 +24,10 @@ class ProfileManager:
 
     def get_names(self) -> list[str]:
         """Read the names of all profiles from the folder, sorted by name."""
-        return self._store.names()
+        files = self._folder.glob("*.json")
+        names = [file.stem for file in files]
+
+        return sorted(names, key=str.casefold)
 
     def _get_start_name(self) -> str:
         """The profile to open at the start: the one that was open the last time.
