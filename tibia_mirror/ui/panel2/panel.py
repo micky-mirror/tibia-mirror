@@ -3,6 +3,7 @@
 import tkinter as tk
 
 from tibia_mirror.config import PANEL_SIZE
+from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
@@ -21,11 +22,6 @@ FOOTER_TOP_PAD = 10  # between the thin line and the footer
 FOOTER_BOTTOM_PAD = 12  # below the footer
 
 START_PAGE = "mirrors"  # the page that is open when the app starts
-
-# The states of the connection to Tibia.
-WAITING = "waiting"  # Tibia is not found yet
-MINIMIZED = "minimized"  # Tibia is found, but it is minimized
-CONNECTED = "connected"  # Tibia is found and its window is open
 
 # The texts of the connection line: state -> text in English.
 CONNECTION_TEXTS = {

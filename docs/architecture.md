@@ -169,7 +169,7 @@ These are deliberate and must stay true:
 | Services | `services/active_profile.py`, `services/game.py`, `services/mirrors.py`, `services/running_timers.py` |
 | Settings | `settings/settings.py`, `settings/settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
-| Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py` |
+| Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py`, `core/connection.py` |
 | Text | `i18n.py`, `about.py` |
 | Mirrors | `ui/overlay/mirror.py`, `ui/overlay/badge.py`, `ui/overlay/selector.py`, `ui/overlay/loupe.py` |
 | Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, and the pages: `ui/panel/mirrors_page.py`, `ui/panel/settings_page.py`, `ui/panel/shortcuts_page.py`, `ui/panel/about_page.py` |

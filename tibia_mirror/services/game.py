@@ -9,6 +9,7 @@ Game only reads information about the window. It never changes the window.
 
 from __future__ import annotations
 
+from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.winapi import win32
@@ -87,10 +88,10 @@ class Game:
         - "connected": Tibia is found and its client area is known.
         """
         if self.hwnd is None:
-            return "waiting"
+            return WAITING
         if self.client is None:
-            return "minimized"
-        return "connected"
+            return MINIMIZED
+        return CONNECTED
 
     def title(self) -> str:
         """Return the title of Tibia's window, or "" if Tibia is not running."""
