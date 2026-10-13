@@ -6,7 +6,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from tibia_mirror.config import DEFAULT_OPACITY, FRAME_COLORS
-from tibia_mirror.core.regions import Layout, new_id, parse_size_key
+from tibia_mirror.core.regions import (
+    Layout,
+    clamp_opacity,
+    clamp_zoom,
+    new_id,
+    parse_size_key,
+)
 from tibia_mirror.core.timers import TimerSettings
 
 
@@ -36,6 +42,9 @@ class MirrorSettings:
             mirror_id=saved.get_mirror_id(),
             name=saved.get_name(),
             layouts=saved.get_layouts(),
+            opacity=saved.get_opacity(),
+            zoom=saved.get_zoom(),
+            colour=saved.get_colour(),
         )
 
 
@@ -80,6 +89,33 @@ class _SavedMirror:
             raise ValueError("a mirror needs at least one layout")
 
         return layouts
+
+    def get_opacity(self) -> float:
+        """The saved opacity, moved into the allowed range. If it is not a number, the default."""
+        value = self._data.get("opacity")
+
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return MirrorSettings.opacity
+
+        return clamp_opacity(value)
+
+    def get_zoom(self) -> float:
+        """The saved zoom, moved into the allowed range. If it is not a number, the default."""
+        value = self._data.get("zoom")
+
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return MirrorSettings.zoom
+
+        return clamp_zoom(value)
+
+    def get_colour(self) -> str:
+        """The saved colour name if it is one of FRAME_COLORS. If not, the first one."""
+        value = self._data.get("color")
+
+        if isinstance(value, str) and value in FRAME_COLORS:
+            return value
+
+        return FRAME_COLORS[0]
 
     def _is_window_size(self, key: str) -> bool:
         """True for a text like "1920x1080" with both numbers above zero."""
