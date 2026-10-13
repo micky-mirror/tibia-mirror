@@ -46,10 +46,12 @@ class Panel(tk.Frame):
         self,
         window: tk.Misc,
         settings: AppSettingsStore,
+        connection_state: str,
         start_page: str = START_PAGE,
     ) -> None:
         super().__init__(window, bg=theme.BG)
         self._settings = settings
+        self._connection_state = connection_state  # the state the connection line shows
         self.open_page = start_page  # the key of the page that is shown
         self._add_menu()
         self._add_content()
@@ -74,10 +76,11 @@ class Panel(tk.Frame):
             padx=px(SIDE_PAD),
             pady=(px(CONNECTION_TOP_PAD), 0),
         )
-        self.set_connection_state(WAITING)
+        self.set_connection_state(self._connection_state)
 
     def set_connection_state(self, state: str) -> None:
         """Set Tibia connection state."""
+        self._connection_state = state
         is_connected: bool = state == CONNECTED
 
         text = tr(CONNECTION_TEXTS[state])

@@ -14,6 +14,7 @@ from types import TracebackType
 from tibia_mirror import errors, i18n
 from tibia_mirror.app_parts.app_window import AppWindow
 from tibia_mirror.app_parts.settings_writer import SettingsWriter
+from tibia_mirror.app_parts.tibia_connection import TibiaConnection
 from tibia_mirror.config import (
     APP_ID,
     ATTACH_POLL_MS,
@@ -1128,6 +1129,7 @@ class App2:
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self.window = AppWindow(self.settings)
         self.settings_writer = SettingsWriter(self.window, self.settings)
+        self.connection = TibiaConnection()
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
@@ -1158,7 +1160,7 @@ class App2:
         self._show_panel(open_page)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
-        self.panel = Panel(self.window, self.settings, start_page)
+        self.panel = Panel(self.window, self.settings, self.connection.state, start_page)
         self.panel.pack(fill="both", expand=True)
 
 
