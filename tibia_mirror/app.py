@@ -1040,7 +1040,7 @@ class App:
         self.page.show_regions(self.mirrors, pending)
 
     def _show_connection(self) -> None:
-        self.panel.set_connection(self.game.state())
+        self.panel.set_connection(self.game.state)
 
     def _reattach_mirrors(self, game_hwnd: Hwnd, client: Rect) -> None:
         """Tibia was restarted: point the mirrors kept in memory at its new window."""

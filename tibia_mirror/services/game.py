@@ -79,8 +79,9 @@ class Game:
         self.client = None
         return True
 
+    @property
     def state(self) -> str:
-        """Return what the panel shows about Tibia: "waiting", "minimized" or "connected".
+        """What the panel shows about Tibia: "waiting", "minimized" or "connected".
 
         - "waiting": Tibia is not found yet.
         - "minimized": Tibia is found, but its client area was never seen,
