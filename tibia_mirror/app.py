@@ -13,6 +13,7 @@ from types import TracebackType
 
 from tibia_mirror import errors, i18n
 from tibia_mirror.app_parts.app_window import AppWindow
+from tibia_mirror.app_parts.mirror_manager import MirrorManager
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.app_parts.settings_writer import SettingsWriter
 from tibia_mirror.app_parts.tibia_connection import TibiaConnection
@@ -1133,6 +1134,7 @@ class App2:
         self.settings_writer = SettingsWriter(self.window, self.settings)
         self.connection = TibiaConnection(self.window, self._on_connection_changed)
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings)
+        self.mirror_manager = MirrorManager(self.window, self.settings)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
