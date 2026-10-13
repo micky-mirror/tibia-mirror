@@ -3,10 +3,13 @@
 import tkinter as tk
 
 from tibia_mirror.core.game_window import GameWindow
-from tibia_mirror.core.geometry import scaled_size
+from tibia_mirror.core.geometry import Rect, scaled_size
+from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.regions import Layout, size_key
 from tibia_mirror.ui.base.windows import keep_open
+from tibia_mirror.winapi import win32
+from tibia_mirror.winapi.dwm import Thumbnail
 
 
 class MirrorWindow(tk.Toplevel):
@@ -24,7 +27,15 @@ class MirrorWindow(tk.Toplevel):
         self._game_window = game_window
         self.overrideredirect(True)  # no title bar and no borders
         keep_open(self)  # Alt+F4 does not close a mirror, only the app does
+        # the number Windows knows this window by
+        self._window_handle: Hwnd = win32.toplevel_hwnd(self)
+        self._thumbnail = self._create_thumbnail()
         self._show_at_saved_place()
+
+    def destroy(self) -> None:
+        """Stop the thumbnail and close the window."""
+        self._thumbnail.close()
+        super().destroy()
 
     def _show_at_saved_place(self) -> None:
         """Show the window with the size and the place from its layout.
@@ -43,6 +54,8 @@ class MirrorWindow(tk.Toplevel):
         position_y = client_area.y + layout.offset[1]
 
         self.geometry(f"{area_width}x{area_height}+{position_x}+{position_y}")
+        thumbnail_area = Rect(0, 0, area_width, area_height)
+        self._thumbnail.show(layout.region, thumbnail_area)
         self.deiconify()
         self.attributes("-topmost", True)  # above other windows, also above the game
 
@@ -52,3 +65,14 @@ class MirrorWindow(tk.Toplevel):
         size = size_key(client_area.w, client_area.h)
 
         return self._mirror_settings.layouts.get(size)
+
+    def _create_thumbnail(self) -> Thumbnail:
+        """Ask Windows to draw a live copy of the game into this window.
+
+        If Windows refuses, the window is closed and this raises OSError.
+        """
+        try:
+            return Thumbnail(self._window_handle, self._game_window.handle)
+        except OSError:
+            super().destroy()
+            raise
