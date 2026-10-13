@@ -21,6 +21,12 @@ class FakeWindow:
     def after(self, delay_ms, function):
         self.planned = function
 
+    def run_planned(self) -> None:
+        """Run the planned function, as the real window does when the wait is over."""
+        function = self.planned
+        self.planned = None
+        function()
+
 
 @pytest.fixture
 def tibia(monkeypatch):
@@ -61,3 +67,65 @@ def test_state_is_connected_when_tibia_is_running(tibia):
     connection = TibiaConnection(FakeWindow(), do_nothing)
 
     assert connection.state == CONNECTED
+
+
+def test_nothing_is_told_while_the_state_stays_the_same(tibia):
+    window = FakeWindow()
+    states = []
+    TibiaConnection(window, states.append)
+
+    window.run_planned()
+
+    assert states == []
+
+
+def test_a_new_state_is_told_to_the_app_one_time(tibia):
+    tibia["is_running"] = False
+    window = FakeWindow()
+    states = []
+    TibiaConnection(window, states.append)
+
+    tibia["is_running"] = True
+    window.run_planned()
+    window.run_planned()
+
+    assert states == [CONNECTED]
+
+
+def test_a_restored_tibia_is_connected(tibia):
+    tibia["is_minimized"] = True
+    window = FakeWindow()
+    states = []
+    TibiaConnection(window, states.append)
+
+    tibia["is_minimized"] = False
+    window.run_planned()
+
+    assert states == [CONNECTED]
+
+
+def test_state_is_waiting_again_after_tibia_closes(tibia):
+    window = FakeWindow()
+    states = []
+    connection = TibiaConnection(window, states.append)
+
+    tibia["is_running"] = False
+    window.run_planned()
+
+    assert connection.state == WAITING
+    assert states == [WAITING]
+
+
+def test_checks_go_on_after_an_error_in_one_check(tibia):
+    def fail(state):
+        raise RuntimeError("the app failed to show the state")
+
+    tibia["is_running"] = False
+    window = FakeWindow()
+    TibiaConnection(window, fail)
+
+    tibia["is_running"] = True
+    with pytest.raises(RuntimeError):
+        window.run_planned()
+
+    assert window.planned is not None
