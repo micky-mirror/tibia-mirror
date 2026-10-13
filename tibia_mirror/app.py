@@ -1130,7 +1130,6 @@ class App2:
         # run window configuration
         self._use_saved_theme_and_language()
         self._set_title_and_colour()
-        self._set_size_and_place()
         self._show_panel()
         self._style_title_bar()
 
@@ -1184,19 +1183,6 @@ class App2:
     def _set_title_and_colour(self) -> None:
         self.root.title("Tibia Mirror")
         self.root.configure(bg=theme.BG)
-
-    def _set_size_and_place(self) -> None:
-        """Open at the normal size, in the middle of the main screen.
-
-        Sizes in config.py are for 100% scaling, so they are scaled here.
-        On a short screen the window is made shorter to fit.
-        """
-        width, height = scale.px(PANEL_SIZE[0]), scale.px(PANEL_SIZE[1])
-        min_width, min_height = scale.px(PANEL_MIN_SIZE[0]), scale.px(PANEL_MIN_SIZE[1])
-        title_bar = scale.px(PANEL_FRAME)
-        screen = win32.work_area_at((0, 0))
-        self.root.minsize(min_width, min_height)
-        self.root.geometry(panel_geometry((width, height), min_height, title_bar, screen))
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         self.panel = Panel(self.root, self.settings, start_page)

@@ -4,7 +4,8 @@ import tkinter as tk
 from types import TracebackType
 
 from tibia_mirror import errors
-from tibia_mirror.config import APP_ID, ICON_FILE
+from tibia_mirror.config import APP_ID, ICON_FILE, PANEL_FRAME, PANEL_MIN_SIZE, PANEL_SIZE
+from tibia_mirror.core.geometry import panel_geometry
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import scale
 from tibia_mirror.winapi import win32
@@ -19,6 +20,7 @@ class AppWindow(tk.Tk):
         super().__init__()
         self._use_display_scaling()
         self._set_icon()
+        self._set_size_and_place()
         self.use_panel_on_top()
 
     def report_callback_exception(
@@ -54,3 +56,16 @@ class AppWindow(tk.Tk):
         # The same as self.iconbitmap(default=ICON_FILE).
         # mypy rejects that method (it has no type hints), so the command is sent as text.
         self.tk.call("wm", "iconbitmap", str(self), "-default", str(ICON_FILE))
+
+    def _set_size_and_place(self) -> None:
+        """Open at the normal size, in the middle of the main screen.
+
+        Sizes in config.py are for 100% scaling, so they are scaled here.
+        On a short screen the window is made shorter to fit.
+        """
+        width, height = scale.px(PANEL_SIZE[0]), scale.px(PANEL_SIZE[1])
+        min_width, min_height = scale.px(PANEL_MIN_SIZE[0]), scale.px(PANEL_MIN_SIZE[1])
+        title_bar = scale.px(PANEL_FRAME)
+        screen = win32.work_area_at((0, 0))
+        self.minsize(min_width, min_height)
+        self.geometry(panel_geometry((width, height), min_height, title_bar, screen))
