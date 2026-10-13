@@ -1126,26 +1126,26 @@ class App2:
         # Read settings.json. A missing or broken file gives the default settings.
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self._settings_save_job: str | None = None  # the waiting save of the settings, if any
-        self.root = AppWindow(self.settings)
+        self.window = AppWindow(self.settings)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
-        self.root.show()
+        self.window.show()
 
     def run(self) -> None:
-        self.root.mainloop()
+        self.window.mainloop()
 
     def _on_settings_changed(self, previous: AppSettings, current: AppSettings) -> None:
         """Save the settings on a delay, and make the app follow the settings that changed."""
         self._save_settings_on_delay()
 
         if current.is_panel_on_top != previous.is_panel_on_top:
-            self.root.set_panel_on_top()
+            self.window.set_panel_on_top()
 
         if current.theme != previous.theme or current.language != previous.language:
             # The panel is still handling the mouse click on the option, so it cannot be
             # destroyed yet. after_idle runs the rebuild when the panel has finished.
-            self.root.after_idle(self._rebuild_panel)
+            self.window.after_idle(self._rebuild_panel)
 
     def _save_settings_on_delay(self) -> None:
         """Write settings.json a short moment from now.
@@ -1154,10 +1154,10 @@ class App2:
         """
         # throw away the save that is still waiting, if there is one
         if self._settings_save_job is not None:
-            self.root.after_cancel(self._settings_save_job)
+            self.window.after_cancel(self._settings_save_job)
 
         # plan a new save for a short moment from now
-        self._settings_save_job = self.root.after(SETTINGS_SAVE_DELAY_MS, self._save_settings)
+        self._settings_save_job = self.window.after(SETTINGS_SAVE_DELAY_MS, self._save_settings)
 
     def _save_settings(self) -> None:
         """Write settings.json now."""
@@ -1169,12 +1169,12 @@ class App2:
         open_page = self.panel.open_page
         self.panel.destroy()
 
-        self.root.set_theme()
+        self.window.set_theme()
         i18n.use(self.settings.current.language)
         self._show_panel(open_page)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
-        self.panel = Panel(self.root, self.settings, start_page)
+        self.panel = Panel(self.window, self.settings, start_page)
         self.panel.pack(fill="both", expand=True)
 
 
