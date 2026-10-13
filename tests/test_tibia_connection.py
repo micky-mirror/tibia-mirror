@@ -4,6 +4,7 @@ import pytest
 
 from tibia_mirror.app_parts.tibia_connection import TibiaConnection
 from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
+from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.services import game as game_module
 from tibia_mirror.winapi import win32
@@ -67,6 +68,38 @@ def test_state_is_connected_when_tibia_is_running(tibia):
     connection = TibiaConnection(FakeWindow(), do_nothing)
 
     assert connection.state == CONNECTED
+
+
+def test_game_window_is_known_when_tibia_is_running(tibia):
+    connection = TibiaConnection(FakeWindow(), do_nothing)
+
+    assert connection.game_window == GameWindow(HWND, AREA)
+
+
+def test_there_is_no_game_window_when_tibia_is_not_running(tibia):
+    tibia["is_running"] = False
+
+    connection = TibiaConnection(FakeWindow(), do_nothing)
+
+    assert connection.game_window is None
+
+
+def test_there_is_no_game_window_when_tibia_was_minimized_from_the_start(tibia):
+    tibia["is_minimized"] = True
+
+    connection = TibiaConnection(FakeWindow(), do_nothing)
+
+    assert connection.game_window is None
+
+
+def test_game_window_is_kept_while_tibia_is_minimized_later(tibia):
+    window = FakeWindow()
+    connection = TibiaConnection(window, do_nothing)
+
+    tibia["is_minimized"] = True
+    window.run_planned()
+
+    assert connection.game_window == GameWindow(HWND, AREA)
 
 
 def test_nothing_is_told_while_the_state_stays_the_same(tibia):
