@@ -1126,12 +1126,11 @@ class App2:
         # Read settings.json. A missing or broken file gives the default settings.
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self._settings_save_job: str | None = None  # the waiting save of the settings, if any
-        self.root = AppWindow()
+        self.root = AppWindow(self.settings)
         # run window configuration
         self._use_saved_theme_and_language()
         self._set_title_and_colour()
         self._set_size_and_place()
-        self._use_panel_on_top()
         self._show_panel()
         self._style_title_bar()
 
@@ -1143,7 +1142,7 @@ class App2:
         self._save_settings_on_delay()
 
         if current.is_panel_on_top != previous.is_panel_on_top:
-            self._use_panel_on_top()
+            self.root.use_panel_on_top()
 
         if current.theme != previous.theme or current.language != previous.language:
             # The panel is still handling the mouse click on the option, so it cannot be
@@ -1198,10 +1197,6 @@ class App2:
         screen = win32.work_area_at((0, 0))
         self.root.minsize(min_width, min_height)
         self.root.geometry(panel_geometry((width, height), min_height, title_bar, screen))
-
-    def _use_panel_on_top(self) -> None:
-        """Keep the window above other windows, or not, as the setting says."""
-        self.root.attributes("-topmost", self.settings.current.is_panel_on_top)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         self.panel = Panel(self.root, self.settings, start_page)

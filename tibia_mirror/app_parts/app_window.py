@@ -5,6 +5,7 @@ from types import TracebackType
 
 from tibia_mirror import errors
 from tibia_mirror.config import APP_ID, ICON_FILE
+from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import scale
 from tibia_mirror.winapi import win32
 
@@ -12,11 +13,13 @@ from tibia_mirror.winapi import win32
 class AppWindow(tk.Tk):
     """The main window of the app."""
 
-    def __init__(self) -> None:
+    def __init__(self, settings: AppSettingsStore) -> None:
+        self._settings = settings
         self._prepare_windows()
         super().__init__()
         self._use_display_scaling()
         self._set_icon()
+        self.use_panel_on_top()
 
     def report_callback_exception(
         self,
@@ -29,6 +32,10 @@ class AppWindow(tk.Tk):
         Tk calls this method itself when such an error happens.
         """
         errors.log_exception(exc_type, exc_value, exc_traceback)
+
+    def use_panel_on_top(self) -> None:
+        """Keep the window above other windows, or not, as the setting says."""
+        self.attributes("-topmost", self._settings.current.is_panel_on_top)
 
     def _prepare_windows(self) -> None:
         """Keep the app sharp on scaled displays and give it its own taskbar button.
