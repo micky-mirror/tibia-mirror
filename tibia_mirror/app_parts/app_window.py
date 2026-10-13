@@ -5,6 +5,7 @@ from types import TracebackType
 
 from tibia_mirror import errors
 from tibia_mirror.config import APP_ID
+from tibia_mirror.ui.base import scale
 from tibia_mirror.winapi import win32
 
 
@@ -14,6 +15,7 @@ class AppWindow(tk.Tk):
     def __init__(self) -> None:
         self._prepare_windows()
         super().__init__()
+        self._use_display_scaling()
 
     def report_callback_exception(
         self,
@@ -34,3 +36,7 @@ class AppWindow(tk.Tk):
         """
         win32.enable_dpi_awareness()
         win32.set_app_id(APP_ID)
+
+    def _use_display_scaling(self) -> None:
+        """Make our pixel sizes grow with the display scaling (125%, 150%, ...)."""
+        scale.init(self)

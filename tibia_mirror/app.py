@@ -1128,7 +1128,6 @@ class App2:
         self._settings_save_job: str | None = None  # the waiting save of the settings, if any
         self.root = AppWindow()
         # run window configuration
-        self._use_display_scaling()
         self._use_saved_theme_and_language()
         self._set_title_and_colour()
         self._set_icon()
@@ -1178,10 +1177,6 @@ class App2:
         self._set_title_and_colour()
         self._show_panel(open_page)
         self._style_title_bar()
-
-    def _use_display_scaling(self) -> None:
-        """Make our pixel sizes grow with the display scaling (125%, 150%, ...)."""
-        scale.init(self.root)
 
     def _use_saved_theme_and_language(self) -> None:
         # Button styles contain pixel sizes, so the theme is loaded after the scaling.
