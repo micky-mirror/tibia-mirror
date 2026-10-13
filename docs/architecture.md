@@ -179,7 +179,7 @@ These are deliberate and must stay true:
 ## Conventions
 
 - State lives on `App` and its services; UI classes get callbacks, never globals.
-- Imports point one way: `app.py` -> `services/` -> `ui/` and `winapi/` -> `settings/` -> `core/`.
+- Imports point one way: `app.py` -> `app_parts/` -> `services/` -> `ui/` and `winapi/` -> `settings/` -> `core/`.
   Inside `ui/`, `panel/` and `overlay/` may use `controls/` and `base/`, and `base/` uses none of them.
 - Every Win32 function is declared once, with its argument and return types, in `winapi/win32.py` or `winapi/dwm.py`.
 - Pure modules stay free of Win32 and Tk, so they stay testable.

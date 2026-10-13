@@ -12,6 +12,7 @@ from tkinter import filedialog
 from types import TracebackType
 
 from tibia_mirror import errors, i18n
+from tibia_mirror.app_parts.app_window import AppWindow
 from tibia_mirror.config import (
     APP_ID,
     ATTACH_POLL_MS,
@@ -1125,8 +1126,7 @@ class App2:
         # Read settings.json. A missing or broken file gives the default settings.
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self._settings_save_job: str | None = None  # the waiting save of the settings, if any
-        self._prepare_windows()
-        self.root = _Root()
+        self.root = AppWindow()
         # run window configuration
         self._use_display_scaling()
         self._use_saved_theme_and_language()
@@ -1178,14 +1178,6 @@ class App2:
         self._set_title_and_colour()
         self._show_panel(open_page)
         self._style_title_bar()
-
-    def _prepare_windows(self) -> None:
-        """Keep the app sharp on scaled displays and give it its own taskbar button.
-
-        Windows needs both before the first window is created.
-        """
-        win32.enable_dpi_awareness()
-        win32.set_app_id(APP_ID)
 
     def _use_display_scaling(self) -> None:
         """Make our pixel sizes grow with the display scaling (125%, 150%, ...)."""
