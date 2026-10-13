@@ -24,7 +24,12 @@ class TibiaConnection:
         return self._game.state
 
     def _look_for_tibia(self) -> None:
-        """Find Tibia's window and read where its client area is."""
+        """Read what is true about Tibia now.
+
+        Forget its window if Tibia has closed, look for a window if none is known,
+        and read where its client area is.
+        """
+        self._game.check_closed()
         self._game.find()
         self._game.current_client()
 
