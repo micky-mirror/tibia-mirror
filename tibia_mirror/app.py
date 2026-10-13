@@ -78,6 +78,7 @@ from tibia_mirror.ui.panel.mirrors_page import (
 from tibia_mirror.ui.panel.panel import ControlPanel
 from tibia_mirror.ui.panel.settings_page import SettingValue
 from tibia_mirror.ui.panel2.panel import START_PAGE, Panel
+from tibia_mirror.ui.panel2.profile_info import ProfileInfo
 from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.instance import SingleInstance
 from tibia_mirror.winapi.rawinput import InputWatcher
@@ -1166,7 +1167,18 @@ class App2:
         self._show_panel(open_page)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
-        self.panel = Panel(self.window, self.settings, self.connection.state, start_page)
+        profile_info = ProfileInfo(
+            active_name=self.profile_manager.active_name,
+            names=tuple(self.profile_manager.get_names()),
+        )
+
+        self.panel = Panel(
+            self.window,
+            self.settings,
+            self.connection.state,
+            profile_info,
+            start_page,
+        )
         self.panel.pack(fill="both", expand=True)
 
 

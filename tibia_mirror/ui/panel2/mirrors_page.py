@@ -2,7 +2,6 @@
 
 import tkinter as tk
 
-from tibia_mirror.config import DEFAULT_PROFILE
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import margins
@@ -10,6 +9,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import RaisedButton, ScrollList
 from tibia_mirror.ui.panel2.mirror_card.card import MirrorCard
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.profile_info import ProfileInfo
 from tibia_mirror.ui.panel2.profile_picker import ProfilePicker
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -66,10 +66,17 @@ BOTTOM_PAD = 14  # below the line that tells if the changes are saved
 class MirrorsPage(tk.Frame):
     """The Mirrors page."""
 
-    def __init__(self, parent: tk.Misc, width: int, side_pad: int) -> None:
+    def __init__(
+        self,
+        parent: tk.Misc,
+        width: int,
+        side_pad: int,
+        profile_info: ProfileInfo,
+    ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
+        self._profile_info = profile_info
         self._mirrors = SAMPLE_MIRRORS
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
@@ -84,7 +91,12 @@ class MirrorsPage(tk.Frame):
 
     def _add_profile_picker(self) -> None:
         """The box at the top with the name of the active profile."""
-        profile_picker = ProfilePicker(self, self._width, DEFAULT_PROFILE, [DEFAULT_PROFILE])
+        profile_picker = ProfilePicker(
+            self,
+            self._width,
+            self._profile_info.active_name,
+            self._profile_info.names,
+        )
         profile_picker.pack(
             side="top",
             anchor="w",

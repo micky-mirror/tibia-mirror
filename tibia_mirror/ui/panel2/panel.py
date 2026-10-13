@@ -12,6 +12,7 @@ from tibia_mirror.ui.panel2.about_page import AboutPage
 from tibia_mirror.ui.panel2.footer import Footer
 from tibia_mirror.ui.panel2.mirrors_page import MirrorsPage
 from tibia_mirror.ui.panel2.nav import NavRail
+from tibia_mirror.ui.panel2.profile_info import ProfileInfo
 from tibia_mirror.ui.panel2.settings_page import SettingsPage
 from tibia_mirror.ui.panel2.shortcuts_page import ShortcutsPage
 
@@ -47,11 +48,13 @@ class Panel(tk.Frame):
         window: tk.Misc,
         settings: AppSettingsStore,
         connection_state: str,
+        profile_info: ProfileInfo,
         start_page: str = START_PAGE,
     ) -> None:
         super().__init__(window, bg=theme.BG)
         self._settings = settings
         self._connection_state = connection_state  # the state the connection line shows
+        self._profile_info = profile_info
         self.open_page = start_page  # the key of the page that is shown
         self._add_menu()
         self._add_content()
@@ -107,7 +110,12 @@ class Panel(tk.Frame):
         The keys are the keys of the menu entries.
         """
         self._pages: dict[str, tk.Frame] = {
-            "mirrors": MirrorsPage(self._content, content_width(), px(SIDE_PAD)),
+            "mirrors": MirrorsPage(
+                self._content,
+                content_width(),
+                px(SIDE_PAD),
+                self._profile_info,
+            ),
             "shortcuts": ShortcutsPage(self._content, content_width(), px(SIDE_PAD)),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),
