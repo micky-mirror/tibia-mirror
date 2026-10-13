@@ -54,3 +54,29 @@ def test_the_settings_are_written_when_the_wait_is_over(tmp_path):
     window.run_planned()
 
     assert AppSettingsStore(file, do_nothing).current.theme == "light"
+
+
+def test_many_quick_changes_give_one_write(tmp_path):
+    file = tmp_path / "settings.json"
+    window = FakeWindow()
+    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing))
+
+    writer.write_on_delay()
+    writer.write_on_delay()
+    writer.write_on_delay()
+
+    assert len(window.planned) == 1
+
+
+def test_a_new_write_can_be_planned_after_a_write(tmp_path):
+    file = tmp_path / "settings.json"
+    window = FakeWindow()
+    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing))
+    writer.write_on_delay()
+    window.run_planned()
+    file.unlink()
+
+    writer.write_on_delay()
+    window.run_planned()
+
+    assert file.exists()
