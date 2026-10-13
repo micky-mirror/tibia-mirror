@@ -1139,6 +1139,7 @@ class App2:
         i18n.use(self.settings.current.language)
         self._show_panel()
         self.window.show()
+        self._show_mirrors()
 
     def run(self) -> None:
         self.window.mainloop()
@@ -1156,8 +1157,9 @@ class App2:
             self.window.after_idle(self._rebuild_panel)
 
     def _on_connection_changed(self, state: str) -> None:
-        """Show the new state of the connection to Tibia on the panel."""
+        """Show the new state of the connection on the panel, and show or close the mirrors."""
         self.panel.set_connection_state(state)
+        self._show_mirrors()
 
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, on the same page."""
@@ -1167,6 +1169,17 @@ class App2:
         self.window.set_theme()
         i18n.use(self.settings.current.language)
         self._show_panel(open_page)
+
+    def _show_mirrors(self) -> None:
+        """Show the mirrors of the open profile. Without a window of Tibia, close them."""
+        game_window = self.connection.game_window
+
+        if game_window is None:
+            self.mirror_manager.close()
+            return
+
+        mirrors = self.profile_manager.read_mirrors()
+        self.mirror_manager.show(mirrors, game_window)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         profile_info = ProfileInfo(
