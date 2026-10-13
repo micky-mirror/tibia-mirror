@@ -45,6 +45,9 @@ class MirrorSettings:
             opacity=saved.get_opacity(),
             zoom=saved.get_zoom(),
             colour=saved.get_colour(),
+            is_hidden=saved.get_bool("hidden"),
+            is_locked=saved.get_bool("locked"),
+            timer=saved.get_timer(),
         )
 
 
@@ -116,6 +119,18 @@ class _SavedMirror:
             return value
 
         return FRAME_COLORS[0]
+
+    def get_bool(self, name: str) -> bool:
+        """The saved value if it is true or false. If not, false."""
+        value = self._data.get(name)
+
+        if isinstance(value, bool):
+            return value
+
+        return False
+
+    def get_timer(self) -> TimerSettings:
+        return TimerSettings.from_json(self._data.get("timer"))
 
     def _is_window_size(self, key: str) -> bool:
         """True for a text like "1920x1080" with both numbers above zero."""
