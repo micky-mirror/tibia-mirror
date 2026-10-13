@@ -1130,7 +1130,6 @@ class App2:
         # run window configuration
         self._use_saved_theme_and_language()
         self._set_title_and_colour()
-        self._set_icon()
         self._set_size_and_place()
         self._use_panel_on_top()
         self._show_panel()
@@ -1186,12 +1185,6 @@ class App2:
     def _set_title_and_colour(self) -> None:
         self.root.title("Tibia Mirror")
         self.root.configure(bg=theme.BG)
-
-    def _set_icon(self) -> None:
-        """Use the app icon for this window and for every dialog."""
-        # The same as root.iconbitmap(default=ICON_FILE).
-        # mypy rejects that method (it has no type hints), so the command is sent as text.
-        self.root.tk.call("wm", "iconbitmap", str(self.root), "-default", str(ICON_FILE))
 
     def _set_size_and_place(self) -> None:
         """Open at the normal size, in the middle of the main screen.
