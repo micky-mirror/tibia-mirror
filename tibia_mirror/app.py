@@ -1131,6 +1131,7 @@ class App2:
         i18n.use(self.settings.current.language)
         self._show_panel()
         self._style_title_bar()
+        self.root.show()
 
     def run(self) -> None:
         self.root.mainloop()

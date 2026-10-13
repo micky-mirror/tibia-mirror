@@ -18,6 +18,7 @@ class AppWindow(tk.Tk):
         self._settings = settings
         self._prepare_windows()
         super().__init__()
+        self.withdraw()  # hidden until show() is called
         self.title("Tibia Mirror")
         self._use_display_scaling()
         self.use_saved_theme()
@@ -36,6 +37,10 @@ class AppWindow(tk.Tk):
         Tk calls this method itself when such an error happens.
         """
         errors.log_exception(exc_type, exc_value, exc_traceback)
+
+    def show(self) -> None:
+        """Show the window. It stays hidden until the app calls this."""
+        self.deiconify()
 
     def use_panel_on_top(self) -> None:
         """Keep the window above other windows, or not, as the setting says."""
