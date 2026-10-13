@@ -44,11 +44,11 @@ class Panel(tk.Frame):
 
     def __init__(
         self,
-        root: tk.Misc,
+        window: tk.Misc,
         settings: AppSettingsStore,
         start_page: str = START_PAGE,
     ) -> None:
-        super().__init__(root, bg=theme.BG)
+        super().__init__(window, bg=theme.BG)
         self._settings = settings
         self.open_page = start_page  # the key of the page that is shown
         self._add_menu()

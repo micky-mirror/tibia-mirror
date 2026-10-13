@@ -20,12 +20,12 @@ class ProfileMenu:
         self._active_name = active_name  # the name of the active profile
         self._profile_names = profile_names  # the names of all profiles
 
-    def open(self, root: tk.Misc, box: Box, on_close: Callable[[], None]) -> None:
+    def open(self, window: tk.Misc, box: Box, on_close: Callable[[], None]) -> None:
         """Open the menu under `box`, as wide as it. `box` is a place on the screen.
 
         `on_close` is called when the menu closes.
         """
-        PopupMenu(root, box, self._get_items(), on_close=on_close)
+        PopupMenu(window, box, self._get_items(), on_close=on_close)
 
     def _get_items(self) -> list[MenuItem | None]:
         """The entries of the menu: every profile, then what can be done with profiles."""
