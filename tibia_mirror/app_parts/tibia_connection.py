@@ -4,6 +4,7 @@ import tkinter as tk
 from collections.abc import Callable
 
 from tibia_mirror.config import ATTACH_POLL_MS
+from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.services.game import Game
 
 
@@ -22,6 +23,17 @@ class TibiaConnection:
     def state(self) -> str:
         """The state of the connection: WAITING, MINIMIZED or CONNECTED."""
         return self._game.state
+
+    @property
+    def game_window(self) -> GameWindow | None:
+        """The window of Tibia. None while the state is not CONNECTED."""
+        handle = self._game.hwnd
+        client_area = self._game.client
+
+        if handle is None or client_area is None:
+            return None
+
+        return GameWindow(handle, client_area)
 
     def _look_for_tibia(self) -> None:
         """Read what is true about Tibia now.
