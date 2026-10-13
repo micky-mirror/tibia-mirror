@@ -32,6 +32,22 @@ class ProfileManager:
 
         return sorted(names, key=str.casefold)
 
+    def read_mirrors(self) -> list[MirrorSettings]:
+        """Read the mirrors of the open profile from its file.
+
+        If the file cannot be read, this raises OSError.
+        If the file is not a good profile file, this raises ValueError.
+        """
+        file_content: str = self._get_file(self._active_name).read_text(encoding="utf-8")
+
+        try:
+            data = json.loads(file_content)
+            saved_mirrors = data if isinstance(data, list) else data["mirrors"]
+
+            return [MirrorSettings.from_json(saved_mirror) for saved_mirror in saved_mirrors]
+        except (KeyError, TypeError, AttributeError) as error:
+            raise ValueError("the profile file is invalid") from error
+
     def _get_start_name(self) -> str:
         """The profile to open at the start: the one that was open the last time.
 
