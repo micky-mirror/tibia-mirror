@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from tibia_mirror.config import DEFAULT_OPACITY, FRAME_COLORS
-from tibia_mirror.core.regions import Layout
+from tibia_mirror.core.regions import Layout, new_id, parse_size_key
 from tibia_mirror.core.timers import TimerSettings
 
 
@@ -22,3 +23,69 @@ class MirrorSettings:
     is_hidden: bool = False
     is_locked: bool = False  # clicks go through a locked mirror to the game
     timer: TimerSettings = field(default_factory=TimerSettings)
+
+    @classmethod
+    def from_json(cls, data: object) -> MirrorSettings:
+        """Make the settings from one mirror of a profile file.
+
+        A mirror without a name or without a layout raises ValueError.
+        """
+        saved = _SavedMirror(data)
+
+        return cls(
+            mirror_id=saved.get_mirror_id(),
+            name=saved.get_name(),
+            layouts=saved.get_layouts(),
+        )
+
+
+class _SavedMirror:
+    """One mirror of a profile file, with one method for each value."""
+
+    def __init__(self, data: object) -> None:
+        if not isinstance(data, dict):
+            raise ValueError("a mirror must be a JSON object")
+
+        self._data: dict[str, Any] = data
+
+    def get_mirror_id(self) -> str:
+        """The saved id. A mirror without one gets a new id."""
+        value = self._data.get("id")
+
+        if isinstance(value, str) and value != "":
+            return value
+
+        return new_id()
+
+    def get_name(self) -> str:
+        value = self._data.get("name")
+
+        if isinstance(value, str) and value != "":
+            return value
+
+        raise ValueError("a mirror needs a name")
+
+    def get_layouts(self) -> dict[str, Layout]:
+        """The saved layouts. A key that is not a real window size is left out."""
+        value = self._data.get("layouts")
+        saved_layouts = value if isinstance(value, dict) else {}
+
+        layouts = {
+            size: Layout.from_json(layout)
+            for size, layout in saved_layouts.items()
+            if self._is_window_size(size)
+        }
+
+        if not layouts:
+            raise ValueError("a mirror needs at least one layout")
+
+        return layouts
+
+    def _is_window_size(self, key: str) -> bool:
+        """True for a text like "1920x1080" with both numbers above zero."""
+        try:
+            parse_size_key(key)
+        except ValueError:
+            return False
+
+        return True
