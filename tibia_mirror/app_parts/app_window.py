@@ -18,6 +18,7 @@ class AppWindow(tk.Tk):
         self._settings = settings
         self._prepare_windows()
         super().__init__()
+        self.title("Tibia Mirror")
         self._use_display_scaling()
         self._set_icon()
         self._set_size_and_place()

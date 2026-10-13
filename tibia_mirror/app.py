@@ -1129,7 +1129,7 @@ class App2:
         self.root = AppWindow(self.settings)
         # run window configuration
         self._use_saved_theme_and_language()
-        self._set_title_and_colour()
+        self._set_window_colour()
         self._show_panel()
         self._style_title_bar()
 
@@ -1171,7 +1171,7 @@ class App2:
         self.panel.destroy()
 
         self._use_saved_theme_and_language()
-        self._set_title_and_colour()
+        self._set_window_colour()
         self._show_panel(open_page)
         self._style_title_bar()
 
@@ -1180,8 +1180,7 @@ class App2:
         theme.use(self.settings.current.theme)
         i18n.use(self.settings.current.language)
 
-    def _set_title_and_colour(self) -> None:
-        self.root.title("Tibia Mirror")
+    def _set_window_colour(self) -> None:
         self.root.configure(bg=theme.BG)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
