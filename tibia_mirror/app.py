@@ -1127,9 +1127,8 @@ class App2:
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self._settings_save_job: str | None = None  # the waiting save of the settings, if any
         self.root = AppWindow(self.settings)
-        # run window configuration
-        self._use_saved_theme_and_language()
-        self._set_window_colour()
+        # use the saved language for every text
+        i18n.use(self.settings.current.language)
         self._show_panel()
         self._style_title_bar()
 
@@ -1170,18 +1169,10 @@ class App2:
         open_page = self.panel.open_page
         self.panel.destroy()
 
-        self._use_saved_theme_and_language()
-        self._set_window_colour()
+        self.root.use_saved_theme()
+        i18n.use(self.settings.current.language)
         self._show_panel(open_page)
         self._style_title_bar()
-
-    def _use_saved_theme_and_language(self) -> None:
-        # Button styles contain pixel sizes, so the theme is loaded after the scaling.
-        theme.use(self.settings.current.theme)
-        i18n.use(self.settings.current.language)
-
-    def _set_window_colour(self) -> None:
-        self.root.configure(bg=theme.BG)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         self.panel = Panel(self.root, self.settings, start_page)

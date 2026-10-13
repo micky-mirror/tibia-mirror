@@ -7,7 +7,7 @@ from tibia_mirror import errors
 from tibia_mirror.config import APP_ID, ICON_FILE, PANEL_FRAME, PANEL_MIN_SIZE, PANEL_SIZE
 from tibia_mirror.core.geometry import panel_geometry
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
-from tibia_mirror.ui.base import scale
+from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.winapi import win32
 
 
@@ -20,6 +20,7 @@ class AppWindow(tk.Tk):
         super().__init__()
         self.title("Tibia Mirror")
         self._use_display_scaling()
+        self.use_saved_theme()
         self._set_icon()
         self._set_size_and_place()
         self.use_panel_on_top()
@@ -39,6 +40,12 @@ class AppWindow(tk.Tk):
     def use_panel_on_top(self) -> None:
         """Keep the window above other windows, or not, as the setting says."""
         self.attributes("-topmost", self._settings.current.is_panel_on_top)
+
+    def use_saved_theme(self) -> None:
+        """Load the saved theme and give the window its background colour."""
+        # Button styles contain pixel sizes, so the theme is loaded after the scaling.
+        theme.use(self._settings.current.theme)
+        self.configure(bg=theme.BG)
 
     def _prepare_windows(self) -> None:
         """Keep the app sharp on scaled displays and give it its own taskbar button.
