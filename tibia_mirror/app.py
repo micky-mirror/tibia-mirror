@@ -1130,7 +1130,6 @@ class App2:
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
-        self._style_title_bar()
         self.root.show()
 
     def run(self) -> None:
@@ -1141,7 +1140,7 @@ class App2:
         self._save_settings_on_delay()
 
         if current.is_panel_on_top != previous.is_panel_on_top:
-            self.root.use_panel_on_top()
+            self.root.set_panel_on_top()
 
         if current.theme != previous.theme or current.language != previous.language:
             # The panel is still handling the mouse click on the option, so it cannot be
@@ -1170,19 +1169,13 @@ class App2:
         open_page = self.panel.open_page
         self.panel.destroy()
 
-        self.root.use_saved_theme()
+        self.root.set_theme()
         i18n.use(self.settings.current.language)
         self._show_panel(open_page)
-        self._style_title_bar()
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         self.panel = Panel(self.root, self.settings, start_page)
         self.panel.pack(fill="both", expand=True)
-
-    def _style_title_bar(self) -> None:
-        """Make the title bar dark in the dark theme. Windows draws it, so we ask Windows."""
-        window_handle = win32.toplevel_hwnd(self.root)
-        dwm.set_dark_title_bar(window_handle, theme.current == "dark")
 
 
 def main() -> None:
