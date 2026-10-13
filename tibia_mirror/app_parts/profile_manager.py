@@ -1,9 +1,14 @@
 """The profiles of the user."""
 
+import json
+from collections.abc import Sequence
 from pathlib import Path
 
-from tibia_mirror.core.profiles import ProfileStore
+from tibia_mirror.config import DEFAULT_PROFILE
+from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
+
+PROFILE_FILE_FORMAT = 2  # the "version" number written into every profile file
 
 
 class ProfileManager:
@@ -12,9 +17,7 @@ class ProfileManager:
     def __init__(self, folder: Path, settings: AppSettingsStore) -> None:
         self._folder = folder
         self._settings = settings
-        self._store = ProfileStore(folder)
-        # the first start has no profile, so an empty "Default" is created
-        self._store.ensure_one()
+        self._create_first_profile()
         self._active_name = self._get_start_name()
 
     @property
@@ -43,3 +46,27 @@ class ProfileManager:
                 return name
 
         return names[0]
+
+    def _create_first_profile(self) -> None:
+        """Create an empty "Default" profile if there is no profile at all."""
+        has_profiles: bool = len(self.get_names()) > 0
+
+        if not has_profiles:
+            self._write_mirrors(DEFAULT_PROFILE, [])
+
+    def _get_file(self, name: str) -> Path:
+        return self._folder / f"{name}.json"
+
+    def _write_mirrors(self, name: str, mirrors: Sequence[MirrorSettings]) -> None:
+        """Write the mirrors to the file of the profile `name`.
+
+        If the file cannot be written, this raises OSError.
+        """
+        data = {
+            "version": PROFILE_FILE_FORMAT,
+            "mirrors": [mirror.to_json() for mirror in mirrors],
+        }
+        file_content: str = json.dumps(data, indent=2)
+
+        self._folder.mkdir(parents=True, exist_ok=True)
+        self._get_file(name).write_text(file_content, encoding="utf-8")
