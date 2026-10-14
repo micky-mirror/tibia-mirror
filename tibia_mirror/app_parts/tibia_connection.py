@@ -41,6 +41,11 @@ class TibiaConnection:
 
         return GameWindow(handle, client_area)
 
+    @property
+    def is_minimized(self) -> bool:
+        """True while the window of Tibia is minimized."""
+        return self._game.is_minimized()
+
     def _look_for_tibia(self) -> None:
         """Read what is true about Tibia now.
 

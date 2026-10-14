@@ -195,3 +195,19 @@ def test_a_new_connection_is_told_only_as_a_new_state(tibia):
     window.run_planned()
 
     assert game_windows == []
+
+
+def test_is_minimized_when_tibia_is_minimized_later(tibia):
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
+
+    tibia["is_minimized"] = True
+
+    assert connection.is_minimized
+
+
+def test_is_not_minimized_when_tibia_is_not_running(tibia):
+    tibia["is_running"] = False
+
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
+
+    assert not connection.is_minimized
