@@ -1,6 +1,7 @@
 """The panel: everything inside the main window."""
 
 import tkinter as tk
+import tkinter.font as tkfont
 
 from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
@@ -8,6 +9,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel2.about_page import AboutPage
 from tibia_mirror.ui.panel2.footer import Footer
 from tibia_mirror.ui.panel2.mirrors_page import MirrorsPage
@@ -19,6 +21,7 @@ from tibia_mirror.ui.panel2.shortcuts_page import ShortcutsPage
 # Sizes at 100% display scaling; px() scales them where they are used.
 SIDE_PAD = 20  # left and right of the content
 CONNECTION_TOP_PAD = 14  # above the connection line
+MESSAGE_GAP = 12  # at least this much between the connection text and the message
 FOOTER_TOP_PAD = 10  # between the thin line and the footer
 FOOTER_BOTTOM_PAD = 12  # below the footer
 
@@ -30,6 +33,9 @@ CONNECTION_TEXTS = {
     MINIMIZED: "Tibia is minimized",
     CONNECTED: "Tibia connected",
 }
+
+# The colours of the message line: tone -> theme colour name.
+MESSAGE_TONES = {"muted": "SUBTEXT", "ok": "GREEN", "error": "RED"}
 
 
 def content_width() -> int:
@@ -58,7 +64,7 @@ class Panel(tk.Frame):
         self.open_page = start_page  # the key of the page that is shown
         self._add_menu()
         self._add_content()
-        self._add_connection_line()
+        self._add_top_line()
         self._add_footer()
         self._add_pages()
 
@@ -70,16 +76,29 @@ class Panel(tk.Frame):
         self._content = tk.Frame(self, bg=theme.BG)
         self._content.pack(side="left", fill="both", expand=True)
 
-    def _add_connection_line(self) -> None:
-        """The line at the top that says if the app has found Tibia."""
-        self._connection = tk.Label(self._content, bg=theme.BG, font=theme.FONT)
-        self._connection.pack(
+    def _add_top_line(self) -> None:
+        """The line at the top: the connection on the left, a message on the right."""
+        top_line = tk.Frame(self._content, bg=theme.BG)
+        top_line.pack(
             side="top",
-            anchor="w",
+            fill="x",
             padx=px(SIDE_PAD),
             pady=(px(CONNECTION_TOP_PAD), 0),
         )
+        self._add_connection_text(top_line)
+        self._add_message(top_line)
+
+    def _add_connection_text(self, top_line: tk.Frame) -> None:
+        """The text that says if the app has found Tibia."""
+        self._connection = tk.Label(top_line, bg=theme.BG, font=theme.FONT)
+        self._connection.pack(side="left")
         self.set_connection_state(self._connection_state)
+
+    def _add_message(self, top_line: tk.Frame) -> None:
+        """A short message for the user, on the right. Empty until set_message() is called."""
+        self._message = tk.Label(top_line, bg=theme.BG, font=theme.FONT)
+        self._message.place(relx=1.0, rely=0.5, anchor="e")
+        self._message_font = tkfont.Font(font=theme.FONT)
 
     def set_connection_state(self, state: str) -> None:
         """Set Tibia connection state."""
@@ -90,6 +109,12 @@ class Panel(tk.Frame):
         colour = theme.GREEN if is_connected else theme.SUBTEXT
 
         self._connection.configure(text="● " + text, fg=colour)
+
+    def set_message(self, text: str, tone: str = "muted") -> None:
+        """Show a short message for the user. An empty text hides it."""
+        free_width = content_width() - self._connection.winfo_reqwidth() - px(MESSAGE_GAP)
+        text = elide(text, self._message_font, free_width)
+        self._message.configure(text=text, fg=getattr(theme, MESSAGE_TONES[tone]))
 
     def _add_footer(self) -> None:
         """The footer at the bottom, under a thin line."""
