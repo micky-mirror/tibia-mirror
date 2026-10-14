@@ -32,7 +32,7 @@ class FakeWindow:
 @pytest.fixture
 def tibia(monkeypatch):
     """What Windows reports about Tibia; a test changes it to set the scene."""
-    reported = {"is_running": True, "is_minimized": False}
+    reported = {"is_running": True, "is_minimized": False, "client_area": AREA}
 
     def find_window():
         return HWND if reported["is_running"] else None
@@ -40,18 +40,18 @@ def tibia(monkeypatch):
     monkeypatch.setattr(game_module, "find_tibia_window", find_window)
     monkeypatch.setattr(win32, "is_window", lambda hwnd: reported["is_running"])
     monkeypatch.setattr(win32, "is_minimized", lambda hwnd: reported["is_minimized"])
-    monkeypatch.setattr(win32, "client_rect", lambda hwnd: AREA)
+    monkeypatch.setattr(win32, "client_rect", lambda hwnd: reported["client_area"])
     return reported
 
 
-def do_nothing(state: str) -> None:
+def do_nothing(value) -> None:
     pass
 
 
 def test_state_is_waiting_when_tibia_is_not_running(tibia):
     tibia["is_running"] = False
 
-    connection = TibiaConnection(FakeWindow(), do_nothing)
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
     assert connection.state == WAITING
 
@@ -59,19 +59,19 @@ def test_state_is_waiting_when_tibia_is_not_running(tibia):
 def test_state_is_minimized_when_tibia_is_minimized(tibia):
     tibia["is_minimized"] = True
 
-    connection = TibiaConnection(FakeWindow(), do_nothing)
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
     assert connection.state == MINIMIZED
 
 
 def test_state_is_connected_when_tibia_is_running(tibia):
-    connection = TibiaConnection(FakeWindow(), do_nothing)
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
     assert connection.state == CONNECTED
 
 
 def test_game_window_is_known_when_tibia_is_running(tibia):
-    connection = TibiaConnection(FakeWindow(), do_nothing)
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
     assert connection.game_window == GameWindow(HWND, AREA)
 
@@ -79,7 +79,7 @@ def test_game_window_is_known_when_tibia_is_running(tibia):
 def test_there_is_no_game_window_when_tibia_is_not_running(tibia):
     tibia["is_running"] = False
 
-    connection = TibiaConnection(FakeWindow(), do_nothing)
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
     assert connection.game_window is None
 
@@ -87,14 +87,14 @@ def test_there_is_no_game_window_when_tibia_is_not_running(tibia):
 def test_there_is_no_game_window_when_tibia_was_minimized_from_the_start(tibia):
     tibia["is_minimized"] = True
 
-    connection = TibiaConnection(FakeWindow(), do_nothing)
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
     assert connection.game_window is None
 
 
 def test_game_window_is_kept_while_tibia_is_minimized_later(tibia):
     window = FakeWindow()
-    connection = TibiaConnection(window, do_nothing)
+    connection = TibiaConnection(window, do_nothing, do_nothing)
 
     tibia["is_minimized"] = True
     window.run_planned()
@@ -105,7 +105,7 @@ def test_game_window_is_kept_while_tibia_is_minimized_later(tibia):
 def test_nothing_is_told_while_the_state_stays_the_same(tibia):
     window = FakeWindow()
     states = []
-    TibiaConnection(window, states.append)
+    TibiaConnection(window, states.append, do_nothing)
 
     window.run_planned()
 
@@ -116,7 +116,7 @@ def test_a_new_state_is_told_to_the_app_one_time(tibia):
     tibia["is_running"] = False
     window = FakeWindow()
     states = []
-    TibiaConnection(window, states.append)
+    TibiaConnection(window, states.append, do_nothing)
 
     tibia["is_running"] = True
     window.run_planned()
@@ -129,7 +129,7 @@ def test_a_restored_tibia_is_connected(tibia):
     tibia["is_minimized"] = True
     window = FakeWindow()
     states = []
-    TibiaConnection(window, states.append)
+    TibiaConnection(window, states.append, do_nothing)
 
     tibia["is_minimized"] = False
     window.run_planned()
@@ -140,7 +140,7 @@ def test_a_restored_tibia_is_connected(tibia):
 def test_state_is_waiting_again_after_tibia_closes(tibia):
     window = FakeWindow()
     states = []
-    connection = TibiaConnection(window, states.append)
+    connection = TibiaConnection(window, states.append, do_nothing)
 
     tibia["is_running"] = False
     window.run_planned()
@@ -155,10 +155,43 @@ def test_checks_go_on_after_an_error_in_one_check(tibia):
 
     tibia["is_running"] = False
     window = FakeWindow()
-    TibiaConnection(window, fail)
+    TibiaConnection(window, fail, do_nothing)
 
     tibia["is_running"] = True
     with pytest.raises(RuntimeError):
         window.run_planned()
 
     assert window.planned is not None
+
+
+def test_a_moved_tibia_is_told_to_the_app(tibia):
+    window = FakeWindow()
+    game_windows = []
+    TibiaConnection(window, do_nothing, game_windows.append)
+
+    tibia["client_area"] = Rect(50, 60, 800, 600)
+    window.run_planned()
+
+    assert game_windows == [GameWindow(HWND, Rect(50, 60, 800, 600))]
+
+
+def test_nothing_is_told_while_tibia_stays_in_place(tibia):
+    window = FakeWindow()
+    game_windows = []
+    TibiaConnection(window, do_nothing, game_windows.append)
+
+    window.run_planned()
+
+    assert game_windows == []
+
+
+def test_a_new_connection_is_told_only_as_a_new_state(tibia):
+    tibia["is_running"] = False
+    window = FakeWindow()
+    game_windows = []
+    TibiaConnection(window, do_nothing, game_windows.append)
+
+    tibia["is_running"] = True
+    window.run_planned()
+
+    assert game_windows == []

@@ -11,10 +11,16 @@ from tibia_mirror.services.game import Game
 class TibiaConnection:
     """Knows if Tibia is running and if its window can be seen."""
 
-    def __init__(self, window: tk.Misc, on_state_changed: Callable[[str], None]) -> None:
+    def __init__(
+        self,
+        window: tk.Misc,
+        on_state_changed: Callable[[str], None],
+        on_game_window_changed: Callable[[GameWindow], None],
+    ) -> None:
         self._window = window
         # Called with the new state every time the state changes.
         self._on_state_changed = on_state_changed
+        self._on_game_window_changed = on_game_window_changed
         self._game = Game()
         self._look_for_tibia()
         self._check_on_delay()
@@ -50,13 +56,16 @@ class TibiaConnection:
         self._window.after(ATTACH_POLL_MS, self._check)
 
     def _check(self) -> None:
-        """Look for Tibia again, and tell the app if the state changed."""
+        """Look for Tibia again, and tell the app what changed."""
         # plan the next check first, so an error in this one cannot stop the checks
         self._check_on_delay()
 
         previous_state = self.state
+        previous_game_window = self.game_window
         self._look_for_tibia()
-        is_changed: bool = self.state != previous_state
+        game_window = self.game_window
 
-        if is_changed:
+        if self.state != previous_state:
             self._on_state_changed(self.state)
+        elif game_window is not None and game_window != previous_game_window:
+            self._on_game_window_changed(game_window)

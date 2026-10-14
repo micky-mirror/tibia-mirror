@@ -39,6 +39,7 @@ from tibia_mirror.config import (
 )
 from tibia_mirror.core import characters, regions
 from tibia_mirror.core.characters import Links
+from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.core.profiles import ProfileStore, copy_name, name_error
@@ -1132,7 +1133,9 @@ class App2:
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self.window = AppWindow(self.settings)
         self.settings_writer = SettingsWriter(self.window, self.settings)
-        self.connection = TibiaConnection(self.window, self._on_connection_changed)
+        self.connection = TibiaConnection(
+            self.window, self._on_connection_changed, self._on_game_window_changed
+        )
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings)
         self.mirror_manager = MirrorManager(self.window, self.settings)
         # use the saved language for every text
@@ -1160,6 +1163,10 @@ class App2:
         """Show the new state of the connection on the panel, and show or close the mirrors."""
         self.panel.set_connection_state(state)
         self._show_mirrors()
+
+    def _on_game_window_changed(self, game_window: GameWindow) -> None:
+        """Make the mirrors follow Tibia after it moved or changed size."""
+        self.mirror_manager.set_game_window(game_window)
 
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, on the same page."""
