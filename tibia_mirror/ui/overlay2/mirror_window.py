@@ -46,11 +46,11 @@ class MirrorWindow(tk.Toplevel):
     def _show_at_saved_place(self) -> None:
         """Show the window with the size and the place from its layout.
 
-        A mirror without a layout for this size of the game is hidden.
+        A hidden mirror, and a mirror without a layout for this size of the game, is not shown.
         """
         layout = self._get_layout()
 
-        if layout is None:
+        if layout is None or self._mirror_settings.is_hidden:
             self.withdraw()
             return
 
