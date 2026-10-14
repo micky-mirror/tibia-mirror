@@ -3,7 +3,7 @@
 import tkinter as tk
 from collections.abc import Callable
 
-from tibia_mirror.config import ATTACH_POLL_MS
+from tibia_mirror.config import CONNECTION_POLL_MS
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.services.game import Game
 
@@ -52,8 +52,8 @@ class TibiaConnection:
         self._game.current_client()
 
     def _check_on_delay(self) -> None:
-        """Plan the next check for a second from now."""
-        self._window.after(ATTACH_POLL_MS, self._check)
+        """Plan the next check."""
+        self._window.after(CONNECTION_POLL_MS, self._check)
 
     def _check(self) -> None:
         """Look for Tibia again, and tell the app what changed."""
