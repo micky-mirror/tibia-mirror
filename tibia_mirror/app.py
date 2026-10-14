@@ -1178,7 +1178,13 @@ class App2:
             self.mirror_manager.close()
             return
 
-        mirrors = self.profile_manager.read_mirrors()
+        try:
+            mirrors = self.profile_manager.read_mirrors()
+        except (OSError, ValueError):
+            self.mirror_manager.close()
+            self.panel.set_message(tr("Profile file is invalid"), "error")
+            return
+
         self.mirror_manager.show(mirrors, game_window)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
