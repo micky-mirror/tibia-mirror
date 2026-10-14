@@ -29,6 +29,7 @@ class MirrorWindow(tk.Toplevel):
         keep_open(self)  # Alt+F4 does not close a mirror, only the app does
         # the number Windows knows this window by
         self._window_handle: Hwnd = win32.toplevel_hwnd(self)
+        win32.set_alpha(self._window_handle, mirror_settings.opacity)
         self._thumbnail = self._create_thumbnail()
         self._show_at_saved_place()
 
