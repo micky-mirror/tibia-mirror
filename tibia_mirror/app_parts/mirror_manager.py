@@ -36,6 +36,11 @@ class MirrorManager:
 
         return failed
 
+    def set_game_window(self, game_window: GameWindow) -> None:
+        """Make every mirror window follow the window of Tibia after it moved or changed size."""
+        for mirror_window in self._mirror_windows:
+            mirror_window.set_game_window(game_window)
+
     def close(self) -> None:
         """Close all mirror windows."""
         for mirror_window in self._mirror_windows:

@@ -16,11 +16,15 @@ def make_mirror(name):
 
 
 class FakeMirrorWindow:
-    """Stands in for a mirror window. It remembers if it was destroyed."""
+    """Stands in for a mirror window. It remembers its game window and if it was destroyed."""
 
-    def __init__(self, name):
+    def __init__(self, name, game_window):
         self.name = name
+        self.game_window = game_window
         self.is_destroyed = False
+
+    def set_game_window(self, game_window):
+        self.game_window = game_window
 
     def destroy(self):
         self.is_destroyed = True
@@ -34,7 +38,7 @@ def screen(monkeypatch):
     def create_window(parent, mirror_settings, game_window):
         if mirror_settings.name in seen["refused"]:
             raise OSError("Windows refused the live picture")
-        window = FakeMirrorWindow(mirror_settings.name)
+        window = FakeMirrorWindow(mirror_settings.name, game_window)
         seen["created"].append(window)
         return window
 
@@ -78,3 +82,13 @@ def test_close_destroys_every_window(screen):
     manager.close()
 
     assert all(window.is_destroyed for window in screen["created"])
+
+
+def test_set_game_window_moves_every_window(screen):
+    manager = MirrorManager(None, None)
+    manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
+    moved = GameWindow(100, Rect(50, 60, 800, 600))
+
+    manager.set_game_window(moved)
+
+    assert all(window.game_window == moved for window in screen["created"])
