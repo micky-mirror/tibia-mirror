@@ -17,16 +17,24 @@ class MirrorManager:
         self._settings = settings
         self._mirror_windows: list[MirrorWindow] = []
 
-    def show(self, mirrors: Sequence[MirrorSettings], game_window: GameWindow) -> None:
+    def show(self, mirrors: Sequence[MirrorSettings], game_window: GameWindow) -> int:
         """Show a window for each of the mirrors, on the given window of Tibia.
 
-        They replace the mirrors that were shown before.
+        They replace the mirrors that were shown before. A mirror that Windows refuses
+        to draw is left out. Returns how many were left out.
         """
         self.close()
+        failed = 0
 
         for mirror_settings in mirrors:
-            mirror_window = MirrorWindow(self._window, mirror_settings, game_window)
-            self._mirror_windows.append(mirror_window)
+            try:
+                mirror_window = MirrorWindow(self._window, mirror_settings, game_window)
+            except OSError:
+                failed += 1
+            else:
+                self._mirror_windows.append(mirror_window)
+
+        return failed
 
     def close(self) -> None:
         """Close all mirror windows."""
