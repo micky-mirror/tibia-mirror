@@ -16,6 +16,7 @@ class MirrorManager:
         self._window = window
         self._settings = settings
         self._mirror_windows: list[MirrorWindow] = []
+        self._is_visible = True
 
     def show(self, mirrors: Sequence[MirrorSettings], game_window: GameWindow) -> int:
         """Show a window for each of the mirrors, on the given window of Tibia.
@@ -28,7 +29,9 @@ class MirrorManager:
 
         for mirror_settings in mirrors:
             try:
-                mirror_window = MirrorWindow(self._window, mirror_settings, game_window)
+                mirror_window = MirrorWindow(
+                    self._window, mirror_settings, game_window, self._is_visible
+                )
             except OSError:
                 failed += 1
             else:
@@ -40,6 +43,13 @@ class MirrorManager:
         """Make every mirror window follow the window of Tibia after it moved or changed size."""
         for mirror_window in self._mirror_windows:
             mirror_window.set_game_window(game_window)
+
+    def set_visible(self, is_visible: bool) -> None:
+        """Show or hide every mirror window."""
+        self._is_visible = is_visible
+
+        for mirror_window in self._mirror_windows:
+            mirror_window.set_visible(is_visible)
 
     def close(self) -> None:
         """Close all mirror windows."""
