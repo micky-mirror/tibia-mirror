@@ -37,14 +37,20 @@ class MirrorWindow(tk.Toplevel):
         self._thumbnail.close()
         super().destroy()
 
+    def set_game_window(self, game_window: GameWindow) -> None:
+        """Follow the window of Tibia after it moved or changed size."""
+        self._game_window = game_window
+        self._show_at_saved_place()
+
     def _show_at_saved_place(self) -> None:
         """Show the window with the size and the place from its layout.
 
-        A mirror without a layout for this size of the game stays hidden.
+        A mirror without a layout for this size of the game is hidden.
         """
         layout = self._get_layout()
 
         if layout is None:
+            self.withdraw()
             return
 
         client_area = self._game_window.client_area
