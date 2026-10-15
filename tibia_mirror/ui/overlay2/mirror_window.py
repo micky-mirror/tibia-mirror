@@ -57,6 +57,11 @@ class MirrorWindow(tk.Toplevel):
         self._game_window = game_window
         self._show_at_saved_place()
 
+    def set_mirror_look(self, mirror_look: MirrorLook) -> None:
+        """Draw the window with a new look."""
+        self._mirror_look = mirror_look
+        self._show_at_saved_place()
+
     def _show_at_saved_place(self) -> None:
         """Show the window at its saved place, or hide it when it must not be shown."""
         layout = self._get_layout()

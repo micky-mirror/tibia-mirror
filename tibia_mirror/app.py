@@ -1154,6 +1154,9 @@ class App2:
         if current.is_panel_on_top != previous.is_panel_on_top:
             self.window.set_panel_on_top()
 
+        if current.is_mirror_frame_on != previous.is_mirror_frame_on:
+            self.mirror_manager.update_mirror_look()
+
         if current.theme != previous.theme or current.language != previous.language:
             # The panel is still handling the mouse click on the option, so it cannot be
             # destroyed yet. after_idle runs the rebuild when the panel has finished.

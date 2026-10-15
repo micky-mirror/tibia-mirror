@@ -45,6 +45,13 @@ class MirrorManager:
         for mirror_window in self._mirror_windows:
             mirror_window.set_game_window(game_window)
 
+    def update_mirror_look(self) -> None:
+        """Give every mirror window the look from the current app settings."""
+        mirror_look = self._get_mirror_look()
+
+        for mirror_window in self._mirror_windows:
+            mirror_window.set_mirror_look(mirror_look)
+
     def close(self) -> None:
         """Close all mirror windows."""
         for mirror_window in self._mirror_windows:

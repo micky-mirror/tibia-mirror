@@ -37,6 +37,9 @@ class FakeMirrorWindow:
     def set_game_window(self, game_window):
         self.game_window = game_window
 
+    def set_mirror_look(self, mirror_look):
+        self.mirror_look = mirror_look
+
     def destroy(self):
         self.is_destroyed = True
 
@@ -111,3 +114,15 @@ def test_new_windows_get_the_frame_setting(screen):
     manager.show([make_mirror("Minimap")], GAME_WINDOW)
 
     assert screen["created"][0].mirror_look == MirrorLook(is_frame_on=False)
+
+
+def test_update_mirror_look_reaches_every_window(screen):
+    settings_store = SimpleNamespace(current=DEFAULT_SETTINGS)
+    manager = MirrorManager(None, settings_store)
+    manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
+    frameless = MirrorLook(is_frame_on=False)
+
+    settings_store.current = AppSettings(is_mirror_frame_on=False)
+    manager.update_mirror_look()
+
+    assert all(window.mirror_look == frameless for window in screen["created"])
