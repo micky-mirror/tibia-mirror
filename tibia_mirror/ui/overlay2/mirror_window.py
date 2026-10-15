@@ -75,12 +75,14 @@ class MirrorWindow(tk.Toplevel):
 
         picture_area = self._get_picture_area(layout)
         border = self._get_border_width()
-        window_margin = 0 if self._mirror_look.is_rounded_on else border
+        has_frame_window = self._has_frame_window()
+        window_margin = 0 if has_frame_window else border
 
         window_area = picture_area.grown(window_margin)
         thumbnail_area = Rect(window_margin, window_margin, picture_area.w, picture_area.h)
 
         dwm.set_rounded_corners(self._window_handle, self._mirror_look.is_rounded_on)
+        # first, so the picture ends up above its frame
         self._show_frame_window(picture_area, border)
         # shows as the frame around the picture
         self.configure(bg=theme.frame_color(self._mirror_settings.colour))
@@ -101,9 +103,7 @@ class MirrorWindow(tk.Toplevel):
 
     def _get_border_width(self) -> int:
         """The width of the frame around the picture."""
-        is_coloured = self._mirror_settings.colour != FRAME_COLORS[0]
-
-        if is_coloured:
+        if self._is_coloured():
             return px(COLOR_BORDER)
 
         if self._mirror_look.is_frame_on:
@@ -112,8 +112,8 @@ class MirrorWindow(tk.Toplevel):
         return 0
 
     def _show_frame_window(self, picture_area: Rect, border: int) -> None:
-        """Show the frame window around a rounded picture, or hide it."""
-        is_frame_window_used = self._mirror_look.is_rounded_on and border > 0
+        """Show the frame window around a rounded or tinted picture, or hide it."""
+        is_frame_window_used = self._has_frame_window() and border > 0
 
         if not is_frame_window_used:
             self._mirror_frame.withdraw()
@@ -124,8 +124,20 @@ class MirrorWindow(tk.Toplevel):
             border,
             self._mirror_settings.colour,
             is_rounded=self._mirror_look.is_rounded_on,
-            is_solid=False,
+            is_solid=self._is_tinted(),
         )
+
+    def _has_frame_window(self) -> bool:
+        """Whether the frame is drawn by the frame window, not by this window."""
+        return self._mirror_look.is_rounded_on or self._is_tinted()
+
+    def _is_tinted(self) -> bool:
+        """Whether the picture is shaded in the frame colour."""
+        return self._mirror_look.is_tint_on and self._is_coloured()
+
+    def _is_coloured(self) -> bool:
+        """Whether the mirror has a frame colour of its own."""
+        return self._mirror_settings.colour != FRAME_COLORS[0]
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""
