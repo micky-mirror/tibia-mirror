@@ -73,7 +73,7 @@ def test_state_is_connected_when_tibia_is_running(tibia):
 def test_game_window_is_known_when_tibia_is_running(tibia):
     connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
-    assert connection.game_window == GameWindow(HWND, AREA)
+    assert connection.game_window == GameWindow(HWND, AREA, is_minimized=False)
 
 
 def test_there_is_no_game_window_when_tibia_is_not_running(tibia):
@@ -99,7 +99,7 @@ def test_game_window_is_kept_while_tibia_is_minimized_later(tibia):
     tibia["is_minimized"] = True
     window.run_planned()
 
-    assert connection.game_window == GameWindow(HWND, AREA)
+    assert connection.game_window == GameWindow(HWND, AREA, is_minimized=True)
 
 
 def test_nothing_is_told_while_the_state_stays_the_same(tibia):
@@ -172,7 +172,7 @@ def test_a_moved_tibia_is_told_to_the_app(tibia):
     tibia["client_area"] = Rect(50, 60, 800, 600)
     window.run_planned()
 
-    assert game_windows == [GameWindow(HWND, Rect(50, 60, 800, 600))]
+    assert game_windows == [GameWindow(HWND, Rect(50, 60, 800, 600), is_minimized=False)]
 
 
 def test_nothing_is_told_while_tibia_stays_in_place(tibia):
@@ -197,17 +197,25 @@ def test_a_new_connection_is_told_only_as_a_new_state(tibia):
     assert game_windows == []
 
 
-def test_is_minimized_when_tibia_is_minimized_later(tibia):
-    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
+def test_a_minimized_tibia_is_told_as_a_new_game_window(tibia):
+    window = FakeWindow()
+    game_windows = []
+    TibiaConnection(window, do_nothing, game_windows.append)
 
     tibia["is_minimized"] = True
+    window.run_planned()
 
-    assert connection.is_minimized
+    assert game_windows == [GameWindow(HWND, AREA, is_minimized=True)]
 
 
-def test_is_not_minimized_when_tibia_is_not_running(tibia):
-    tibia["is_running"] = False
+def test_a_restored_tibia_is_told_as_a_new_game_window(tibia):
+    window = FakeWindow()
+    game_windows = []
+    TibiaConnection(window, do_nothing, game_windows.append)
 
-    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
+    tibia["is_minimized"] = True
+    window.run_planned()
+    tibia["is_minimized"] = False
+    window.run_planned()
 
-    assert not connection.is_minimized
+    assert game_windows[-1] == GameWindow(HWND, AREA, is_minimized=False)

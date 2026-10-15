@@ -22,6 +22,7 @@ class TibiaConnection:
         self._on_state_changed = on_state_changed
         self._on_game_window_changed = on_game_window_changed
         self._game = Game()
+        self._is_minimized = False
         self._look_for_tibia()
         self._check_on_delay()
 
@@ -39,12 +40,7 @@ class TibiaConnection:
         if handle is None or client_area is None:
             return None
 
-        return GameWindow(handle, client_area)
-
-    @property
-    def is_minimized(self) -> bool:
-        """True while the window of Tibia is minimized."""
-        return self._game.is_minimized()
+        return GameWindow(handle, client_area, self._is_minimized)
 
     def _look_for_tibia(self) -> None:
         """Read what is true about Tibia now.
@@ -55,6 +51,7 @@ class TibiaConnection:
         self._game.check_closed()
         self._game.find()
         self._game.current_client()
+        self._is_minimized = self._game.is_minimized()
 
     def _check_on_delay(self) -> None:
         """Plan the next check."""
