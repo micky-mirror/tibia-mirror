@@ -119,8 +119,7 @@ class MirrorWindow(tk.Toplevel):
             self._mirror_frame.withdraw()
             return
 
-        frame_area = picture_area.grown(border)
-        self._mirror_frame.show(frame_area, self._mirror_settings.colour)
+        self._mirror_frame.show(picture_area, border, self._mirror_settings.colour)
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""

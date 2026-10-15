@@ -2,6 +2,7 @@
 
 import tkinter as tk
 
+from tibia_mirror.config import ROUND_SMALL_RADIUS
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.ui.base import theme
@@ -27,9 +28,23 @@ class MirrorFrame(tk.Toplevel):
         # square, because the rounding of Windows adds a shadow
         dwm.set_rounded_corners(self._window_handle, False)
 
-    def show(self, frame_area: Rect, colour: str) -> None:
-        """Show the frame at the given place, in the given frame colour."""
+    def show(self, picture_area: Rect, border: int, colour: str) -> None:
+        """Show the frame around the given picture, in the given frame colour."""
+        frame_area = picture_area.grown(border)
         self.configure(bg=theme.frame_color(colour))
         self.geometry(f"{frame_area.w}x{frame_area.h}+{frame_area.x}+{frame_area.y}")
+        # move the window first, because a new shape makes Tk forget a move it has not done yet
+        self.update_idletasks()
+        self._set_ring_shape(picture_area, border)
         self.deiconify()
         self.attributes("-topmost", True)  # above other windows, also above the game
+
+    def _set_ring_shape(self, picture_area: Rect, border: int) -> None:
+        """Cut the window into a ring with rounded corners around the picture."""
+        inner_radius = round(ROUND_SMALL_RADIUS * win32.dpi_scale(self._window_handle))
+        outer_radius = inner_radius + border
+        frame_width = picture_area.w + 2 * border
+        frame_height = picture_area.h + 2 * border
+        hole = (border, border, picture_area.w, picture_area.h, inner_radius)
+
+        win32.set_ring_shape(self._window_handle, frame_width, frame_height, outer_radius, hole)
