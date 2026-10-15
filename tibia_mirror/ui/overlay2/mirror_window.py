@@ -12,7 +12,7 @@ from tibia_mirror.core.regions import Layout, size_key
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
-from tibia_mirror.winapi import win32
+from tibia_mirror.winapi import dwm, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
 
@@ -71,10 +71,12 @@ class MirrorWindow(tk.Toplevel):
 
         picture_area = self._get_picture_area(layout)
         border = self._get_border_width()
+        window_margin = 0 if self._mirror_look.is_rounded_on else border
 
-        window_area = picture_area.grown(border)
-        thumbnail_area = Rect(border, border, picture_area.w, picture_area.h)
+        window_area = picture_area.grown(window_margin)
+        thumbnail_area = Rect(window_margin, window_margin, picture_area.w, picture_area.h)
 
+        dwm.set_rounded_corners(self._window_handle, self._mirror_look.is_rounded_on)
         # shows as the frame around the picture
         self.configure(bg=theme.frame_color(self._mirror_settings.colour))
         self.geometry(f"{window_area.w}x{window_area.h}+{window_area.x}+{window_area.y}")

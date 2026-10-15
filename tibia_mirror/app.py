@@ -1154,7 +1154,12 @@ class App2:
         if current.is_panel_on_top != previous.is_panel_on_top:
             self.window.set_panel_on_top()
 
-        if current.is_mirror_frame_on != previous.is_mirror_frame_on:
+        is_mirror_look_changed = (
+            current.is_mirror_frame_on != previous.is_mirror_frame_on
+            or current.is_rounded_corners_on != previous.is_rounded_corners_on
+        )
+
+        if is_mirror_look_changed:
             self.mirror_manager.update_mirror_look()
 
         if current.theme != previous.theme or current.language != previous.language:

@@ -63,4 +63,7 @@ class MirrorManager:
         """The look every mirror window shares, from the app settings."""
         current = self._settings.current
 
-        return MirrorLook(is_frame_on=current.is_mirror_frame_on)
+        return MirrorLook(
+            is_frame_on=current.is_mirror_frame_on,
+            is_rounded_on=current.is_rounded_corners_on,
+        )
