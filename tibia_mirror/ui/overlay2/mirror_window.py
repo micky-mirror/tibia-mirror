@@ -6,6 +6,7 @@ from tibia_mirror.config import MIRROR_BORDER
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect, scaled_size
 from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.regions import Layout, size_key
 from tibia_mirror.ui.base import theme
@@ -23,15 +24,17 @@ class MirrorWindow(tk.Toplevel):
         parent: tk.Misc,
         mirror_settings: MirrorSettings,
         game_window: GameWindow,
+        mirror_look: MirrorLook,
     ) -> None:
         super().__init__(parent)
         self.withdraw()  # hidden until it has a size and a place
         self._mirror_settings = mirror_settings
         self._game_window = game_window
+        self._mirror_look = mirror_look
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
         self.configure(bg=theme.MIRROR_FRAME)  # shows as the frame around the picture
-        # only the app close a mirror
+        # only the app closes a mirror
         keep_open(self)
         # the number Windows knows this window by
         self._window_handle: Hwnd = win32.toplevel_hwnd(self)
@@ -63,7 +66,7 @@ class MirrorWindow(tk.Toplevel):
             return
 
         picture_area = self._get_picture_area(layout)
-        border = px(MIRROR_BORDER)
+        border = self._get_border_width()
 
         window_area = picture_area.grown(border)
         thumbnail_area = Rect(border, border, picture_area.w, picture_area.h)
@@ -82,6 +85,13 @@ class MirrorWindow(tk.Toplevel):
         position_y = client_area.y + layout.offset[1]
 
         return Rect(position_x, position_y, area_width, area_height)
+
+    def _get_border_width(self) -> int:
+        """The width of the frame around the picture."""
+        if not self._mirror_look.is_frame_on:
+            return 0
+
+        return px(MIRROR_BORDER)
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""

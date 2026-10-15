@@ -1,26 +1,37 @@
 """The mirror manager: which mirror windows it shows and closes."""
 
+from types import SimpleNamespace
+
 import pytest
 
 from tibia_mirror.app_parts import mirror_manager as mirror_manager_module
 from tibia_mirror.app_parts.mirror_manager import MirrorManager
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
+from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.settings.app_settings import AppSettings
 
 GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)
+DEFAULT_SETTINGS = AppSettings()
 
 
 def make_mirror(name):
     return MirrorSettings(mirror_id=name, name=name, layouts={})
 
 
+def make_manager(app_settings=DEFAULT_SETTINGS):
+    settings_store = SimpleNamespace(current=app_settings)
+    return MirrorManager(None, settings_store)
+
+
 class FakeMirrorWindow:
     """Stands in for a mirror window. It remembers what it was told and if it was destroyed."""
 
-    def __init__(self, name, game_window):
+    def __init__(self, name, game_window, mirror_look):
         self.name = name
         self.game_window = game_window
+        self.mirror_look = mirror_look
         self.is_destroyed = False
 
     def set_game_window(self, game_window):
@@ -35,10 +46,10 @@ def screen(monkeypatch):
     """The mirror windows the manager created; a test adds names Windows should refuse."""
     seen = {"created": [], "refused": set()}
 
-    def create_window(parent, mirror_settings, game_window):
+    def create_window(parent, mirror_settings, game_window, mirror_look):
         if mirror_settings.name in seen["refused"]:
             raise OSError("Windows refused the live picture")
-        window = FakeMirrorWindow(mirror_settings.name, game_window)
+        window = FakeMirrorWindow(mirror_settings.name, game_window, mirror_look)
         seen["created"].append(window)
         return window
 
@@ -47,7 +58,7 @@ def screen(monkeypatch):
 
 
 def test_shows_a_window_for_each_mirror(screen):
-    manager = MirrorManager(None, None)
+    manager = make_manager()
 
     failed = manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
 
@@ -57,7 +68,7 @@ def test_shows_a_window_for_each_mirror(screen):
 
 def test_a_refused_mirror_is_left_out_and_counted(screen):
     screen["refused"].add("Health")
-    manager = MirrorManager(None, None)
+    manager = make_manager()
 
     failed = manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
 
@@ -66,7 +77,7 @@ def test_a_refused_mirror_is_left_out_and_counted(screen):
 
 
 def test_show_closes_the_windows_shown_before(screen):
-    manager = MirrorManager(None, None)
+    manager = make_manager()
     manager.show([make_mirror("Minimap")], GAME_WINDOW)
     old_window = screen["created"][0]
 
@@ -76,7 +87,7 @@ def test_show_closes_the_windows_shown_before(screen):
 
 
 def test_close_destroys_every_window(screen):
-    manager = MirrorManager(None, None)
+    manager = make_manager()
     manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
 
     manager.close()
@@ -85,10 +96,18 @@ def test_close_destroys_every_window(screen):
 
 
 def test_set_game_window_moves_every_window(screen):
-    manager = MirrorManager(None, None)
+    manager = make_manager()
     manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
     moved = GameWindow(100, Rect(50, 60, 800, 600), is_minimized=False, is_in_front=True)
 
     manager.set_game_window(moved)
 
     assert all(window.game_window == moved for window in screen["created"])
+
+
+def test_new_windows_get_the_frame_setting(screen):
+    manager = make_manager(AppSettings(is_mirror_frame_on=False))
+
+    manager.show([make_mirror("Minimap")], GAME_WINDOW)
+
+    assert screen["created"][0].mirror_look == MirrorLook(is_frame_on=False)

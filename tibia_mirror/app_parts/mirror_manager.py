@@ -4,6 +4,7 @@ import tkinter as tk
 from collections.abc import Sequence
 
 from tibia_mirror.core.game_window import GameWindow
+from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.overlay2.mirror_window import MirrorWindow
@@ -24,11 +25,14 @@ class MirrorManager:
         to draw is left out. Returns how many were left out.
         """
         self.close()
+        mirror_look = self._get_mirror_look()
         failed = 0
 
         for mirror_settings in mirrors:
             try:
-                mirror_window = MirrorWindow(self._window, mirror_settings, game_window)
+                mirror_window = MirrorWindow(
+                    self._window, mirror_settings, game_window, mirror_look
+                )
             except OSError:
                 failed += 1
             else:
@@ -47,3 +51,9 @@ class MirrorManager:
             mirror_window.destroy()
 
         self._mirror_windows.clear()
+
+    def _get_mirror_look(self) -> MirrorLook:
+        """The look every mirror window shares, from the app settings."""
+        current = self._settings.current
+
+        return MirrorLook(is_frame_on=current.is_mirror_frame_on)
