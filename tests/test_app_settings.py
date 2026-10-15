@@ -18,7 +18,6 @@ CHANGED_SETTINGS = AppSettings(
     is_mirror_frame_on=False,
     is_frame_tint_on=True,
     is_rounded_corners_on=True,
-    is_fade_on=False,
     last_profile="Knight",
     last_character="Bubble",
     hide_all_key=(120, ("ctrl", "shift")),
@@ -69,7 +68,6 @@ def test_saved_on_off_settings_are_read() -> None:
             "mirror_frame": False,
             "frame_tint": True,
             "rounded_corners": True,
-            "fades": False,
         }
     )
 
@@ -78,11 +76,10 @@ def test_saved_on_off_settings_are_read() -> None:
     assert not settings.is_mirror_frame_on
     assert settings.is_frame_tint_on
     assert settings.is_rounded_corners_on
-    assert not settings.is_fade_on
 
 
 def test_wrong_on_off_settings_become_the_defaults() -> None:
-    settings = AppSettings.from_json({"autosave": 1, "mirror_frame": "no", "fades": None})
+    settings = AppSettings.from_json({"autosave": 1, "mirror_frame": "no", "frame_tint": None})
 
     assert settings == AppSettings()
 
@@ -177,7 +174,11 @@ def test_written_default_settings_are_read_back_the_same() -> None:
 def test_the_old_settings_class_reads_and_writes_the_same_file() -> None:
     file_content = CHANGED_SETTINGS.to_json()
 
-    assert Settings.from_json(file_content).to_json() == file_content
+    old_file_content = Settings.from_json(file_content).to_json()
+    # only the old app still has fade animations
+    del old_file_content["fades"]
+
+    assert old_file_content == file_content
 
 
 def test_update_type_has_every_setting_with_the_same_type() -> None:

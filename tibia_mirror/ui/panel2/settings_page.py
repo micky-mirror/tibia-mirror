@@ -122,10 +122,4 @@ class SettingsPage(tk.Frame):
             is_on=current_settings.is_rounded_corners_on,
             on_change=lambda is_on: self._settings.update(is_rounded_corners_on=is_on),
         )
-        fades_row = ToggleRow(
-            tr("Fade animations"),
-            tr("Off: mirrors appear and hide instantly."),
-            is_on=current_settings.is_fade_on,
-            on_change=lambda is_on: self._settings.update(is_fade_on=is_on),
-        )
-        self._scroll_cards.add_card([opacity_row, frame_row, tint_row, corners_row, fades_row])
+        self._scroll_cards.add_card([opacity_row, frame_row, tint_row, corners_row])

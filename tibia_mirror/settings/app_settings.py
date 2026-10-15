@@ -35,7 +35,6 @@ class AppSettings:
     is_mirror_frame_on: bool = True  # a grey outline on mirrors without a colour
     is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
     is_rounded_corners_on: bool = False
-    is_fade_on: bool = True  # mirrors fade in and out, they do not jump
     last_profile: str = DEFAULT_PROFILE  # the profile that was open, opened again at the start
     # Who logged out last. Their paused timers are shown until somebody logs in.
     last_character: str = ""
@@ -69,7 +68,6 @@ class AppSettings:
             is_rounded_corners_on=saved.get_bool(
                 "rounded_corners", default=cls.is_rounded_corners_on
             ),
-            is_fade_on=saved.get_bool("fades", default=cls.is_fade_on),
             # numbers
             new_mirror_opacity=saved.get_opacity("new_opacity", default=cls.new_mirror_opacity),
             # texts
@@ -100,7 +98,6 @@ class AppSettings:
             "mirror_frame": self.is_mirror_frame_on,
             "frame_tint": self.is_frame_tint_on,
             "rounded_corners": self.is_rounded_corners_on,
-            "fades": self.is_fade_on,
             # numbers
             "new_opacity": round(self.new_mirror_opacity, 2),
             # texts
@@ -129,7 +126,6 @@ class AppSettingsUpdate(TypedDict, total=False):
     is_mirror_frame_on: bool
     is_frame_tint_on: bool
     is_rounded_corners_on: bool
-    is_fade_on: bool
     last_profile: str
     last_character: str
     hide_all_key: KeyCombo | None
