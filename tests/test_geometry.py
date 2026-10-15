@@ -25,6 +25,14 @@ def test_rect_edges():
     assert (r.right, r.bottom) == (40, 60)
 
 
+def test_grown_adds_the_margin_on_every_side():
+    assert Rect(10, 20, 100, 50).grown(2) == Rect(8, 18, 104, 54)
+
+
+def test_grown_by_zero_is_the_same_rect():
+    assert Rect(10, 20, 100, 50).grown(0) == Rect(10, 20, 100, 50)
+
+
 def test_rect_from_drag_any_direction():
     expected = Rect(10, 20, 30, 40)
     assert rect_from_drag(10, 20, 40, 60) == expected

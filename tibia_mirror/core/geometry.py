@@ -34,6 +34,14 @@ class Rect:
             and other.bottom <= self.bottom
         )
 
+    def grown(self, margin: int) -> "Rect":
+        return Rect(
+            self.x - margin,
+            self.y - margin,
+            self.w + 2 * margin,
+            self.h + 2 * margin,
+        )
+
 
 def rect_from_drag(x0: int, y0: int, x1: int, y1: int) -> Rect:
     """Rect spanned by a drag, whichever direction it went."""
