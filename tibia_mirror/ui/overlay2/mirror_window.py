@@ -6,9 +6,15 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
 
-from tibia_mirror.config import COLOR_BORDER, FRAME_COLORS, MIRROR_BORDER, RESIZE_GRIP
+from tibia_mirror.config import (
+    COLOR_BORDER,
+    FRAME_COLORS,
+    MIRROR_BORDER,
+    RESIZE_GRIP,
+    ZOOM_RANGE,
+)
 from tibia_mirror.core.game_window import GameWindow
-from tibia_mirror.core.geometry import Rect, scaled_size
+from tibia_mirror.core.geometry import Rect, scaled_size, zoom_for_width
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
@@ -55,6 +61,8 @@ class MirrorWindow(tk.Toplevel):
         self._show_at_saved_place()
         # react to the mouse
         self._grab_distance = (0, 0)
+        self._is_resizing = False
+        self._resize_gap = 0
         self._bind_events()
 
     def destroy(self) -> None:
@@ -86,29 +94,47 @@ class MirrorWindow(tk.Toplevel):
         self.configure(cursor=cursor)
 
     def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
-        """Keep how far the mouse is from the saved place of the mirror."""
+        """Get ready to move the mirror, or to resize it from its corner."""
         layout = self._get_layout()
 
         if layout is None:
             return
 
+        picture_area = self._get_picture_area(layout)
         offset_x, offset_y = layout.offset
         self._grab_distance = (event.x_root - offset_x, event.y_root - offset_y)
+        self._is_resizing = self._is_in_resize_grip(event)
+        self._resize_gap = picture_area.x + picture_area.w - event.x_root
 
     def _on_mouse_drag(self, event: tk.Event[tk.Misc]) -> None:
-        """Move the mirror with the mouse, and keep its new place."""
+        """Move or resize the mirror with the mouse, and keep the change."""
         layout = self._get_layout()
 
         if layout is None:
             return
 
+        if self._is_resizing:
+            self._resize_to_mouse(event, layout)
+        else:
+            self._move_to_mouse(event, layout)
+
+        self._show_at_saved_place()
+
+    def _move_to_mouse(self, event: tk.Event[tk.Misc], layout: Layout) -> None:
+        """Keep a new place, so the mirror follows the mouse."""
         grab_x, grab_y = self._grab_distance
         new_offset = (event.x_root - grab_x, event.y_root - grab_y)
         self._set_layout(replace(layout, offset=new_offset))
-        self._show_at_saved_place()
+
+    def _resize_to_mouse(self, event: tk.Event[tk.Misc], layout: Layout) -> None:
+        """Keep a new zoom, so the right edge of the mirror follows the mouse."""
+        picture_area = self._get_picture_area(layout)
+        new_width = event.x_root + self._resize_gap - picture_area.x
+        zoom = zoom_for_width(new_width, layout.region.w, ZOOM_RANGE)
+        self._mirror_settings = replace(self._mirror_settings, zoom=zoom)
 
     def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
-        """Hand over the settings of the mirror with its new place."""
+        """Hand over the settings of the mirror with its new place or size."""
         self._on_changed(self._mirror_settings)
 
     def _is_in_resize_grip(self, event: tk.Event[tk.Misc]) -> bool:
