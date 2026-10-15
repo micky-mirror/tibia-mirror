@@ -18,17 +18,13 @@ def make_mirror(name):
 class FakeMirrorWindow:
     """Stands in for a mirror window. It remembers what it was told and if it was destroyed."""
 
-    def __init__(self, name, game_window, is_visible):
+    def __init__(self, name, game_window):
         self.name = name
         self.game_window = game_window
-        self.is_visible = is_visible
         self.is_destroyed = False
 
     def set_game_window(self, game_window):
         self.game_window = game_window
-
-    def set_visible(self, is_visible):
-        self.is_visible = is_visible
 
     def destroy(self):
         self.is_destroyed = True
@@ -39,10 +35,10 @@ def screen(monkeypatch):
     """The mirror windows the manager created; a test adds names Windows should refuse."""
     seen = {"created": [], "refused": set()}
 
-    def create_window(parent, mirror_settings, game_window, is_visible):
+    def create_window(parent, mirror_settings, game_window):
         if mirror_settings.name in seen["refused"]:
             raise OSError("Windows refused the live picture")
-        window = FakeMirrorWindow(mirror_settings.name, game_window, is_visible)
+        window = FakeMirrorWindow(mirror_settings.name, game_window)
         seen["created"].append(window)
         return window
 
@@ -96,21 +92,3 @@ def test_set_game_window_moves_every_window(screen):
     manager.set_game_window(moved)
 
     assert all(window.game_window == moved for window in screen["created"])
-
-
-def test_set_visible_reaches_every_window(screen):
-    manager = MirrorManager(None, None)
-    manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
-
-    manager.set_visible(False)
-
-    assert not any(window.is_visible for window in screen["created"])
-
-
-def test_new_windows_get_the_last_visibility(screen):
-    manager = MirrorManager(None, None)
-    manager.set_visible(False)
-
-    manager.show([make_mirror("Minimap")], GAME_WINDOW)
-
-    assert not screen["created"][0].is_visible

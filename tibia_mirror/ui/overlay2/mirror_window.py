@@ -20,13 +20,11 @@ class MirrorWindow(tk.Toplevel):
         parent: tk.Misc,
         mirror_settings: MirrorSettings,
         game_window: GameWindow,
-        is_visible: bool,
     ) -> None:
         super().__init__(parent)
         self.withdraw()  # hidden until it has a size and a place
         self._mirror_settings = mirror_settings
         self._game_window = game_window
-        self._is_visible = is_visible
         self.overrideredirect(True)  # no title bar and no borders
         keep_open(self)  # Alt+F4 does not close a mirror, only the app does
         # the number Windows knows this window by
@@ -41,20 +39,16 @@ class MirrorWindow(tk.Toplevel):
         super().destroy()
 
     def set_game_window(self, game_window: GameWindow) -> None:
-        """Follow the window of Tibia after it moved or changed size."""
+        """Follow the window of Tibia after it changed."""
         self._game_window = game_window
-        self._show_at_saved_place()
-
-    def set_visible(self, is_visible: bool) -> None:
-        """Show or hide the window."""
-        self._is_visible = is_visible
         self._show_at_saved_place()
 
     def _show_at_saved_place(self) -> None:
         """Show the window at its saved place, or hide it when it must not be shown."""
         layout = self._get_layout()
+        is_tibia_in_use = self._game_window.is_in_front and not self._game_window.is_minimized
 
-        if layout is None or self._mirror_settings.is_hidden or not self._is_visible:
+        if layout is None or self._mirror_settings.is_hidden or not is_tibia_in_use:
             self.withdraw()
             return
 

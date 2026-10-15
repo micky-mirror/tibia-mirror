@@ -1165,7 +1165,7 @@ class App2:
         self._show_mirrors()
 
     def _on_game_window_changed(self, game_window: GameWindow) -> None:
-        """Make the mirrors follow Tibia after it moved or changed size."""
+        """Make the mirrors follow the window of Tibia after it changed."""
         self.mirror_manager.set_game_window(game_window)
 
     def _rebuild_panel(self) -> None:
