@@ -1172,11 +1172,12 @@ class App2:
         self.mirror_manager.set_game_window(game_window)
 
     def _rebuild_panel(self) -> None:
-        """Build the panel again in the saved theme and language, on the same page."""
+        """Build the panel again in the saved theme and language, and redraw the mirrors."""
         open_page = self.panel.open_page
         self.panel.destroy()
 
         self.window.set_theme()
+        self.mirror_manager.update_mirror_look()
         i18n.use(self.settings.current.language)
         self._show_panel(open_page)
 

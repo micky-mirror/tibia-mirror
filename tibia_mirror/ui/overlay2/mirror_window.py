@@ -33,8 +33,6 @@ class MirrorWindow(tk.Toplevel):
         self._mirror_look = mirror_look
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
-        # shows as the frame around the picture
-        self.configure(bg=theme.frame_color(mirror_settings.colour))
         # only the app closes a mirror
         keep_open(self)
         # the number Windows knows this window by
@@ -77,6 +75,8 @@ class MirrorWindow(tk.Toplevel):
         window_area = picture_area.grown(border)
         thumbnail_area = Rect(border, border, picture_area.w, picture_area.h)
 
+        # shows as the frame around the picture
+        self.configure(bg=theme.frame_color(self._mirror_settings.colour))
         self.geometry(f"{window_area.w}x{window_area.h}+{window_area.x}+{window_area.y}")
         self._thumbnail.show(layout.region, thumbnail_area)
         self.deiconify()
