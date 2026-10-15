@@ -1157,6 +1157,7 @@ class App2:
         is_mirror_look_changed = (
             current.is_mirror_frame_on != previous.is_mirror_frame_on
             or current.is_rounded_corners_on != previous.is_rounded_corners_on
+            or current.is_frame_tint_on != previous.is_frame_tint_on
         )
 
         if is_mirror_look_changed:

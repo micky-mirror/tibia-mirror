@@ -66,4 +66,5 @@ class MirrorManager:
         return MirrorLook(
             is_frame_on=current.is_mirror_frame_on,
             is_rounded_on=current.is_rounded_corners_on,
+            is_tint_on=current.is_frame_tint_on,
         )

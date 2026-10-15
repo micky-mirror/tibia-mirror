@@ -109,12 +109,16 @@ def test_set_game_window_moves_every_window(screen):
 
 
 def test_new_windows_get_the_look_from_the_settings(screen):
-    app_settings = AppSettings(is_mirror_frame_on=False, is_rounded_corners_on=True)
+    app_settings = AppSettings(
+        is_mirror_frame_on=False,
+        is_rounded_corners_on=True,
+        is_frame_tint_on=True,
+    )
     manager = make_manager(app_settings)
 
     manager.show([make_mirror("Minimap")], GAME_WINDOW)
 
-    expected_look = MirrorLook(is_frame_on=False, is_rounded_on=True)
+    expected_look = MirrorLook(is_frame_on=False, is_rounded_on=True, is_tint_on=True)
     assert screen["created"][0].mirror_look == expected_look
 
 
@@ -122,7 +126,7 @@ def test_update_mirror_look_reaches_every_window(screen):
     settings_store = SimpleNamespace(current=DEFAULT_SETTINGS)
     manager = MirrorManager(None, settings_store)
     manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
-    frameless = MirrorLook(is_frame_on=False, is_rounded_on=False)
+    frameless = MirrorLook(is_frame_on=False, is_rounded_on=False, is_tint_on=False)
 
     settings_store.current = AppSettings(is_mirror_frame_on=False)
     manager.update_mirror_look()
