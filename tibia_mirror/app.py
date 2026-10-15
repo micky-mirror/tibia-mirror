@@ -1142,6 +1142,7 @@ class App2:
         i18n.use(self.settings.current.language)
         self._show_panel()
         self.window.show()
+        self._load_mirrors()
         self._show_mirrors()
 
     def run(self) -> None:
@@ -1187,25 +1188,28 @@ class App2:
         i18n.use(self.settings.current.language)
         self._show_panel(open_page)
 
+    def _load_mirrors(self) -> None:
+        """Read the mirrors of the open profile and give them to the mirror manager."""
+        try:
+            mirrors = self.profile_manager.read_mirrors()
+        except (OSError, ValueError):
+            self.panel.set_message(tr("Profile file is invalid"), "error")
+        else:
+            self.mirror_manager.set_mirrors(mirrors)
+
     def _show_mirrors(self) -> None:
-        """Show the mirrors of the open profile. Without a window of Tibia, close them."""
+        """Show the kept mirrors on the window of Tibia. Without a window of Tibia, close them."""
         game_window = self.connection.game_window
 
         if game_window is None:
             self.mirror_manager.close()
             return
 
-        try:
-            mirrors = self.profile_manager.read_mirrors()
-        except (OSError, ValueError):
-            self.mirror_manager.close()
-            self.panel.set_message(tr("Profile file is invalid"), "error")
-        else:
-            self.mirror_manager.set_mirrors(mirrors)
-            failed = self.mirror_manager.show(game_window)
-            if failed:
-                message = tr_n(failed, "{n} mirror failed to load", "{n} mirrors failed to load")
-                self.panel.set_message(message, "error")
+        failed = self.mirror_manager.show(game_window)
+
+        if failed:
+            message = tr_n(failed, "{n} mirror failed to load", "{n} mirrors failed to load")
+            self.panel.set_message(message, "error")
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         profile_info = ProfileInfo(
