@@ -2,7 +2,7 @@
 
 import tkinter as tk
 
-from tibia_mirror.config import MIRROR_BORDER
+from tibia_mirror.config import COLOR_BORDER, FRAME_COLORS, MIRROR_BORDER
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect, scaled_size
 from tibia_mirror.core.handles import Hwnd
@@ -33,7 +33,8 @@ class MirrorWindow(tk.Toplevel):
         self._mirror_look = mirror_look
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
-        self.configure(bg=theme.MIRROR_FRAME)  # shows as the frame around the picture
+        # shows as the frame around the picture
+        self.configure(bg=theme.frame_color(mirror_settings.colour))
         # only the app closes a mirror
         keep_open(self)
         # the number Windows knows this window by
@@ -88,10 +89,15 @@ class MirrorWindow(tk.Toplevel):
 
     def _get_border_width(self) -> int:
         """The width of the frame around the picture."""
-        if not self._mirror_look.is_frame_on:
-            return 0
+        is_coloured = self._mirror_settings.colour != FRAME_COLORS[0]
 
-        return px(MIRROR_BORDER)
+        if is_coloured:
+            return px(COLOR_BORDER)
+
+        if self._mirror_look.is_frame_on:
+            return px(MIRROR_BORDER)
+
+        return 0
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""
