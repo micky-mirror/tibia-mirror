@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 from dataclasses import replace
 
 from tibia_mirror.config import COLOR_BORDER, FRAME_COLORS, MIRROR_BORDER
@@ -29,12 +30,14 @@ class MirrorWindow(tk.Toplevel):
         mirror_settings: MirrorSettings,
         game_window: GameWindow,
         mirror_look: MirrorLook,
+        on_changed: Callable[[MirrorSettings], None],
     ) -> None:
         super().__init__(parent)
         self.withdraw()  # hidden until it has a size and a place
         self._mirror_settings = mirror_settings
         self._game_window = game_window
         self._mirror_look = mirror_look
+        self._on_changed = on_changed
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
         # only the app closes a mirror
@@ -72,6 +75,7 @@ class MirrorWindow(tk.Toplevel):
     def _bind_events(self) -> None:
         self.bind("<ButtonPress-1>", self._on_mouse_down)
         self.bind("<B1-Motion>", self._on_mouse_drag)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
         """Keep how far the mouse is from the saved place of the mirror."""
@@ -94,6 +98,10 @@ class MirrorWindow(tk.Toplevel):
         new_offset = (event.x_root - grab_x, event.y_root - grab_y)
         self._set_layout(replace(layout, offset=new_offset))
         self._show_at_saved_place()
+
+    def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
+        """Hand over the settings of the mirror with its new place."""
+        self._on_changed(self._mirror_settings)
 
     def _show_at_saved_place(self) -> None:
         """Show the window at its saved place, or hide it when it must not be shown."""

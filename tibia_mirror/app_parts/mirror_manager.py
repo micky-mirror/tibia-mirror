@@ -36,7 +36,11 @@ class MirrorManager:
         for mirror_settings in self._mirrors:
             try:
                 mirror_window = MirrorWindow(
-                    self._window, mirror_settings, game_window, mirror_look
+                    self._window,
+                    mirror_settings,
+                    game_window,
+                    mirror_look,
+                    self._on_mirror_changed,
                 )
             except OSError:
                 failed += 1
@@ -63,6 +67,12 @@ class MirrorManager:
             mirror_window.destroy()
 
         self._mirror_windows.clear()
+
+    def _on_mirror_changed(self, mirror_settings: MirrorSettings) -> None:
+        """Keep the new settings of a mirror after it changed on the screen."""
+        for index, kept_settings in enumerate(self._mirrors):
+            if kept_settings.mirror_id == mirror_settings.mirror_id:
+                self._mirrors[index] = mirror_settings
 
     def _get_mirror_look(self) -> MirrorLook:
         """The look every mirror window shares, from the app settings."""

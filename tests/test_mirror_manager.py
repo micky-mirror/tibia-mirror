@@ -1,5 +1,6 @@
 """The mirror manager: which mirror windows it shows and closes."""
 
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
@@ -34,10 +35,12 @@ def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
 class FakeMirrorWindow:
     """Stands in for a mirror window. It remembers what it was told and if it was destroyed."""
 
-    def __init__(self, name, game_window, mirror_look):
-        self.name = name
+    def __init__(self, mirror_settings, game_window, mirror_look, on_changed):
+        self.name = mirror_settings.name
+        self.mirror_settings = mirror_settings
         self.game_window = game_window
         self.mirror_look = mirror_look
+        self.on_changed = on_changed
         self.is_destroyed = False
 
     def set_game_window(self, game_window):
@@ -55,10 +58,10 @@ def screen(monkeypatch):
     """The mirror windows the manager created; a test adds names Windows should refuse."""
     seen = {"created": [], "refused": set()}
 
-    def create_window(parent, mirror_settings, game_window, mirror_look):
+    def create_window(parent, mirror_settings, game_window, mirror_look, on_changed):
         if mirror_settings.name in seen["refused"]:
             raise OSError("Windows refused the live picture")
-        window = FakeMirrorWindow(mirror_settings.name, game_window, mirror_look)
+        window = FakeMirrorWindow(mirror_settings, game_window, mirror_look, on_changed)
         seen["created"].append(window)
         return window
 
@@ -160,3 +163,17 @@ def test_update_mirror_look_reaches_every_window(screen):
     manager.update_mirror_look()
 
     assert all(window.mirror_look == frameless for window in screen["created"])
+
+
+def test_a_changed_mirror_is_kept_for_the_next_show(screen):
+    manager = make_manager_with(["Minimap", "Health"])
+    manager.show(GAME_WINDOW)
+    changed = replace(make_mirror("Health"), zoom=2.0)
+
+    screen["created"][1].on_changed(changed)
+    manager.show(GAME_WINDOW)
+
+    assert [window.mirror_settings for window in screen["created"][-2:]] == [
+        make_mirror("Minimap"),
+        changed,
+    ]
