@@ -1,6 +1,9 @@
 """One mirror on the screen."""
 
+from __future__ import annotations
+
 import tkinter as tk
+from dataclasses import replace
 
 from tibia_mirror.config import COLOR_BORDER, FRAME_COLORS, MIRROR_BORDER
 from tibia_mirror.core.game_window import GameWindow
@@ -47,6 +50,9 @@ class MirrorWindow(tk.Toplevel):
         self._thumbnail = self._create_thumbnail()
         # render window at given place
         self._show_at_saved_place()
+        # react to the mouse
+        self._grab_distance = (0, 0)
+        self._bind_events()
 
     def destroy(self) -> None:
         """Stop the thumbnail and close the window."""
@@ -61,6 +67,32 @@ class MirrorWindow(tk.Toplevel):
     def set_mirror_look(self, mirror_look: MirrorLook) -> None:
         """Draw the window with a new look."""
         self._mirror_look = mirror_look
+        self._show_at_saved_place()
+
+    def _bind_events(self) -> None:
+        self.bind("<ButtonPress-1>", self._on_mouse_down)
+        self.bind("<B1-Motion>", self._on_mouse_drag)
+
+    def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
+        """Keep how far the mouse is from the saved place of the mirror."""
+        layout = self._get_layout()
+
+        if layout is None:
+            return
+
+        offset_x, offset_y = layout.offset
+        self._grab_distance = (event.x_root - offset_x, event.y_root - offset_y)
+
+    def _on_mouse_drag(self, event: tk.Event[tk.Misc]) -> None:
+        """Move the mirror with the mouse, and keep its new place."""
+        layout = self._get_layout()
+
+        if layout is None:
+            return
+
+        grab_x, grab_y = self._grab_distance
+        new_offset = (event.x_root - grab_x, event.y_root - grab_y)
+        self._set_layout(replace(layout, offset=new_offset))
         self._show_at_saved_place()
 
     def _show_at_saved_place(self) -> None:
@@ -141,10 +173,18 @@ class MirrorWindow(tk.Toplevel):
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""
-        client_area = self._game_window.client_area
-        size = size_key(client_area.w, client_area.h)
+        return self._mirror_settings.layouts.get(self._get_size_key())
 
-        return self._mirror_settings.layouts.get(size)
+    def _set_layout(self, layout: Layout) -> None:
+        """Keep a new layout for this size of the game."""
+        layouts = {**self._mirror_settings.layouts, self._get_size_key(): layout}
+        self._mirror_settings = replace(self._mirror_settings, layouts=layouts)
+
+    def _get_size_key(self) -> str:
+        """The size of the game as the key of its layout, for example "1920x1080"."""
+        client_area = self._game_window.client_area
+
+        return size_key(client_area.w, client_area.h)
 
     def _create_thumbnail(self) -> Thumbnail:
         """Ask Windows to draw a live copy of the game into this window.
