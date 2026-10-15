@@ -30,6 +30,8 @@ class MirrorWindow(tk.Toplevel):
         # the number Windows knows this window by
         self._window_handle: Hwnd = win32.toplevel_hwnd(self)
         win32.set_alpha(self._window_handle, mirror_settings.opacity)
+        # needs the layered style that set_alpha gives the window
+        win32.set_click_through(self._window_handle, mirror_settings.is_locked)
         self._thumbnail = self._create_thumbnail()
         self._show_at_saved_place()
 
