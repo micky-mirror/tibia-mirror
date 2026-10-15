@@ -25,6 +25,12 @@ def make_manager(app_settings=DEFAULT_SETTINGS):
     return MirrorManager(None, settings_store)
 
 
+def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
+    manager = make_manager(app_settings)
+    manager.set_mirrors([make_mirror(name) for name in names])
+    return manager
+
+
 class FakeMirrorWindow:
     """Stands in for a mirror window. It remembers what it was told and if it was destroyed."""
 
@@ -61,9 +67,9 @@ def screen(monkeypatch):
 
 
 def test_shows_a_window_for_each_mirror(screen):
-    manager = make_manager()
+    manager = make_manager_with(["Minimap", "Health"])
 
-    failed = manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
+    failed = manager.show(GAME_WINDOW)
 
     assert failed == 0
     assert [window.name for window in screen["created"]] == ["Minimap", "Health"]
@@ -71,36 +77,57 @@ def test_shows_a_window_for_each_mirror(screen):
 
 def test_a_refused_mirror_is_left_out_and_counted(screen):
     screen["refused"].add("Health")
-    manager = make_manager()
+    manager = make_manager_with(["Minimap", "Health"])
 
-    failed = manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
+    failed = manager.show(GAME_WINDOW)
 
     assert failed == 1
     assert [window.name for window in screen["created"]] == ["Minimap"]
 
 
+def test_a_refused_mirror_is_still_kept(screen):
+    screen["refused"].add("Health")
+    manager = make_manager_with(["Minimap", "Health"])
+    manager.show(GAME_WINDOW)
+    screen["refused"].clear()
+
+    manager.show(GAME_WINDOW)
+
+    assert [window.name for window in screen["created"]][-2:] == ["Minimap", "Health"]
+
+
 def test_show_closes_the_windows_shown_before(screen):
-    manager = make_manager()
-    manager.show([make_mirror("Minimap")], GAME_WINDOW)
+    manager = make_manager_with(["Minimap"])
+    manager.show(GAME_WINDOW)
     old_window = screen["created"][0]
 
-    manager.show([make_mirror("Health")], GAME_WINDOW)
+    manager.show(GAME_WINDOW)
 
     assert old_window.is_destroyed
 
 
 def test_close_destroys_every_window(screen):
-    manager = make_manager()
-    manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
+    manager = make_manager_with(["Minimap", "Health"])
+    manager.show(GAME_WINDOW)
 
     manager.close()
 
     assert all(window.is_destroyed for window in screen["created"])
 
 
+def test_close_keeps_the_mirrors_for_the_next_show(screen):
+    manager = make_manager_with(["Minimap"])
+    manager.show(GAME_WINDOW)
+    manager.close()
+
+    manager.show(GAME_WINDOW)
+
+    assert [window.name for window in screen["created"]] == ["Minimap", "Minimap"]
+
+
 def test_set_game_window_moves_every_window(screen):
-    manager = make_manager()
-    manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
+    manager = make_manager_with(["Minimap", "Health"])
+    manager.show(GAME_WINDOW)
     moved = GameWindow(100, Rect(50, 60, 800, 600), is_minimized=False, is_in_front=True)
 
     manager.set_game_window(moved)
@@ -114,9 +141,9 @@ def test_new_windows_get_the_look_from_the_settings(screen):
         is_rounded_corners_on=True,
         is_frame_tint_on=True,
     )
-    manager = make_manager(app_settings)
+    manager = make_manager_with(["Minimap"], app_settings)
 
-    manager.show([make_mirror("Minimap")], GAME_WINDOW)
+    manager.show(GAME_WINDOW)
 
     expected_look = MirrorLook(is_frame_on=False, is_rounded_on=True, is_tint_on=True)
     assert screen["created"][0].mirror_look == expected_look
@@ -125,7 +152,8 @@ def test_new_windows_get_the_look_from_the_settings(screen):
 def test_update_mirror_look_reaches_every_window(screen):
     settings_store = SimpleNamespace(current=DEFAULT_SETTINGS)
     manager = MirrorManager(None, settings_store)
-    manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
+    manager.set_mirrors([make_mirror("Minimap"), make_mirror("Health")])
+    manager.show(GAME_WINDOW)
     frameless = MirrorLook(is_frame_on=False, is_rounded_on=False, is_tint_on=False)
 
     settings_store.current = AppSettings(is_mirror_frame_on=False)

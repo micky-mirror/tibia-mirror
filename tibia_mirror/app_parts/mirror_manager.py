@@ -16,19 +16,24 @@ class MirrorManager:
     def __init__(self, window: tk.Misc, settings: AppSettingsStore) -> None:
         self._window = window
         self._settings = settings
+        self._mirrors: list[MirrorSettings] = []
         self._mirror_windows: list[MirrorWindow] = []
 
-    def show(self, mirrors: Sequence[MirrorSettings], game_window: GameWindow) -> int:
-        """Show a window for each of the mirrors, on the given window of Tibia.
+    def set_mirrors(self, mirrors: Sequence[MirrorSettings]) -> None:
+        """Keep the mirrors of the open profile while the app runs."""
+        self._mirrors = list(mirrors)
 
-        They replace the mirrors that were shown before. A mirror that Windows refuses
-        to draw is left out. Returns how many were left out.
+    def show(self, game_window: GameWindow) -> int:
+        """Show a window for each kept mirror, on the given window of Tibia.
+
+        They replace the mirror windows shown before. A mirror that Windows refuses
+        to draw gets no window, but it is still kept. Returns how many got no window.
         """
         self.close()
         mirror_look = self._get_mirror_look()
         failed = 0
 
-        for mirror_settings in mirrors:
+        for mirror_settings in self._mirrors:
             try:
                 mirror_window = MirrorWindow(
                     self._window, mirror_settings, game_window, mirror_look
@@ -53,7 +58,7 @@ class MirrorManager:
             mirror_window.set_mirror_look(mirror_look)
 
     def close(self) -> None:
-        """Close all mirror windows."""
+        """Close all mirror windows. The mirrors are still kept."""
         for mirror_window in self._mirror_windows:
             mirror_window.destroy()
 

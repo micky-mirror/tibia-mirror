@@ -1201,7 +1201,8 @@ class App2:
             self.mirror_manager.close()
             self.panel.set_message(tr("Profile file is invalid"), "error")
         else:
-            failed = self.mirror_manager.show(mirrors, game_window)
+            self.mirror_manager.set_mirrors(mirrors)
+            failed = self.mirror_manager.show(game_window)
             if failed:
                 message = tr_n(failed, "{n} mirror failed to load", "{n} mirrors failed to load")
                 self.panel.set_message(message, "error")
