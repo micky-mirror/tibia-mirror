@@ -6,7 +6,7 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
 
-from tibia_mirror.config import COLOR_BORDER, FRAME_COLORS, MIRROR_BORDER
+from tibia_mirror.config import COLOR_BORDER, FRAME_COLORS, MIRROR_BORDER, RESIZE_GRIP
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect, scaled_size
 from tibia_mirror.core.handles import Hwnd
@@ -73,9 +73,17 @@ class MirrorWindow(tk.Toplevel):
         self._show_at_saved_place()
 
     def _bind_events(self) -> None:
+        # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
+        self.bind("<Enter>", self._on_mouse_move)
+        self.bind("<Motion>", self._on_mouse_move)
         self.bind("<ButtonPress-1>", self._on_mouse_down)
         self.bind("<B1-Motion>", self._on_mouse_drag)
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
+
+    def _on_mouse_move(self, event: tk.Event[tk.Misc]) -> None:
+        """Show the resize cursor over the bottom-right corner."""
+        cursor = "size_nw_se" if self._is_in_resize_grip(event) else ""
+        self.configure(cursor=cursor)
 
     def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
         """Keep how far the mouse is from the saved place of the mirror."""
@@ -102,6 +110,14 @@ class MirrorWindow(tk.Toplevel):
     def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
         """Hand over the settings of the mirror with its new place."""
         self._on_changed(self._mirror_settings)
+
+    def _is_in_resize_grip(self, event: tk.Event[tk.Misc]) -> bool:
+        """Whether the mouse is on the bottom-right corner, where the mirror is resized."""
+        grip = px(RESIZE_GRIP)
+        is_on_right_edge = event.x >= self.winfo_width() - grip
+        is_on_bottom_edge = event.y >= self.winfo_height() - grip
+
+        return is_on_right_edge and is_on_bottom_edge
 
     def _show_at_saved_place(self) -> None:
         """Show the window at its saved place, or hide it when it must not be shown."""
