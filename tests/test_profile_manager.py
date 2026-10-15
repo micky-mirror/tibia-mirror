@@ -86,6 +86,15 @@ def test_the_mirrors_of_the_open_profile_are_read(tmp_path, folder):
     assert mirrors == [MirrorSettings.from_json(MIRROR_JSON)]
 
 
+def test_written_mirrors_are_read_back(tmp_path, folder):
+    manager = ProfileManager(folder, make_settings(tmp_path, "Default"))
+    mirrors = [MirrorSettings.from_json(MIRROR_JSON)]
+
+    manager.write_mirrors(manager.active_name, mirrors)
+
+    assert manager.read_mirrors() == mirrors
+
+
 def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
     manager = ProfileManager(folder, make_settings(tmp_path, "Default"))
 

@@ -48,6 +48,20 @@ class ProfileManager:
         except (KeyError, TypeError, AttributeError) as error:
             raise ValueError("the profile file is invalid") from error
 
+    def write_mirrors(self, name: str, mirrors: Sequence[MirrorSettings]) -> None:
+        """Write the mirrors to the file of the profile `name`.
+
+        If the file cannot be written, this raises OSError.
+        """
+        data = {
+            "version": PROFILE_FILE_FORMAT,
+            "mirrors": [mirror.to_json() for mirror in mirrors],
+        }
+        file_content: str = json.dumps(data, indent=2)
+
+        self._folder.mkdir(parents=True, exist_ok=True)
+        self._get_file(name).write_text(file_content, encoding="utf-8")
+
     def _get_start_name(self) -> str:
         """The profile to open at the start: the one that was open the last time.
 
@@ -68,21 +82,7 @@ class ProfileManager:
         has_profiles: bool = len(self.get_names()) > 0
 
         if not has_profiles:
-            self._write_mirrors(DEFAULT_PROFILE, [])
+            self.write_mirrors(DEFAULT_PROFILE, [])
 
     def _get_file(self, name: str) -> Path:
         return self._folder / f"{name}.json"
-
-    def _write_mirrors(self, name: str, mirrors: Sequence[MirrorSettings]) -> None:
-        """Write the mirrors to the file of the profile `name`.
-
-        If the file cannot be written, this raises OSError.
-        """
-        data = {
-            "version": PROFILE_FILE_FORMAT,
-            "mirrors": [mirror.to_json() for mirror in mirrors],
-        }
-        file_content: str = json.dumps(data, indent=2)
-
-        self._folder.mkdir(parents=True, exist_ok=True)
-        self._get_file(name).write_text(file_content, encoding="utf-8")
