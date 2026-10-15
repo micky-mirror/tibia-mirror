@@ -23,7 +23,7 @@ def make_mirror(name):
 
 def make_manager(app_settings=DEFAULT_SETTINGS):
     settings_store = SimpleNamespace(current=app_settings)
-    return MirrorManager(None, settings_store)
+    return MirrorManager(None, settings_store, lambda mirrors: None)
 
 
 def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
@@ -154,7 +154,7 @@ def test_new_windows_get_the_look_from_the_settings(screen):
 
 def test_update_mirror_look_reaches_every_window(screen):
     settings_store = SimpleNamespace(current=DEFAULT_SETTINGS)
-    manager = MirrorManager(None, settings_store)
+    manager = MirrorManager(None, settings_store, lambda mirrors: None)
     manager.set_mirrors([make_mirror("Minimap"), make_mirror("Health")])
     manager.show(GAME_WINDOW)
     frameless = MirrorLook(is_frame_on=False, is_rounded_on=False, is_tint_on=False)
@@ -177,3 +177,15 @@ def test_a_changed_mirror_is_kept_for_the_next_show(screen):
         make_mirror("Minimap"),
         changed,
     ]
+
+
+def test_a_changed_mirror_is_passed_on_with_all_mirrors(screen):
+    told = []
+    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
+    manager.set_mirrors([make_mirror("Minimap"), make_mirror("Health")])
+    manager.show(GAME_WINDOW)
+    changed = replace(make_mirror("Health"), zoom=2.0)
+
+    screen["created"][1].on_changed(changed)
+
+    assert told == [[make_mirror("Minimap"), changed]]

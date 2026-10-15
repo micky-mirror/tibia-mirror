@@ -1,7 +1,7 @@
 """The mirrors on the screen."""
 
 import tkinter as tk
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_look import MirrorLook
@@ -13,9 +13,15 @@ from tibia_mirror.ui.overlay2.mirror_window import MirrorWindow
 class MirrorManager:
     """Owns the mirror windows."""
 
-    def __init__(self, window: tk.Misc, settings: AppSettingsStore) -> None:
+    def __init__(
+        self,
+        window: tk.Misc,
+        settings: AppSettingsStore,
+        on_changed: Callable[[Sequence[MirrorSettings]], None],
+    ) -> None:
         self._window = window
         self._settings = settings
+        self._on_changed = on_changed
         self._mirrors: list[MirrorSettings] = []
         self._mirror_windows: list[MirrorWindow] = []
 
@@ -69,10 +75,12 @@ class MirrorManager:
         self._mirror_windows.clear()
 
     def _on_mirror_changed(self, mirror_settings: MirrorSettings) -> None:
-        """Keep the new settings of a mirror after it changed on the screen."""
+        """Keep the new settings of a changed mirror, and pass all mirrors on."""
         for index, kept_settings in enumerate(self._mirrors):
             if kept_settings.mirror_id == mirror_settings.mirror_id:
                 self._mirrors[index] = mirror_settings
+
+        self._on_changed(list(self._mirrors))
 
     def _get_mirror_look(self) -> MirrorLook:
         """The look every mirror window shares, from the app settings."""

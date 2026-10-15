@@ -6,7 +6,7 @@ import os
 import sys
 import time
 import tkinter as tk
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from tkinter import filedialog
 from types import TracebackType
@@ -42,6 +42,7 @@ from tibia_mirror.core.characters import Links
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
 from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.profiles import ProfileStore, copy_name, name_error
 from tibia_mirror.core.timers import (
     KeyCombo,
@@ -1137,7 +1138,7 @@ class App2:
             self.window, self._on_connection_changed, self._on_game_window_changed
         )
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings)
-        self.mirror_manager = MirrorManager(self.window, self.settings)
+        self.mirror_manager = MirrorManager(self.window, self.settings, self._on_mirrors_changed)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
@@ -1177,6 +1178,13 @@ class App2:
     def _on_game_window_changed(self, game_window: GameWindow) -> None:
         """Make the mirrors follow the window of Tibia after it changed."""
         self.mirror_manager.set_game_window(game_window)
+
+    def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
+        """Write the mirrors to the open profile after one of them changed."""
+        try:
+            self.profile_manager.write_mirrors(self.profile_manager.active_name, mirrors)
+        except OSError:
+            self.panel.set_message(tr("Save failed"), "error")
 
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, and redraw the mirrors."""
