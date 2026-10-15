@@ -2,11 +2,14 @@
 
 import tkinter as tk
 
+from tibia_mirror.config import MIRROR_BORDER
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect, scaled_size
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.regions import Layout, size_key
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.winapi import win32
 from tibia_mirror.winapi.dwm import Thumbnail
@@ -25,14 +28,19 @@ class MirrorWindow(tk.Toplevel):
         self.withdraw()  # hidden until it has a size and a place
         self._mirror_settings = mirror_settings
         self._game_window = game_window
+        # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
-        keep_open(self)  # Alt+F4 does not close a mirror, only the app does
+        self.configure(bg=theme.MIRROR_FRAME)  # shows as the frame around the picture
+        # only the app close a mirror
+        keep_open(self)
         # the number Windows knows this window by
         self._window_handle: Hwnd = win32.toplevel_hwnd(self)
+        # window layer setup
         win32.set_alpha(self._window_handle, mirror_settings.opacity)
-        # needs the layered style that set_alpha gives the window
         win32.set_click_through(self._window_handle, mirror_settings.is_locked)
+        # initialize thumbnail connection
         self._thumbnail = self._create_thumbnail()
+        # render window at given place
         self._show_at_saved_place()
 
     def destroy(self) -> None:
@@ -54,17 +62,26 @@ class MirrorWindow(tk.Toplevel):
             self.withdraw()
             return
 
+        picture_area = self._get_picture_area(layout)
+        border = px(MIRROR_BORDER)
+
+        window_area = picture_area.grown(border)
+        thumbnail_area = Rect(border, border, picture_area.w, picture_area.h)
+
+        self.geometry(f"{window_area.w}x{window_area.h}+{window_area.x}+{window_area.y}")
+        self._thumbnail.show(layout.region, thumbnail_area)
+        self.deiconify()
+        self.attributes("-topmost", True)  # above other windows, also above the game
+
+    def _get_picture_area(self, layout: Layout) -> Rect:
+        """Where the picture of the game goes on the screen."""
         client_area = self._game_window.client_area
         zoom = self._mirror_settings.zoom
         area_width, area_height = scaled_size(layout.region.w, layout.region.h, zoom)
         position_x = client_area.x + layout.offset[0]
         position_y = client_area.y + layout.offset[1]
 
-        self.geometry(f"{area_width}x{area_height}+{position_x}+{position_y}")
-        thumbnail_area = Rect(0, 0, area_width, area_height)
-        self._thumbnail.show(layout.region, thumbnail_area)
-        self.deiconify()
-        self.attributes("-topmost", True)  # above other windows, also above the game
+        return Rect(position_x, position_y, area_width, area_height)
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""
