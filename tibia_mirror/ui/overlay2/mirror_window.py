@@ -12,6 +12,7 @@ from tibia_mirror.core.regions import Layout, size_key
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
+from tibia_mirror.ui.overlay2.mirror_frame import MirrorFrame
 from tibia_mirror.winapi import dwm, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
@@ -40,6 +41,8 @@ class MirrorWindow(tk.Toplevel):
         # window layer setup
         win32.set_alpha(self._window_handle, mirror_settings.opacity)
         win32.set_click_through(self._window_handle, mirror_settings.is_locked)
+        # the frame behind a rounded picture
+        self._mirror_frame = MirrorFrame(self, mirror_settings.opacity)
         # initialize thumbnail connection
         self._thumbnail = self._create_thumbnail()
         # render window at given place
@@ -66,6 +69,7 @@ class MirrorWindow(tk.Toplevel):
         is_tibia_in_use = self._game_window.is_in_front and not self._game_window.is_minimized
 
         if layout is None or self._mirror_settings.is_hidden or not is_tibia_in_use:
+            self._mirror_frame.withdraw()
             self.withdraw()
             return
 
@@ -77,6 +81,7 @@ class MirrorWindow(tk.Toplevel):
         thumbnail_area = Rect(window_margin, window_margin, picture_area.w, picture_area.h)
 
         dwm.set_rounded_corners(self._window_handle, self._mirror_look.is_rounded_on)
+        self._show_frame_window(picture_area, border)
         # shows as the frame around the picture
         self.configure(bg=theme.frame_color(self._mirror_settings.colour))
         self.geometry(f"{window_area.w}x{window_area.h}+{window_area.x}+{window_area.y}")
@@ -105,6 +110,17 @@ class MirrorWindow(tk.Toplevel):
             return px(MIRROR_BORDER)
 
         return 0
+
+    def _show_frame_window(self, picture_area: Rect, border: int) -> None:
+        """Show the frame window around a rounded picture, or hide it."""
+        is_frame_window_used = self._mirror_look.is_rounded_on and border > 0
+
+        if not is_frame_window_used:
+            self._mirror_frame.withdraw()
+            return
+
+        frame_area = picture_area.grown(border)
+        self._mirror_frame.show(frame_area, self._mirror_settings.colour)
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""
