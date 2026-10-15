@@ -11,6 +11,7 @@ from tibia_mirror.winapi import win32
 
 HWND = 100
 AREA = Rect(10, 20, 800, 600)
+BROWSER = 200
 
 
 class FakeWindow:
@@ -32,7 +33,12 @@ class FakeWindow:
 @pytest.fixture
 def tibia(monkeypatch):
     """What Windows reports about Tibia; a test changes it to set the scene."""
-    reported = {"is_running": True, "is_minimized": False, "client_area": AREA}
+    reported = {
+        "is_running": True,
+        "is_minimized": False,
+        "client_area": AREA,
+        "front_window": HWND,
+    }
 
     def find_window():
         return HWND if reported["is_running"] else None
@@ -41,6 +47,9 @@ def tibia(monkeypatch):
     monkeypatch.setattr(win32, "is_window", lambda hwnd: reported["is_running"])
     monkeypatch.setattr(win32, "is_minimized", lambda hwnd: reported["is_minimized"])
     monkeypatch.setattr(win32, "client_rect", lambda hwnd: reported["client_area"])
+    monkeypatch.setattr(win32, "foreground_window", lambda: reported["front_window"])
+    monkeypatch.setattr(win32, "window_process_id", lambda hwnd: 1)
+    monkeypatch.setattr(win32, "window_class", lambda hwnd: "AppWindow")
     return reported
 
 
@@ -73,7 +82,7 @@ def test_state_is_connected_when_tibia_is_running(tibia):
 def test_game_window_is_known_when_tibia_is_running(tibia):
     connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
 
-    assert connection.game_window == GameWindow(HWND, AREA, is_minimized=False)
+    assert connection.game_window == GameWindow(HWND, AREA, is_minimized=False, is_in_front=True)
 
 
 def test_there_is_no_game_window_when_tibia_is_not_running(tibia):
@@ -99,7 +108,7 @@ def test_game_window_is_kept_while_tibia_is_minimized_later(tibia):
     tibia["is_minimized"] = True
     window.run_planned()
 
-    assert connection.game_window == GameWindow(HWND, AREA, is_minimized=True)
+    assert connection.game_window == GameWindow(HWND, AREA, is_minimized=True, is_in_front=True)
 
 
 def test_nothing_is_told_while_the_state_stays_the_same(tibia):
@@ -172,7 +181,9 @@ def test_a_moved_tibia_is_told_to_the_app(tibia):
     tibia["client_area"] = Rect(50, 60, 800, 600)
     window.run_planned()
 
-    assert game_windows == [GameWindow(HWND, Rect(50, 60, 800, 600), is_minimized=False)]
+    assert game_windows == [
+        GameWindow(HWND, Rect(50, 60, 800, 600), is_minimized=False, is_in_front=True)
+    ]
 
 
 def test_nothing_is_told_while_tibia_stays_in_place(tibia):
@@ -205,7 +216,7 @@ def test_a_minimized_tibia_is_told_as_a_new_game_window(tibia):
     tibia["is_minimized"] = True
     window.run_planned()
 
-    assert game_windows == [GameWindow(HWND, AREA, is_minimized=True)]
+    assert game_windows == [GameWindow(HWND, AREA, is_minimized=True, is_in_front=True)]
 
 
 def test_a_restored_tibia_is_told_as_a_new_game_window(tibia):
@@ -218,4 +229,28 @@ def test_a_restored_tibia_is_told_as_a_new_game_window(tibia):
     tibia["is_minimized"] = False
     window.run_planned()
 
-    assert game_windows[-1] == GameWindow(HWND, AREA, is_minimized=False)
+    assert game_windows[-1] == GameWindow(HWND, AREA, is_minimized=False, is_in_front=True)
+
+
+def test_another_window_in_front_is_told_as_a_new_game_window(tibia):
+    window = FakeWindow()
+    game_windows = []
+    TibiaConnection(window, do_nothing, game_windows.append)
+
+    tibia["front_window"] = BROWSER
+    window.run_planned()
+
+    assert game_windows == [GameWindow(HWND, AREA, is_minimized=False, is_in_front=False)]
+
+
+def test_tibia_back_in_front_is_told_as_a_new_game_window(tibia):
+    window = FakeWindow()
+    game_windows = []
+    TibiaConnection(window, do_nothing, game_windows.append)
+
+    tibia["front_window"] = BROWSER
+    window.run_planned()
+    tibia["front_window"] = HWND
+    window.run_planned()
+
+    assert game_windows[-1] == GameWindow(HWND, AREA, is_minimized=False, is_in_front=True)

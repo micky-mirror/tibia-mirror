@@ -8,7 +8,7 @@ from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_settings import MirrorSettings
 
-GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False)
+GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)
 
 
 def make_mirror(name):
@@ -91,7 +91,7 @@ def test_close_destroys_every_window(screen):
 def test_set_game_window_moves_every_window(screen):
     manager = MirrorManager(None, None)
     manager.show([make_mirror("Minimap"), make_mirror("Health")], GAME_WINDOW)
-    moved = GameWindow(100, Rect(50, 60, 800, 600), is_minimized=False)
+    moved = GameWindow(100, Rect(50, 60, 800, 600), is_minimized=False, is_in_front=True)
 
     manager.set_game_window(moved)
 

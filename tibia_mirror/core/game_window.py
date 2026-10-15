@@ -11,3 +11,4 @@ class GameWindow:
     handle: Hwnd  # the number Windows knows the window by
     client_area: Rect  # the inside of the window, where the game is drawn, on the screen
     is_minimized: bool
+    is_in_front: bool

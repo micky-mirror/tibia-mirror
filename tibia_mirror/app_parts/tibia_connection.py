@@ -3,6 +3,7 @@
 import tkinter as tk
 from collections.abc import Callable
 
+from tibia_mirror.app_parts.front_window_tracker import FrontWindowTracker
 from tibia_mirror.config import CONNECTION_POLL_MS
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.services.game import Game
@@ -22,6 +23,7 @@ class TibiaConnection:
         self._on_state_changed = on_state_changed
         self._on_game_window_changed = on_game_window_changed
         self._game = Game()
+        self._front_window_tracker = FrontWindowTracker()
         self._is_minimized = False
         self._look_for_tibia()
         self._check_on_delay()
@@ -40,18 +42,17 @@ class TibiaConnection:
         if handle is None or client_area is None:
             return None
 
-        return GameWindow(handle, client_area, self._is_minimized)
+        is_in_front = self._front_window_tracker.last_front_window == handle
+
+        return GameWindow(handle, client_area, self._is_minimized, is_in_front)
 
     def _look_for_tibia(self) -> None:
-        """Read what is true about Tibia now.
-
-        Forget its window if Tibia has closed, look for a window if none is known,
-        and read where its client area is.
-        """
+        """Read what is true about Tibia now."""
         self._game.check_closed()
         self._game.find()
         self._game.current_client()
         self._is_minimized = self._game.is_minimized()
+        self._front_window_tracker.update()
 
     def _check_on_delay(self) -> None:
         """Plan the next check."""
