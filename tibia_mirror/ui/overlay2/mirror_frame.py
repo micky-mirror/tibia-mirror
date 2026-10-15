@@ -1,4 +1,4 @@
-"""The frame window behind a rounded mirror."""
+"""The frame window behind a rounded or tinted mirror."""
 
 import tkinter as tk
 
@@ -28,23 +28,39 @@ class MirrorFrame(tk.Toplevel):
         # square, because the rounding of Windows adds a shadow
         dwm.set_rounded_corners(self._window_handle, False)
 
-    def show(self, picture_area: Rect, border: int, colour: str) -> None:
+    def show(
+        self,
+        picture_area: Rect,
+        border: int,
+        colour: str,
+        *,
+        is_rounded: bool,
+        is_solid: bool,
+    ) -> None:
         """Show the frame around the given picture, in the given frame colour."""
         frame_area = picture_area.grown(border)
         self.configure(bg=theme.frame_color(colour))
         self.geometry(f"{frame_area.w}x{frame_area.h}+{frame_area.x}+{frame_area.y}")
         # move the window first, because a new shape makes Tk forget a move it has not done yet
         self.update_idletasks()
-        self._set_ring_shape(picture_area, border)
+        self._set_ring_shape(picture_area, border, is_rounded=is_rounded, is_solid=is_solid)
         self.deiconify()
         self.attributes("-topmost", True)  # above other windows, also above the game
 
-    def _set_ring_shape(self, picture_area: Rect, border: int) -> None:
-        """Cut the window into a ring with rounded corners around the picture."""
-        inner_radius = round(ROUND_SMALL_RADIUS * win32.dpi_scale(self._window_handle))
-        outer_radius = inner_radius + border
+    def _set_ring_shape(
+        self,
+        picture_area: Rect,
+        border: int,
+        *,
+        is_rounded: bool,
+        is_solid: bool,
+    ) -> None:
+        """Cut the window into a ring around the picture, or keep it solid behind it."""
+        corner_radius = round(ROUND_SMALL_RADIUS * win32.dpi_scale(self._window_handle))
+        inner_radius = corner_radius if is_rounded else 0
+        outer_radius = inner_radius + border if is_rounded else 0
         frame_width = picture_area.w + 2 * border
         frame_height = picture_area.h + 2 * border
-        hole = (border, border, picture_area.w, picture_area.h, inner_radius)
+        hole = None if is_solid else (border, border, picture_area.w, picture_area.h, inner_radius)
 
         win32.set_ring_shape(self._window_handle, frame_width, frame_height, outer_radius, hole)

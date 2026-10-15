@@ -119,7 +119,13 @@ class MirrorWindow(tk.Toplevel):
             self._mirror_frame.withdraw()
             return
 
-        self._mirror_frame.show(picture_area, border, self._mirror_settings.colour)
+        self._mirror_frame.show(
+            picture_area,
+            border,
+            self._mirror_settings.colour,
+            is_rounded=self._mirror_look.is_rounded_on,
+            is_solid=False,
+        )
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""
