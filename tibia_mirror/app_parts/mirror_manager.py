@@ -6,8 +6,10 @@ from collections.abc import Callable, Sequence
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.core.regions import size_key
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.overlay2.mirror_window import MirrorWindow
+from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
 
 class MirrorManager:
@@ -73,6 +75,34 @@ class MirrorManager:
             mirror_window.destroy()
 
         self._mirror_windows.clear()
+
+    def get_mirror_infos(self, game_window: GameWindow) -> list[MirrorInfo]:
+        """What the Mirrors page shows about each kept mirror, for this size of the game."""
+        client_area = game_window.client_area
+        game_size_key = size_key(client_area.w, client_area.h)
+        mirror_infos: list[MirrorInfo] = []
+
+        for mirror_settings in self._mirrors:
+            layout = mirror_settings.layouts.get(game_size_key)
+
+            if layout is None:
+                continue
+
+            mirror_infos.append(
+                MirrorInfo(
+                    name=mirror_settings.name,
+                    area_width=layout.region.w,
+                    area_height=layout.region.h,
+                    opacity=mirror_settings.opacity,
+                    colour=mirror_settings.colour,
+                    is_hidden=mirror_settings.is_hidden,
+                    is_locked=mirror_settings.is_locked,
+                    is_timer_on=mirror_settings.timer.enabled,
+                    timer_alert_seconds=mirror_settings.timer.alert,
+                )
+            )
+
+        return mirror_infos
 
     def _on_mirror_changed(self, mirror_settings: MirrorSettings) -> None:
         """Keep the new settings of a changed mirror, and pass all mirrors on."""

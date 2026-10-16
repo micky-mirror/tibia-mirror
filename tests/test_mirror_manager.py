@@ -11,7 +11,10 @@ from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.core.regions import Layout
+from tibia_mirror.core.timers import TimerSettings
 from tibia_mirror.settings.app_settings import AppSettings
+from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
 GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)
 DEFAULT_SETTINGS = AppSettings()
@@ -189,3 +192,39 @@ def test_a_changed_mirror_is_passed_on_with_all_mirrors(screen):
     screen["created"][1].on_changed(changed)
 
     assert told == [[make_mirror("Minimap"), changed]]
+
+
+def test_mirror_infos_have_the_region_for_the_size_of_the_game():
+    mirror = replace(
+        make_mirror("Cooldowns"),
+        layouts={"800x600": Layout(Rect(5, 5, 320, 64), (0, 0))},
+        opacity=0.5,
+        colour="red",
+        is_hidden=True,
+        is_locked=True,
+        timer=TimerSettings(enabled=True, alert=90),
+    )
+    manager = make_manager()
+    manager.set_mirrors([mirror])
+
+    assert manager.get_mirror_infos(GAME_WINDOW) == [
+        MirrorInfo(
+            name="Cooldowns",
+            area_width=320,
+            area_height=64,
+            opacity=0.5,
+            colour="red",
+            is_hidden=True,
+            is_locked=True,
+            is_timer_on=True,
+            timer_alert_seconds=90,
+        )
+    ]
+
+
+def test_a_mirror_without_a_layout_for_the_size_of_the_game_gets_no_info():
+    other_size = {"1920x1080": Layout(Rect(5, 5, 320, 64), (0, 0))}
+    manager = make_manager()
+    manager.set_mirrors([replace(make_mirror("Cooldowns"), layouts=other_size)])
+
+    assert manager.get_mirror_infos(GAME_WINDOW) == []
