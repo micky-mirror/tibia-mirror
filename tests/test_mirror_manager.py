@@ -300,3 +300,24 @@ def test_an_opacity_from_the_mirrors_page_is_kept_and_passed_on():
     manager.update_mirror(replace(health_info, opacity=0.3))
 
     assert told == [[replace(health, opacity=0.3)]]
+
+
+def test_a_removed_mirror_is_forgotten_and_the_others_passed_on():
+    told = []
+    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
+    manager.set_mirrors([make_mirror("Minimap"), make_mirror("Health")])
+
+    manager.remove_mirror("Health")
+
+    assert told == [[make_mirror("Minimap")]]
+
+
+def test_only_the_removed_mirror_loses_its_window(screen):
+    manager = make_manager_with(["Minimap", "Health"])
+    manager.show(GAME_WINDOW)
+    minimap_window, health_window = screen["created"]
+
+    manager.remove_mirror("Health")
+
+    assert health_window.is_destroyed
+    assert not minimap_window.is_destroyed

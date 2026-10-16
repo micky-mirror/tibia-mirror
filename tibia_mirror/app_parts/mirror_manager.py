@@ -127,6 +127,24 @@ class MirrorManager:
 
         self._on_mirror_changed(new_settings)
 
+    def remove_mirror(self, mirror_id: str) -> None:
+        """Forget a mirror and close its window, then pass all the other mirrors on."""
+        self._mirrors = [
+            mirror_settings
+            for mirror_settings in self._mirrors
+            if mirror_settings.mirror_id != mirror_id
+        ]
+        kept_windows: list[MirrorWindow] = []
+
+        for mirror_window in self._mirror_windows:
+            if mirror_window.mirror_id == mirror_id:
+                mirror_window.destroy()
+            else:
+                kept_windows.append(mirror_window)
+
+        self._mirror_windows = kept_windows
+        self._on_changed(list(self._mirrors))
+
     def _on_mirror_changed(self, mirror_settings: MirrorSettings) -> None:
         """Keep the new settings of a changed mirror, and pass all mirrors on."""
         for index, kept_settings in enumerate(self._mirrors):
