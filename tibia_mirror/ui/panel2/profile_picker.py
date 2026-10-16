@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tkinter as tk
 import tkinter.font as tkfont
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
@@ -29,7 +29,12 @@ class ProfilePicker(tk.Canvas):
     """A box with the name of the active profile. A click on it opens the profile menu."""
 
     def __init__(
-        self, parent: tk.Misc, width: int, name: str, profile_names: Sequence[str]
+        self,
+        parent: tk.Misc,
+        width: int,
+        name: str,
+        profile_names: Sequence[str],
+        on_profile_selected: Callable[[str], None],
     ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
@@ -43,7 +48,7 @@ class ProfilePicker(tk.Canvas):
         )
         self._width = width
         self._profile_name = name  # the name of the active profile
-        self._profile_menu = ProfileMenu(name, profile_names)
+        self._profile_menu = ProfileMenu(name, profile_names, on_profile_selected)
         self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the profile menu is open
 

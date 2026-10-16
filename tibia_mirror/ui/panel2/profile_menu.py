@@ -16,9 +16,15 @@ class ProfileMenu:
     things that can be done with profiles.
     """
 
-    def __init__(self, active_name: str, profile_names: Sequence[str]) -> None:
+    def __init__(
+        self,
+        active_name: str,
+        profile_names: Sequence[str],
+        on_select: Callable[[str], None],
+    ) -> None:
         self._active_name = active_name  # the name of the active profile
         self._profile_names = profile_names  # the names of all profiles
+        self._on_select = on_select  # gets the name of the profile picked in the menu
 
     def open(self, window: tk.Misc, box: Box, on_close: Callable[[], None]) -> None:
         """Open the menu under `box`, as wide as it. `box` is a place on the screen.
@@ -56,7 +62,11 @@ class ProfileMenu:
         ]
 
     def _select(self, name: str) -> None:
-        """Make the profile `name` the active one."""
+        """Make the profile `name` the active one. Do nothing when it is already active."""
+        if name == self._active_name:
+            return
+
+        self._on_select(name)
 
     def _new(self) -> None:
         """Ask for a name and make a new, empty profile."""

@@ -1179,7 +1179,6 @@ class App2:
     def _on_connection_changed(self, state: str) -> None:
         """Show the new state of the connection on the panel, and show or close the mirrors."""
         self.panel.set_connection_state(state)
-        self.panel.set_mirrors(self._get_mirror_infos())
         self._show_mirrors()
 
     def _on_game_window_changed(self, game_window: GameWindow) -> None:
@@ -1193,6 +1192,17 @@ class App2:
             self.profile_manager.write_mirrors(self.profile_manager.active_name, mirrors)
         except OSError:
             self.panel.set_message(tr("Save failed"), "error")
+
+    def _on_profile_selected(self, name: str) -> None:
+        """Open the profile picked in the menu, and show its mirrors."""
+        self.profile_manager.open(name)
+
+        if self._load_mirrors():
+            self.panel.set_message("")
+        else:
+            self.panel.set_message(tr("Profile file is invalid"), "error")
+
+        self._show_mirrors()
 
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, and redraw the mirrors."""
@@ -1209,13 +1219,19 @@ class App2:
         try:
             mirrors = self.profile_manager.read_mirrors()
         except (OSError, ValueError):
+            # keep none, so the mirrors of the last profile are never saved into this one
+            self.mirror_manager.set_mirrors([])
             return False
         else:
             self.mirror_manager.set_mirrors(mirrors)
             return True
 
     def _show_mirrors(self) -> None:
-        """Show the kept mirrors on the window of Tibia. Without a window of Tibia, close them."""
+        """Show the kept mirrors on the Mirrors page and on the window of Tibia.
+
+        Without a window of Tibia, the page shows its waiting sentence and the windows close.
+        """
+        self.panel.set_mirrors(self._get_mirror_infos())
         game_window = self.connection.game_window
 
         if game_window is None:
@@ -1249,6 +1265,7 @@ class App2:
             self.settings,
             self.connection.state,
             profile_info,
+            self._on_profile_selected,
             mirror_infos,
             self.mirror_manager.update_mirror,
             self.mirror_manager.remove_mirror,
