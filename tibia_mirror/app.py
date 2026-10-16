@@ -1196,6 +1196,7 @@ class App2:
     def _on_profile_selected(self, name: str) -> None:
         """Open the profile picked in the menu, and show its mirrors."""
         self.profile_manager.open(name)
+        self.panel.set_profile_info(self._get_profile_info())
 
         if self._load_mirrors():
             self.panel.set_message("")
@@ -1244,6 +1245,13 @@ class App2:
             message = tr_n(failed, "{n} mirror failed to load", "{n} mirrors failed to load")
             self.panel.set_message(message, "error")
 
+    def _get_profile_info(self) -> ProfileInfo:
+        """What the profile picker shows: the open profile and the names of all profiles."""
+        return ProfileInfo(
+            active_name=self.profile_manager.active_name,
+            names=tuple(self.profile_manager.get_names()),
+        )
+
     def _get_mirror_infos(self) -> list[MirrorInfo] | None:
         """What the Mirrors page shows. None while Tibia is not connected."""
         game_window = self.connection.game_window
@@ -1254,10 +1262,7 @@ class App2:
         return self.mirror_manager.get_mirror_infos(game_window)
 
     def _show_panel(self, start_page: str = START_PAGE) -> None:
-        profile_info = ProfileInfo(
-            active_name=self.profile_manager.active_name,
-            names=tuple(self.profile_manager.get_names()),
-        )
+        profile_info = self._get_profile_info()
         mirror_infos: list[MirrorInfo] | None = self._get_mirror_infos()
 
         self.panel = Panel(

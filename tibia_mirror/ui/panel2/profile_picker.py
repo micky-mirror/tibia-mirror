@@ -48,6 +48,7 @@ class ProfilePicker(tk.Canvas):
         )
         self._width = width
         self._profile_name = name  # the name of the active profile
+        self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
         self._profile_menu = ProfileMenu(name, profile_names, on_profile_selected)
         self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the profile menu is open
@@ -60,6 +61,13 @@ class ProfilePicker(tk.Canvas):
         self._draw_name()
         self._draw_arrow()
         self._bind_events()
+
+    def set_profile(self, name: str, profile_names: Sequence[str]) -> None:
+        """Show another active profile, and give the menu the new list of profiles."""
+        self._profile_name = name
+        self._profile_menu = ProfileMenu(name, profile_names, self._on_profile_selected)
+        self.delete(self._name_item)
+        self._draw_name()
 
     def _render_box(self, colour: str) -> tk.PhotoImage:
         """The rounded shape of the box, as an image in the given colour."""
@@ -90,7 +98,7 @@ class ProfilePicker(tk.Canvas):
         """The name of the active profile, cut short with "…" when it is too long for the box."""
         font = tkfont.Font(font=theme.FONT_BOLD)
         room = self._width - px(NAME_X) - px(ARROW_ROOM)  # the width the name can take
-        self.create_text(
+        self._name_item = self.create_text(
             px(NAME_X),
             px(HEIGHT) // 2,
             text=elide(self._profile_name, font, room),

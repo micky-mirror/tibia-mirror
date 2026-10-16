@@ -54,14 +54,14 @@ class MirrorsPage(tk.Frame):
 
     def _add_profile_picker(self) -> None:
         """The box at the top with the name of the active profile."""
-        profile_picker = ProfilePicker(
+        self._profile_picker = ProfilePicker(
             self,
             self._width,
             self._profile_info.active_name,
             self._profile_info.names,
             self._on_profile_selected,
         )
-        profile_picker.pack(
+        self._profile_picker.pack(
             side="top",
             anchor="w",
             padx=self._side_pad,
@@ -123,6 +123,11 @@ class MirrorsPage(tk.Frame):
             pady=(px(LIST_TOP_PAD), px(LIST_BOTTOM_PAD)),
         )
         self._mirror_list = scroll_list.inner
+
+    def set_profile_info(self, profile_info: ProfileInfo) -> None:
+        """Show another active profile in the profile picker."""
+        self._profile_info = profile_info
+        self._profile_picker.set_profile(profile_info.active_name, profile_info.names)
 
     def set_mirrors(self, mirrors: Sequence[MirrorInfo] | None) -> None:
         """Show these mirrors in place of the ones shown before. Do nothing when nothing changed."""

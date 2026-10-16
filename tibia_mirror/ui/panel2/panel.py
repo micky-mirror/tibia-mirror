@@ -120,6 +120,10 @@ class Panel(tk.Frame):
 
         self._connection.configure(text="● " + text, fg=colour)
 
+    def set_profile_info(self, profile_info: ProfileInfo) -> None:
+        """Show another active profile on the Mirrors page."""
+        self._mirrors_page.set_profile_info(profile_info)
+
     def set_mirrors(self, mirrors: Sequence[MirrorInfo] | None) -> None:
         """Show these mirrors on the Mirrors page."""
         self._mirrors_page.set_mirrors(mirrors)
