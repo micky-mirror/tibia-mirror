@@ -118,7 +118,10 @@ class MirrorsPage(tk.Frame):
         self._mirror_list = scroll_list.inner
 
     def set_mirrors(self, mirrors: Sequence[MirrorInfo] | None) -> None:
-        """Show these mirrors in place of the ones shown before."""
+        """Show these mirrors in place of the ones shown before. Do nothing when nothing changed."""
+        if mirrors == self._mirrors:
+            return
+
         self._mirrors = mirrors
         self._clear_mirror_list()
         self._show_mirrors()

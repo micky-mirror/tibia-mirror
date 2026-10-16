@@ -115,11 +115,7 @@ class Panel(tk.Frame):
         self._connection.configure(text="● " + text, fg=colour)
 
     def set_mirrors(self, mirrors: Sequence[MirrorInfo] | None) -> None:
-        """Show these mirrors on the Mirrors page. Do nothing when nothing changed."""
-        if mirrors == self._mirrors:
-            return
-
-        self._mirrors = mirrors
+        """Show these mirrors on the Mirrors page."""
         self._mirrors_page.set_mirrors(mirrors)
 
     def set_message(self, text: str, tone: str = "muted") -> None:
