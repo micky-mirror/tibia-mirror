@@ -113,7 +113,11 @@ class MirrorManager:
         if mirror_settings is None:
             return
 
-        new_settings = replace(mirror_settings, is_hidden=mirror_info.is_hidden)
+        new_settings = replace(
+            mirror_settings,
+            is_hidden=mirror_info.is_hidden,
+            is_locked=mirror_info.is_locked,
+        )
 
         for mirror_window in self._mirror_windows:
             if mirror_window.mirror_id == new_settings.mirror_id:

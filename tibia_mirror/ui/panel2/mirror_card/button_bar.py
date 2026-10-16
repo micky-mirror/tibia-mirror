@@ -89,6 +89,10 @@ class MirrorCardButtonBar:
     def set_mirror(self, mirror: MirrorInfo) -> None:
         """Show the buttons for the new state of the mirror."""
         self._mirror = mirror
+
+        icon, colour, hovered_colour = self._get_lock_look()
+        self._lock_button.set_look(icon, colour, hovered_colour, self._get_lock_tip())
+
         icon, colour, hovered_colour = self._get_eye_look()
         self._eye_button.set_look(icon, colour, hovered_colour, self._get_eye_tip())
 
@@ -109,11 +113,7 @@ class MirrorCardButtonBar:
 
     def _draw_lock_button(self) -> None:
         """A closed lock in the accent colour for a locked mirror, an open grey lock if not."""
-        is_locked: bool = self._mirror.is_locked
-        icon = LOCKED_ICON if is_locked else UNLOCKED_ICON
-        colour = theme.ACCENT if is_locked else theme.SUBTEXT
-        hovered_colour = theme.ACCENT if is_locked else theme.TEXT
-        tip = self._get_lock_tip()
+        icon, colour, hovered_colour = self._get_lock_look()
 
         self._lock_button = IconButton(
             self._canvas,
@@ -123,9 +123,15 @@ class MirrorCardButtonBar:
             theme.FONT_ICON,
             colour,
             hovered_colour,
-            tip,
+            self._get_lock_tip(),
             self._toggle_locked,
         )
+
+    def _get_lock_look(self) -> tuple[str, str, str]:
+        """The icon, the colour and the hovered colour of the lock button."""
+        if self._mirror.is_locked:
+            return LOCKED_ICON, theme.ACCENT, theme.ACCENT
+        return UNLOCKED_ICON, theme.SUBTEXT, theme.TEXT
 
     def _draw_eye_button(self) -> None:
         """A crossed eye in the accent colour for a hidden mirror, an open grey eye if not."""
@@ -218,6 +224,7 @@ class MirrorCardButtonBar:
 
     def _toggle_locked(self) -> None:
         """Lock the mirror in its place, or unlock it."""
+        self._on_changed(replace(self._mirror, is_locked=not self._mirror.is_locked))
 
     def _toggle_hidden(self) -> None:
         """Hide the mirror, or show it again."""

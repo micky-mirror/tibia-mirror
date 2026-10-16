@@ -264,3 +264,15 @@ def test_a_change_from_the_mirrors_page_reaches_the_mirror_window(screen):
     manager.update_mirror(replace(health_info, is_hidden=True))
 
     assert [window.mirror_settings.is_hidden for window in screen["created"]] == [False, True]
+
+
+def test_a_lock_from_the_mirrors_page_is_kept_and_passed_on():
+    told = []
+    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
+    health = make_shown_mirror("Health")
+    manager.set_mirrors([health])
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+
+    manager.update_mirror(replace(health_info, is_locked=True))
+
+    assert told == [[replace(health, is_locked=True)]]
