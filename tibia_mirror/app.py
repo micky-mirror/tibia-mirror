@@ -80,6 +80,7 @@ from tibia_mirror.ui.panel.mirrors_page import (
 )
 from tibia_mirror.ui.panel.panel import ControlPanel
 from tibia_mirror.ui.panel.settings_page import SettingValue
+from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.panel import START_PAGE, Panel
 from tibia_mirror.ui.panel2.profile_info import ProfileInfo
 from tibia_mirror.winapi import dwm, sounds, win32
@@ -1141,9 +1142,13 @@ class App2:
         self.mirror_manager = MirrorManager(self.window, self.settings, self._on_mirrors_changed)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
+        is_mirror_loaded = self._load_mirrors()
         self._show_panel()
         self.window.show()
-        self._load_mirrors()
+
+        if not is_mirror_loaded:
+            self.panel.set_message(tr("Profile file is invalid"), "error")
+
         self._show_mirrors()
 
     def run(self) -> None:
@@ -1196,14 +1201,15 @@ class App2:
         i18n.use(self.settings.current.language)
         self._show_panel(open_page)
 
-    def _load_mirrors(self) -> None:
-        """Read the mirrors of the open profile and give them to the mirror manager."""
+    def _load_mirrors(self) -> bool:
+        """Read the mirrors of the open profile. False if its file is invalid."""
         try:
             mirrors = self.profile_manager.read_mirrors()
         except (OSError, ValueError):
-            self.panel.set_message(tr("Profile file is invalid"), "error")
+            return False
         else:
             self.mirror_manager.set_mirrors(mirrors)
+            return True
 
     def _show_mirrors(self) -> None:
         """Show the kept mirrors on the window of Tibia. Without a window of Tibia, close them."""
@@ -1219,6 +1225,15 @@ class App2:
             message = tr_n(failed, "{n} mirror failed to load", "{n} mirrors failed to load")
             self.panel.set_message(message, "error")
 
+    def _get_mirror_infos(self) -> list[MirrorInfo]:
+        """What the Mirrors page shows. Nothing while Tibia is not connected."""
+        game_window = self.connection.game_window
+
+        if game_window is None:
+            return []
+
+        return self.mirror_manager.get_mirror_infos(game_window)
+
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         profile_info = ProfileInfo(
             active_name=self.profile_manager.active_name,
@@ -1230,6 +1245,7 @@ class App2:
             self.settings,
             self.connection.state,
             profile_info,
+            self._get_mirror_infos(),
             start_page,
         )
         self.panel.pack(fill="both", expand=True)

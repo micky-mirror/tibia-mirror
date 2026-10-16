@@ -2,6 +2,7 @@
 
 import tkinter as tk
 import tkinter.font as tkfont
+from collections.abc import Sequence
 
 from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
@@ -12,6 +13,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel2.about_page import AboutPage
 from tibia_mirror.ui.panel2.footer import Footer
+from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.mirrors_page import MirrorsPage
 from tibia_mirror.ui.panel2.nav import NavRail
 from tibia_mirror.ui.panel2.profile_info import ProfileInfo
@@ -55,12 +57,14 @@ class Panel(tk.Frame):
         settings: AppSettingsStore,
         connection_state: str,
         profile_info: ProfileInfo,
+        mirrors: Sequence[MirrorInfo],
         start_page: str = START_PAGE,
     ) -> None:
         super().__init__(window, bg=theme.BG)
         self._settings = settings
         self._connection_state = connection_state  # the state the connection line shows
         self._profile_info = profile_info
+        self._mirrors = mirrors
         self.open_page = start_page  # the key of the page that is shown
         self._add_menu()
         self._add_content()
@@ -140,6 +144,7 @@ class Panel(tk.Frame):
                 content_width(),
                 px(SIDE_PAD),
                 self._profile_info,
+                self._mirrors,
             ),
             "shortcuts": ShortcutsPage(self._content, content_width(), px(SIDE_PAD)),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),

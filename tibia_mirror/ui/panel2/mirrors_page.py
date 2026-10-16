@@ -1,6 +1,7 @@
 """The Mirrors page: the active profile and the mirrors of that profile."""
 
 import tkinter as tk
+from collections.abc import Sequence
 
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
@@ -21,43 +22,6 @@ LIST_BOTTOM_PAD = 8  # below the list
 HINT_TOP_PAD = 10  # above the sentence that shows when there are no mirrors
 CARD_GAP = 6  # under each mirror card
 
-# Three mirrors to build the page with. They go away when the page gets the real mirrors.
-SAMPLE_MIRRORS = (
-    MirrorInfo(
-        name="Cooldowns",
-        area_width=320,
-        area_height=64,
-        opacity=0.5,
-        colour="default",
-        is_hidden=False,
-        is_locked=False,
-        is_timer_on=True,
-        timer_alert_seconds=60,
-    ),
-    MirrorInfo(
-        name="Minimap",
-        area_width=176,
-        area_height=176,
-        opacity=1.0,
-        colour="blue",
-        is_hidden=False,
-        is_locked=True,
-        is_timer_on=False,
-        timer_alert_seconds=60,
-    ),
-    MirrorInfo(
-        name="Health and mana",
-        area_width=240,
-        area_height=40,
-        opacity=0.8,
-        colour="red",
-        is_hidden=True,
-        is_locked=False,
-        is_timer_on=False,
-        timer_alert_seconds=60,
-    ),
-)
-
 
 class MirrorsPage(tk.Frame):
     """The Mirrors page."""
@@ -68,12 +32,13 @@ class MirrorsPage(tk.Frame):
         width: int,
         side_pad: int,
         profile_info: ProfileInfo,
+        mirrors: Sequence[MirrorInfo],
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
         self._profile_info = profile_info
-        self._mirrors = SAMPLE_MIRRORS
+        self._mirrors = mirrors
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
