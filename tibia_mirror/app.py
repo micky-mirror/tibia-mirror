@@ -1251,6 +1251,7 @@ class App2:
             profile_info,
             mirror_infos,
             self.mirror_manager.update_mirror,
+            self.mirror_manager.remove_mirror,
             start_page,
         )
         self.panel.pack(fill="both", expand=True)

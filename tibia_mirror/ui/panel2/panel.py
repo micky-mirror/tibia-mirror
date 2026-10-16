@@ -59,6 +59,7 @@ class Panel(tk.Frame):
         profile_info: ProfileInfo,
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
+        on_mirror_removed: Callable[[str], None],
         start_page: str = START_PAGE,
     ) -> None:
         super().__init__(window, bg=theme.BG)
@@ -67,6 +68,7 @@ class Panel(tk.Frame):
         self._profile_info = profile_info
         self._mirrors = mirrors
         self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
+        self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
         self.open_page = start_page  # the key of the page that is shown
         self._add_menu()
         self._add_content()
@@ -151,6 +153,7 @@ class Panel(tk.Frame):
             self._profile_info,
             self._mirrors,
             self._on_mirror_changed,
+            self._on_mirror_removed,
         )
         self._pages: dict[str, tk.Frame] = {
             "mirrors": self._mirrors_page,

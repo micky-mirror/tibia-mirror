@@ -27,6 +27,7 @@ class MirrorCard(tk.Canvas):
         width: int,
         mirror: MirrorInfo,
         on_changed: Callable[[MirrorInfo], None],
+        on_removed: Callable[[str], None],
     ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
@@ -44,7 +45,7 @@ class MirrorCard(tk.Canvas):
 
         self._title = MirrorCardTitle(self, self._width, self._mirror, self._on_mirror_changed)
         self._button_bar = MirrorCardButtonBar(
-            self, self._width, self._mirror, self._on_mirror_changed
+            self, self._width, self._mirror, self._on_mirror_changed, on_removed
         )
         self._slider = MirrorCardSlider(self, self._width, self._mirror, self._on_mirror_changed)
         # the parts of the card: each one hears what the mouse does

@@ -38,11 +38,13 @@ class MirrorCardButtonBar:
         width: int,
         mirror: MirrorInfo,
         on_changed: Callable[[MirrorInfo], None],
+        on_removed: Callable[[str], None],
     ) -> None:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
         self._on_changed = on_changed  # gets the new info after a button changed the mirror
+        self._on_removed = on_removed  # gets the mirror id after the remove button was clicked
         self._pressed_button: IconButton | None = None  # the mouse button went down on it
 
         self._draw_remove_button()
@@ -221,6 +223,7 @@ class MirrorCardButtonBar:
 
     def _remove(self) -> None:
         """Remove the mirror from the profile."""
+        self._on_removed(self._mirror.mirror_id)
 
     def _toggle_locked(self) -> None:
         """Lock the mirror in its place, or unlock it."""

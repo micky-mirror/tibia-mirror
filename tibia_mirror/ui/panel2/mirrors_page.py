@@ -34,6 +34,7 @@ class MirrorsPage(tk.Frame):
         profile_info: ProfileInfo,
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
+        on_mirror_removed: Callable[[str], None],
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
@@ -41,6 +42,7 @@ class MirrorsPage(tk.Frame):
         self._profile_info = profile_info
         self._mirrors = mirrors  # None while Tibia is not connected
         self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
+        self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
@@ -125,6 +127,10 @@ class MirrorsPage(tk.Frame):
             return
 
         self._mirrors = mirrors
+        self._redraw_mirror_list()
+
+    def _redraw_mirror_list(self) -> None:
+        """Draw the cards, or the sentence, again from the page's list of mirrors."""
         self._clear_mirror_list()
         self._show_mirrors()
 
@@ -146,7 +152,13 @@ class MirrorsPage(tk.Frame):
             return
 
         for mirror in self._mirrors:
-            card = MirrorCard(self._mirror_list, self._width, mirror, self._on_card_changed)
+            card = MirrorCard(
+                self._mirror_list,
+                self._width,
+                mirror,
+                self._on_card_changed,
+                self._on_card_removed,
+            )
             card.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
 
     def _on_card_changed(self, changed_mirror: MirrorInfo) -> None:
@@ -158,6 +170,16 @@ class MirrorsPage(tk.Frame):
             ]
 
         self._on_mirror_changed(changed_mirror)
+
+    def _on_card_removed(self, mirror_id: str) -> None:
+        """Take the mirror of a card out of the list of the page, and pass it on."""
+        if self._mirrors is not None:
+            self._mirrors = [mirror for mirror in self._mirrors if mirror.mirror_id != mirror_id]
+
+        self._on_mirror_removed(mirror_id)
+        # The card is still handling the click, so it cannot be destroyed yet.
+        # after_idle draws the list again when the card has finished.
+        self.after_idle(self._redraw_mirror_list)
 
     def _add_hint(self, text: str) -> None:
         """A grey sentence in the list, in place of the cards."""
