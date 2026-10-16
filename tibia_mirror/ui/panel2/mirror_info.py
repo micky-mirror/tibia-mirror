@@ -7,6 +7,7 @@ from dataclasses import dataclass
 class MirrorInfo:
     """What the Mirrors page shows about one mirror."""
 
+    mirror_id: str  # the kept mirror that a change on the card belongs to
     name: str
     area_width: int  # of the mirrored part of the game, in pixels
     area_height: int

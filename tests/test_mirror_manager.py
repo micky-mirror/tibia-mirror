@@ -209,6 +209,7 @@ def test_mirror_infos_have_the_region_for_the_size_of_the_game():
 
     assert manager.get_mirror_infos(GAME_WINDOW) == [
         MirrorInfo(
+            mirror_id="Cooldowns",
             name="Cooldowns",
             area_width=320,
             area_height=64,

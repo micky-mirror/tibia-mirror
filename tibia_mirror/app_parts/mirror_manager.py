@@ -90,6 +90,7 @@ class MirrorManager:
 
             mirror_infos.append(
                 MirrorInfo(
+                    mirror_id=mirror_settings.mirror_id,
                     name=mirror_settings.name,
                     area_width=layout.region.w,
                     area_height=layout.region.h,
