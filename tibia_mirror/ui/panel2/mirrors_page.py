@@ -117,6 +117,17 @@ class MirrorsPage(tk.Frame):
         )
         self._mirror_list = scroll_list.inner
 
+    def set_mirrors(self, mirrors: Sequence[MirrorInfo]) -> None:
+        """Show these mirrors in place of the ones shown before."""
+        self._mirrors = mirrors
+        self._clear_mirror_list()
+        self._show_mirrors()
+
+    def _clear_mirror_list(self) -> None:
+        """Remove every card, or the help sentence, from the list."""
+        for child in self._mirror_list.winfo_children():
+            child.destroy()
+
     def _show_mirrors(self) -> None:
         """Fill the list: a card for each mirror, or the help sentence when there are none."""
         if not self._mirrors:

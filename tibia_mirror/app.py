@@ -1142,14 +1142,15 @@ class App2:
         self.mirror_manager = MirrorManager(self.window, self.settings, self._on_mirrors_changed)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
+        # check if mirrors were loaded from profile file
         is_mirror_loaded = self._load_mirrors()
         self._show_panel()
         self.window.show()
 
         if not is_mirror_loaded:
             self.panel.set_message(tr("Profile file is invalid"), "error")
-
-        self._show_mirrors()
+        else:
+            self._show_mirrors()
 
     def run(self) -> None:
         self.window.mainloop()
@@ -1178,6 +1179,7 @@ class App2:
     def _on_connection_changed(self, state: str) -> None:
         """Show the new state of the connection on the panel, and show or close the mirrors."""
         self.panel.set_connection_state(state)
+        self.panel.set_mirrors(self._get_mirror_infos())
         self._show_mirrors()
 
     def _on_game_window_changed(self, game_window: GameWindow) -> None:
@@ -1239,13 +1241,14 @@ class App2:
             active_name=self.profile_manager.active_name,
             names=tuple(self.profile_manager.get_names()),
         )
+        mirror_infos: list[MirrorInfo] = self._get_mirror_infos()
 
         self.panel = Panel(
             self.window,
             self.settings,
             self.connection.state,
             profile_info,
-            self._get_mirror_infos(),
+            mirror_infos,
             start_page,
         )
         self.panel.pack(fill="both", expand=True)

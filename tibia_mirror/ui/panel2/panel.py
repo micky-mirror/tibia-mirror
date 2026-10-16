@@ -114,6 +114,11 @@ class Panel(tk.Frame):
 
         self._connection.configure(text="● " + text, fg=colour)
 
+    def set_mirrors(self, mirrors: Sequence[MirrorInfo]) -> None:
+        """Show these mirrors on the Mirrors page."""
+        self._mirrors = mirrors
+        self._mirrors_page.set_mirrors(mirrors)
+
     def set_message(self, text: str, tone: str = "muted") -> None:
         """Show a short message for the user. An empty text hides it."""
         free_width = content_width() - self._connection.winfo_reqwidth() - px(MESSAGE_GAP)
@@ -138,14 +143,15 @@ class Panel(tk.Frame):
 
         The keys are the keys of the menu entries.
         """
+        self._mirrors_page = MirrorsPage(
+            self._content,
+            content_width(),
+            px(SIDE_PAD),
+            self._profile_info,
+            self._mirrors,
+        )
         self._pages: dict[str, tk.Frame] = {
-            "mirrors": MirrorsPage(
-                self._content,
-                content_width(),
-                px(SIDE_PAD),
-                self._profile_info,
-                self._mirrors,
-            ),
+            "mirrors": self._mirrors_page,
             "shortcuts": ShortcutsPage(self._content, content_width(), px(SIDE_PAD)),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),

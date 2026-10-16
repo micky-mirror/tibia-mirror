@@ -53,6 +53,13 @@ class MirrorCard(tk.Canvas):
         )
         self.create_image(0, 0, anchor="nw", image=self._background)
 
+    def destroy(self) -> None:
+        """Close the hints of the card before it goes away."""
+        for part in self._parts:
+            part.pointer_left()
+
+        super().destroy()
+
     def _bind_events(self) -> None:
         # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
         self.bind("<Enter>", self._on_mouse_move)
