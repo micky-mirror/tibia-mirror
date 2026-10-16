@@ -1185,6 +1185,7 @@ class App2:
     def _on_game_window_changed(self, game_window: GameWindow) -> None:
         """Make the mirrors follow the window of Tibia after it changed."""
         self.mirror_manager.set_game_window(game_window)
+        self.panel.set_mirrors(self._get_mirror_infos())
 
     def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the open profile after one of them changed."""
