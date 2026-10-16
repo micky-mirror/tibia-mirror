@@ -32,6 +32,11 @@ class ProfileManager:
 
         return sorted(names, key=str.casefold)
 
+    def open(self, name: str) -> None:
+        """Make the profile `name` the open one, and open it again at the next start."""
+        self._active_name = name
+        self._settings.update(last_profile=name)
+
     def read_mirrors(self) -> list[MirrorSettings]:
         """Read the mirrors of the open profile from its file.
 

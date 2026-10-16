@@ -76,6 +76,28 @@ def test_the_first_profile_is_opened_when_the_last_one_is_gone(tmp_path, folder)
     assert manager.active_name == "Knight"
 
 
+def test_an_opened_profile_is_the_one_whose_mirrors_are_read(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": []})
+    write_profile_file(folder, "Sorcerer", {"version": 2, "mirrors": [MIRROR_JSON]})
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    manager.open("Sorcerer")
+
+    assert manager.active_name == "Sorcerer"
+    assert manager.read_mirrors() == [MirrorSettings.from_json(MIRROR_JSON)]
+
+
+def test_an_opened_profile_is_opened_again_at_the_next_start(tmp_path, folder):
+    add_profile(folder, "Knight")
+    add_profile(folder, "Sorcerer")
+    settings = make_settings(tmp_path, "Knight")
+    ProfileManager(folder, settings).open("Sorcerer")
+
+    next_start = ProfileManager(folder, settings)
+
+    assert next_start.active_name == "Sorcerer"
+
+
 def test_the_mirrors_of_the_open_profile_are_read(tmp_path, folder):
     write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
     write_profile_file(folder, "Sorcerer", {"version": 2, "mirrors": []})
