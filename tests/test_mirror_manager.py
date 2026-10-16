@@ -35,6 +35,11 @@ def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
     return manager
 
 
+def make_shown_mirror(name):
+    """A mirror with a layout for the size of GAME_WINDOW, so the Mirrors page has a card for it."""
+    return replace(make_mirror(name), layouts={"800x600": Layout(Rect(5, 5, 320, 64), (0, 0))})
+
+
 class FakeMirrorWindow:
     """Stands in for a mirror window. It remembers what it was told and if it was destroyed."""
 
@@ -51,6 +56,13 @@ class FakeMirrorWindow:
 
     def set_mirror_look(self, mirror_look):
         self.mirror_look = mirror_look
+
+    @property
+    def mirror_id(self):
+        return self.mirror_settings.mirror_id
+
+    def set_mirror_settings(self, mirror_settings):
+        self.mirror_settings = mirror_settings
 
     def destroy(self):
         self.is_destroyed = True
@@ -229,3 +241,26 @@ def test_a_mirror_without_a_layout_for_the_size_of_the_game_gets_no_info():
     manager.set_mirrors([replace(make_mirror("Cooldowns"), layouts=other_size)])
 
     assert manager.get_mirror_infos(GAME_WINDOW) == []
+
+
+def test_a_change_from_the_mirrors_page_is_kept_and_passed_on():
+    told = []
+    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
+    minimap, health = make_shown_mirror("Minimap"), make_shown_mirror("Health")
+    manager.set_mirrors([minimap, health])
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
+
+    manager.update_mirror(replace(health_info, is_hidden=True))
+
+    assert told == [[minimap, replace(health, is_hidden=True)]]
+
+
+def test_a_change_from_the_mirrors_page_reaches_the_mirror_window(screen):
+    manager = make_manager()
+    manager.set_mirrors([make_shown_mirror("Minimap"), make_shown_mirror("Health")])
+    manager.show(GAME_WINDOW)
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
+
+    manager.update_mirror(replace(health_info, is_hidden=True))
+
+    assert [window.mirror_settings.is_hidden for window in screen["created"]] == [False, True]

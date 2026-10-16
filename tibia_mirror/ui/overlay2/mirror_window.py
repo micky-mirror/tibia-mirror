@@ -70,6 +70,16 @@ class MirrorWindow(tk.Toplevel):
         self._thumbnail.close()
         super().destroy()
 
+    @property
+    def mirror_id(self) -> str:
+        """The id of the mirror this window shows."""
+        return self._mirror_settings.mirror_id
+
+    def set_mirror_settings(self, mirror_settings: MirrorSettings) -> None:
+        """Show the window with new settings of its mirror."""
+        self._mirror_settings = mirror_settings
+        self._show_at_saved_place()
+
     def set_game_window(self, game_window: GameWindow) -> None:
         """Follow the window of Tibia after it changed."""
         self._game_window = game_window

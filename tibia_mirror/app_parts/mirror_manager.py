@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from collections.abc import Callable, Sequence
+from dataclasses import replace
 
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_look import MirrorLook
@@ -105,6 +106,21 @@ class MirrorManager:
 
         return mirror_infos
 
+    def update_mirror(self, mirror_info: MirrorInfo) -> None:
+        """Keep a change made on the Mirrors page, and show it on the mirror window."""
+        mirror_settings = self._get_mirror(mirror_info.mirror_id)
+
+        if mirror_settings is None:
+            return
+
+        new_settings = replace(mirror_settings, is_hidden=mirror_info.is_hidden)
+
+        for mirror_window in self._mirror_windows:
+            if mirror_window.mirror_id == new_settings.mirror_id:
+                mirror_window.set_mirror_settings(new_settings)
+
+        self._on_mirror_changed(new_settings)
+
     def _on_mirror_changed(self, mirror_settings: MirrorSettings) -> None:
         """Keep the new settings of a changed mirror, and pass all mirrors on."""
         for index, kept_settings in enumerate(self._mirrors):
@@ -112,6 +128,14 @@ class MirrorManager:
                 self._mirrors[index] = mirror_settings
 
         self._on_changed(list(self._mirrors))
+
+    def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:
+        """The kept mirror with this id. None if there is none."""
+        for mirror_settings in self._mirrors:
+            if mirror_settings.mirror_id == mirror_id:
+                return mirror_settings
+
+        return None
 
     def _get_mirror_look(self) -> MirrorLook:
         """The look every mirror window shares, from the app settings."""
