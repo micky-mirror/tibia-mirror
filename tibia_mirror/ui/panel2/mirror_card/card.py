@@ -35,7 +35,9 @@ class MirrorCard(tk.Canvas):
         self._draw_background()
 
         self._title = MirrorCardTitle(self, self._width, self._mirror)
-        self._button_bar = MirrorCardButtonBar(self, self._width, self._mirror)
+        self._button_bar = MirrorCardButtonBar(
+            self, self._width, self._mirror, self._on_mirror_changed
+        )
         self._slider = MirrorCardSlider(self, self._width, self._mirror)
         # the parts of the card: each one hears what the mouse does
         self._parts = (self._title, self._button_bar, self._slider)
@@ -97,3 +99,10 @@ class MirrorCard(tk.Canvas):
             part.pointer_released(event.x, event.y)
 
         self._on_mouse_move(event)
+
+    def _on_mirror_changed(self, mirror: MirrorInfo) -> None:
+        """Show a change made on the card in every part of it."""
+        self._mirror = mirror
+
+        for part in self._parts:
+            part.set_mirror(mirror)

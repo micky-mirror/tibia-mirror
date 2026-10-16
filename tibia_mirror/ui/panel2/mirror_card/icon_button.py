@@ -68,6 +68,16 @@ class IconButton:
         """Do what the button is for."""
         self._on_click()
 
+    def set_look(self, icon: str, colour: str, hovered_colour: str, tip: Tip) -> None:
+        """Show a new icon, new colours and a new hint, for example after a click."""
+        self._icon = icon
+        self._colour = colour
+        self._hovered_colour = hovered_colour
+        self._tip = tip
+        self._canvas.itemconfigure(self._icon_item, text=icon)
+        self._update_look()
+        self._update_tip()
+
     def _update_look(self) -> None:
         """While hovered: the shape behind the icon, and the icon in its hovered colour."""
         state = "normal" if self._is_hovered else "hidden"

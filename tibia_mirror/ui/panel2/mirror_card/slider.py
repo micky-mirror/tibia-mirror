@@ -61,6 +61,10 @@ class MirrorCardSlider:
         """End the drag."""
         self._is_dragging = False
 
+    def set_mirror(self, mirror: MirrorInfo) -> None:
+        """Keep the new state of the mirror."""
+        self._mirror = mirror
+
     def _draw_slider(self) -> None:
         """The slider, from the left side space of the card to the room of the percent."""
         position_x_start = px(SIDE_PAD)

@@ -1,6 +1,8 @@
 """The four small buttons of a mirror card: timer, show or hide, lock, remove."""
 
 import tkinter as tk
+from collections.abc import Callable
+from dataclasses import replace
 
 from tibia_mirror.core.timers import clock
 from tibia_mirror.i18n import tr
@@ -30,10 +32,17 @@ class MirrorCardButtonBar:
     says that its mirror is in a special state: locked, hidden, or with its timer on.
     """
 
-    def __init__(self, canvas: tk.Canvas, width: int, mirror: MirrorInfo) -> None:
+    def __init__(
+        self,
+        canvas: tk.Canvas,
+        width: int,
+        mirror: MirrorInfo,
+        on_changed: Callable[[MirrorInfo], None],
+    ) -> None:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
+        self._on_changed = on_changed  # gets the new info after a button changed the mirror
         self._pressed_button: IconButton | None = None  # the mouse button went down on it
 
         self._draw_remove_button()
@@ -77,6 +86,12 @@ class MirrorCardButtonBar:
         if button is not None and button is pressed_button:
             button.click()
 
+    def set_mirror(self, mirror: MirrorInfo) -> None:
+        """Show the buttons for the new state of the mirror."""
+        self._mirror = mirror
+        icon, colour, hovered_colour = self._get_eye_look()
+        self._eye_button.set_look(icon, colour, hovered_colour, self._get_eye_tip())
+
     def _draw_remove_button(self) -> None:
         tip = Tip(tr("Remove region"))
 
@@ -114,11 +129,7 @@ class MirrorCardButtonBar:
 
     def _draw_eye_button(self) -> None:
         """A crossed eye in the accent colour for a hidden mirror, an open grey eye if not."""
-        is_hidden: bool = self._mirror.is_hidden
-        icon = HIDDEN_ICON if is_hidden else SHOWN_ICON
-        colour = theme.ACCENT if is_hidden else theme.SUBTEXT
-        hovered_colour = theme.ACCENT if is_hidden else theme.TEXT
-        tip = self._get_eye_tip()
+        icon, colour, hovered_colour = self._get_eye_look()
 
         self._eye_button = IconButton(
             self._canvas,
@@ -128,9 +139,15 @@ class MirrorCardButtonBar:
             theme.FONT_ICON,
             colour,
             hovered_colour,
-            tip,
+            self._get_eye_tip(),
             self._toggle_hidden,
         )
+
+    def _get_eye_look(self) -> tuple[str, str, str]:
+        """The icon, the colour and the hovered colour of the show or hide button."""
+        if self._mirror.is_hidden:
+            return HIDDEN_ICON, theme.ACCENT, theme.ACCENT
+        return SHOWN_ICON, theme.SUBTEXT, theme.TEXT
 
     def _draw_timer_button(self) -> None:
         """A clock, in the accent colour for a mirror with its timer on, grey if not."""
@@ -204,6 +221,7 @@ class MirrorCardButtonBar:
 
     def _toggle_hidden(self) -> None:
         """Hide the mirror, or show it again."""
+        self._on_changed(replace(self._mirror, is_hidden=not self._mirror.is_hidden))
 
     def _open_timer(self) -> None:
         """Open the settings of the mirror's timer."""

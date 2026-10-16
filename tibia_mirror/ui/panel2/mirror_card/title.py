@@ -70,6 +70,11 @@ class MirrorCardTitle:
         if piece is not None and piece is pressed_piece:
             piece.click()
 
+    def set_mirror(self, mirror: MirrorInfo) -> None:
+        """Show the name in the colour for the new state of the mirror."""
+        self._mirror = mirror
+        self._canvas.itemconfigure(self._name_item, fill=self._get_name_colour())
+
     def _draw_colour_dot(self) -> None:
         """The round dot before the name, in the colour of the mirror's frame.
 
@@ -96,16 +101,20 @@ class MirrorCardTitle:
         # the name can take the width that the size and the buttons leave
         room = self._width - px(NAME_X) - self._get_size_width() - px(TEXT_GAP) - px(BUTTONS_ROOM)
         name = elide(self._mirror.name, font, room)
-        self._canvas.create_text(
+        self._name_item = self._canvas.create_text(
             px(NAME_X),
             px(TOP_ROW_Y),
             text=name,
             anchor="w",
             font=font,
-            fill=theme.SUBTEXT if self._mirror.is_hidden else theme.TEXT,
+            fill=self._get_name_colour(),
         )
         # remembered because the size starts right after the name
         self._name_end_x = px(NAME_X) + font.measure(name)
+
+    def _get_name_colour(self) -> str:
+        """Grey for a hidden mirror, the normal text colour if not."""
+        return theme.SUBTEXT if self._mirror.is_hidden else theme.TEXT
 
     def _draw_size(self) -> None:
         """The size of the mirrored area, such as "320×64", in grey after the name.
