@@ -67,6 +67,13 @@ class ColourDot:
         """Do what the dot is for."""
         self._on_click()
 
+    def set_colour(self, colour: str) -> None:
+        """Draw the dot in a new colour."""
+        self._colour = colour
+        self._normal_dot = self._render_dot(theme.SURFACE)
+        self._hovered_dot = self._render_dot(theme.SURFACE_HI)
+        self._update_look()
+
     def _update_look(self) -> None:
         """While hovered: the shape behind the dot, and the dot made for that shape."""
         state = "normal" if self._is_hovered else "hidden"
@@ -78,12 +85,12 @@ class ColourDot:
     def _update_tip(self) -> None:
         """Open the hint while the dot is hovered, and close it when it is not."""
         if self._is_hovered:
-            self._tooltip.show(self._tip.title, self._get_screen_box(), self._tip.detail)
+            self._tooltip.show(self._tip.title, self.get_screen_box(), self._tip.detail)
         else:
             self._tooltip.hide()
 
-    def _get_screen_box(self) -> Box:
-        """The place of the dot's hover shape on the screen. The hint opens under it."""
+    def get_screen_box(self) -> Box:
+        """The screen place of the dot's hover shape. Hints and the colour choice open under it."""
         half = px(self.SIZE) // 2
         middle_x = self._canvas.winfo_rootx() + self._middle_x
         middle_y = self._canvas.winfo_rooty() + self._middle_y

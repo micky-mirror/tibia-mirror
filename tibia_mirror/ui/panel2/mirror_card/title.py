@@ -2,11 +2,15 @@
 
 import tkinter as tk
 import tkinter.font as tkfont
+from collections.abc import Callable
+from dataclasses import replace
 
+from tibia_mirror.config import FRAME_COLORS, FRAME_COLORS_PER_ROW
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
+from tibia_mirror.ui.controls.menu import SwatchPicker
 from tibia_mirror.ui.panel2.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel2.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel2.mirror_card.text_link import TextLink
@@ -26,10 +30,17 @@ class MirrorCardTitle:
     and the size of the mirrored area as a link.
     """
 
-    def __init__(self, canvas: tk.Canvas, width: int, mirror: MirrorInfo) -> None:
+    def __init__(
+        self,
+        canvas: tk.Canvas,
+        width: int,
+        mirror: MirrorInfo,
+        on_changed: Callable[[MirrorInfo], None],
+    ) -> None:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
+        self._on_changed = on_changed  # gets the new info after the colour was changed
         # the dot or the link that the mouse button went down on
         self._pressed_piece: ColourDot | TextLink | None = None
 
@@ -71,8 +82,9 @@ class MirrorCardTitle:
             piece.click()
 
     def set_mirror(self, mirror: MirrorInfo) -> None:
-        """Show the name in the colour for the new state of the mirror."""
+        """Show the dot and the name for the new state of the mirror."""
         self._mirror = mirror
+        self._colour_dot.set_colour(theme.frame_color(mirror.colour))
         self._canvas.itemconfigure(self._name_item, fill=self._get_name_colour())
 
     def _draw_colour_dot(self) -> None:
@@ -152,6 +164,22 @@ class MirrorCardTitle:
 
     def _pick_colour(self) -> None:
         """Open the choice of colours for the mirror's frame."""
+        SwatchPicker(
+            self._canvas.winfo_toplevel(),
+            self._colour_dot.get_screen_box(),
+            [(name, theme.frame_color(name)) for name in FRAME_COLORS],
+            self._mirror.colour,
+            on_pick=self._on_colour_picked,
+            on_close=lambda: None,
+            per_row=FRAME_COLORS_PER_ROW,
+        )
+
+    def _on_colour_picked(self, colour: str) -> None:
+        """Hand up the mirror with its new frame colour. Do nothing when it is the same colour."""
+        if colour == self._mirror.colour:
+            return
+
+        self._on_changed(replace(self._mirror, colour=colour))
 
     def _edit_area(self) -> None:
         """Open the settings of the mirrored area: its position, size and zoom."""

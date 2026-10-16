@@ -42,7 +42,7 @@ class MirrorCard(tk.Canvas):
         self._on_changed = on_changed  # gets the new info after a change made on the card
         self._draw_background()
 
-        self._title = MirrorCardTitle(self, self._width, self._mirror)
+        self._title = MirrorCardTitle(self, self._width, self._mirror, self._on_mirror_changed)
         self._button_bar = MirrorCardButtonBar(
             self, self._width, self._mirror, self._on_mirror_changed
         )
