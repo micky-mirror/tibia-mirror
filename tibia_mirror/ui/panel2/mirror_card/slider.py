@@ -1,6 +1,8 @@
 """The opacity slider of a mirror card, with the opacity as a percent."""
 
 import tkinter as tk
+from collections.abc import Callable
+from dataclasses import replace
 
 from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.ui.base import theme
@@ -22,10 +24,17 @@ class MirrorCardSlider:
     as a percent at its right.
     """
 
-    def __init__(self, canvas: tk.Canvas, width: int, mirror: MirrorInfo) -> None:
+    def __init__(
+        self,
+        canvas: tk.Canvas,
+        width: int,
+        mirror: MirrorInfo,
+        on_changed: Callable[[MirrorInfo], None],
+    ) -> None:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
+        self._on_changed = on_changed  # gets the new info after the opacity was changed
         self._is_dragging = False  # True from a press on the slider until the button goes up
 
         self._draw_slider()
@@ -96,7 +105,8 @@ class MirrorCardSlider:
     def _move_knob(self, position_x: int) -> None:
         """Put the knob as near to this x as the steps and the lowest value allow.
 
-        Show the new opacity as a percent too. Do nothing when the opacity did not change.
+        Show the new opacity as a percent, and hand up the mirror with it.
+        Do nothing when the opacity did not change.
         """
         opacity = self._slider.value_at(position_x)
         if opacity == self._slider.value:
@@ -104,3 +114,4 @@ class MirrorCardSlider:
 
         self._slider.set_value(opacity)
         self._canvas.itemconfigure(self._percent, text=percent(opacity))
+        self._on_changed(replace(self._mirror, opacity=opacity))

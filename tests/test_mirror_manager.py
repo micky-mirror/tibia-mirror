@@ -288,3 +288,15 @@ def test_a_colour_from_the_mirrors_page_is_kept_and_passed_on():
     manager.update_mirror(replace(health_info, colour="red"))
 
     assert told == [[replace(health, colour="red")]]
+
+
+def test_an_opacity_from_the_mirrors_page_is_kept_and_passed_on():
+    told = []
+    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
+    health = make_shown_mirror("Health")
+    manager.set_mirrors([health])
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+
+    manager.update_mirror(replace(health_info, opacity=0.3))
+
+    assert told == [[replace(health, opacity=0.3)]]

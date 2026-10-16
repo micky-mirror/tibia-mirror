@@ -68,7 +68,10 @@ class ColourDot:
         self._on_click()
 
     def set_colour(self, colour: str) -> None:
-        """Draw the dot in a new colour."""
+        """Draw the dot in a new colour. Do nothing when the colour is the same."""
+        if colour == self._colour:
+            return
+
         self._colour = colour
         self._normal_dot = self._render_dot(theme.SURFACE)
         self._hovered_dot = self._render_dot(theme.SURFACE_HI)

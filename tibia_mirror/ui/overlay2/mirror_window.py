@@ -78,7 +78,9 @@ class MirrorWindow(tk.Toplevel):
     def set_mirror_settings(self, mirror_settings: MirrorSettings) -> None:
         """Show the window with new settings of its mirror."""
         self._mirror_settings = mirror_settings
+        win32.set_alpha(self._window_handle, mirror_settings.opacity)
         win32.set_click_through(self._window_handle, mirror_settings.is_locked)
+        self._mirror_frame.set_opacity(mirror_settings.opacity)
         self._show_at_saved_place()
 
     def set_game_window(self, game_window: GameWindow) -> None:

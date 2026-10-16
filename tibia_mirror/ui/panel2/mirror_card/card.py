@@ -46,7 +46,7 @@ class MirrorCard(tk.Canvas):
         self._button_bar = MirrorCardButtonBar(
             self, self._width, self._mirror, self._on_mirror_changed
         )
-        self._slider = MirrorCardSlider(self, self._width, self._mirror)
+        self._slider = MirrorCardSlider(self, self._width, self._mirror, self._on_mirror_changed)
         # the parts of the card: each one hears what the mouse does
         self._parts = (self._title, self._button_bar, self._slider)
         self._bind_events()

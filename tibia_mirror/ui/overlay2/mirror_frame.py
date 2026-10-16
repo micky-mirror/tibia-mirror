@@ -28,6 +28,10 @@ class MirrorFrame(tk.Toplevel):
         # square, because the rounding of Windows adds a shadow
         dwm.set_rounded_corners(self._window_handle, False)
 
+    def set_opacity(self, opacity: float) -> None:
+        """Make the frame as see-through as its mirror."""
+        win32.set_alpha(self._window_handle, opacity)
+
     def show(
         self,
         picture_area: Rect,

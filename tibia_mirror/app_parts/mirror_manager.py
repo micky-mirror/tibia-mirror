@@ -118,6 +118,7 @@ class MirrorManager:
             is_hidden=mirror_info.is_hidden,
             is_locked=mirror_info.is_locked,
             colour=mirror_info.colour,
+            opacity=mirror_info.opacity,
         )
 
         for mirror_window in self._mirror_windows:
