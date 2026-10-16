@@ -2,7 +2,7 @@
 
 import tkinter as tk
 import tkinter.font as tkfont
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
@@ -58,6 +58,7 @@ class Panel(tk.Frame):
         connection_state: str,
         profile_info: ProfileInfo,
         mirrors: Sequence[MirrorInfo] | None,
+        on_mirror_changed: Callable[[MirrorInfo], None],
         start_page: str = START_PAGE,
     ) -> None:
         super().__init__(window, bg=theme.BG)
@@ -65,6 +66,7 @@ class Panel(tk.Frame):
         self._connection_state = connection_state  # the state the connection line shows
         self._profile_info = profile_info
         self._mirrors = mirrors
+        self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
         self.open_page = start_page  # the key of the page that is shown
         self._add_menu()
         self._add_content()
@@ -148,6 +150,7 @@ class Panel(tk.Frame):
             px(SIDE_PAD),
             self._profile_info,
             self._mirrors,
+            self._on_mirror_changed,
         )
         self._pages: dict[str, tk.Frame] = {
             "mirrors": self._mirrors_page,

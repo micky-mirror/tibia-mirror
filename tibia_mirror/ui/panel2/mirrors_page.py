@@ -1,7 +1,7 @@
 """The Mirrors page: the active profile and the mirrors of that profile."""
 
 import tkinter as tk
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
@@ -33,12 +33,14 @@ class MirrorsPage(tk.Frame):
         side_pad: int,
         profile_info: ProfileInfo,
         mirrors: Sequence[MirrorInfo] | None,
+        on_mirror_changed: Callable[[MirrorInfo], None],
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
         self._profile_info = profile_info
         self._mirrors = mirrors  # None while Tibia is not connected
+        self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
@@ -144,8 +146,18 @@ class MirrorsPage(tk.Frame):
             return
 
         for mirror in self._mirrors:
-            card = MirrorCard(self._mirror_list, self._width, mirror)
+            card = MirrorCard(self._mirror_list, self._width, mirror, self._on_card_changed)
             card.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
+
+    def _on_card_changed(self, changed_mirror: MirrorInfo) -> None:
+        """Put a change made on a card into the list of the page, and pass it on."""
+        if self._mirrors is not None:
+            self._mirrors = [
+                changed_mirror if mirror.mirror_id == changed_mirror.mirror_id else mirror
+                for mirror in self._mirrors
+            ]
+
+        self._on_mirror_changed(changed_mirror)
 
     def _add_hint(self, text: str) -> None:
         """A grey sentence in the list, in place of the cards."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
@@ -20,7 +21,13 @@ RADIUS = 8  # of the rounded corners
 class MirrorCard(tk.Canvas):
     """The card of one mirror: its name and size, its buttons and its opacity slider."""
 
-    def __init__(self, parent: tk.Misc, width: int, mirror: MirrorInfo) -> None:
+    def __init__(
+        self,
+        parent: tk.Misc,
+        width: int,
+        mirror: MirrorInfo,
+        on_changed: Callable[[MirrorInfo], None],
+    ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
             parent,
@@ -32,6 +39,7 @@ class MirrorCard(tk.Canvas):
         )
         self._width = width
         self._mirror = mirror  # what the card shows
+        self._on_changed = on_changed  # gets the new info after a change made on the card
         self._draw_background()
 
         self._title = MirrorCardTitle(self, self._width, self._mirror)
@@ -101,8 +109,10 @@ class MirrorCard(tk.Canvas):
         self._on_mouse_move(event)
 
     def _on_mirror_changed(self, mirror: MirrorInfo) -> None:
-        """Show a change made on the card in every part of it."""
+        """Show a change made on the card in every part of it, and pass it on."""
         self._mirror = mirror
 
         for part in self._parts:
             part.set_mirror(mirror)
+
+        self._on_changed(mirror)

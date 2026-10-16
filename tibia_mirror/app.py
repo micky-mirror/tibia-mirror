@@ -1250,6 +1250,7 @@ class App2:
             self.connection.state,
             profile_info,
             mirror_infos,
+            self.mirror_manager.update_mirror,
             start_page,
         )
         self.panel.pack(fill="both", expand=True)
