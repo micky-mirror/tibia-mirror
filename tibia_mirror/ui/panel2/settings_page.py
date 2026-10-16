@@ -28,7 +28,6 @@ class SettingsPage(tk.Frame):
         # add card blocks to scrollable card
         self._add_general_group()
         self._add_profiles_group()
-        self._add_saving_group()
         self._add_mirrors_group()
 
     def _add_scroll_cards(self) -> None:
@@ -75,21 +74,8 @@ class SettingsPage(tk.Frame):
         )
         self._scroll_cards.add_card([per_character_row])
 
-    def _add_saving_group(self) -> None:
-        """The third group: when changes are saved."""
-        current_settings = self._settings.current
-
-        self._scroll_cards.add_caption(tr("SAVING"))
-        autosave_row = ToggleRow(
-            tr("Save automatically"),
-            tr("Saves every change as you make it."),
-            is_on=current_settings.is_autosave_on,
-            on_change=lambda is_on: self._settings.update(is_autosave_on=is_on),
-        )
-        self._scroll_cards.add_card([autosave_row])
-
     def _add_mirrors_group(self) -> None:
-        """The fourth group: how the mirrors look."""
+        """The third group: how the mirrors look."""
         current_settings = self._settings.current
 
         self._scroll_cards.add_caption(tr("MIRRORS"))

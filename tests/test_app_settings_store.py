@@ -25,12 +25,12 @@ def test_broken_file_gives_the_default_settings(tmp_path: Path) -> None:
 
 def test_saved_settings_are_loaded(tmp_path: Path) -> None:
     file = tmp_path / "settings.json"
-    file.write_text('{"theme": "light", "autosave": true}', encoding="utf-8")
+    file.write_text('{"theme": "light", "panel_on_top": true}', encoding="utf-8")
 
     store = AppSettingsStore(file, do_nothing)
 
     assert store.current.theme == "light"
-    assert store.current.is_autosave_on
+    assert store.current.is_panel_on_top
 
 
 def test_update_changes_the_settings_and_tells_the_app(tmp_path: Path) -> None:
@@ -41,10 +41,10 @@ def test_update_changes_the_settings_and_tells_the_app(tmp_path: Path) -> None:
     )
     settings_at_start = store.current
 
-    store.update(theme="light", is_autosave_on=True)
+    store.update(theme="light", is_panel_on_top=True)
 
     assert store.current.theme == "light"
-    assert store.current.is_autosave_on
+    assert store.current.is_panel_on_top
     assert calls == [(settings_at_start, store.current)]
 
 

@@ -30,7 +30,6 @@ class AppSettings:
     is_panel_on_top: bool = False  # the panel stays above other windows
     # Logging in opens the profile of the character, and creates one the first time.
     is_profile_per_character_on: bool = False
-    is_autosave_on: bool = False  # every change to a profile is saved at once
     new_mirror_opacity: float = DEFAULT_OPACITY  # the opacity a new mirror starts with
     is_mirror_frame_on: bool = True  # a grey outline on mirrors without a colour
     is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
@@ -62,7 +61,6 @@ class AppSettings:
             is_profile_per_character_on=saved.get_bool(
                 "profile_per_character", default=cls.is_profile_per_character_on
             ),
-            is_autosave_on=saved.get_bool("autosave", default=cls.is_autosave_on),
             is_mirror_frame_on=saved.get_bool("mirror_frame", default=cls.is_mirror_frame_on),
             is_frame_tint_on=saved.get_bool("frame_tint", default=cls.is_frame_tint_on),
             is_rounded_corners_on=saved.get_bool(
@@ -94,7 +92,6 @@ class AppSettings:
             # on/off settings
             "panel_on_top": self.is_panel_on_top,
             "profile_per_character": self.is_profile_per_character_on,
-            "autosave": self.is_autosave_on,
             "mirror_frame": self.is_mirror_frame_on,
             "frame_tint": self.is_frame_tint_on,
             "rounded_corners": self.is_rounded_corners_on,
@@ -121,7 +118,6 @@ class AppSettingsUpdate(TypedDict, total=False):
     language: str
     is_panel_on_top: bool
     is_profile_per_character_on: bool
-    is_autosave_on: bool
     new_mirror_opacity: float
     is_mirror_frame_on: bool
     is_frame_tint_on: bool
