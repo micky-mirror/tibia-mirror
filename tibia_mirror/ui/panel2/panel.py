@@ -57,7 +57,7 @@ class Panel(tk.Frame):
         settings: AppSettingsStore,
         connection_state: str,
         profile_info: ProfileInfo,
-        mirrors: Sequence[MirrorInfo],
+        mirrors: Sequence[MirrorInfo] | None,
         start_page: str = START_PAGE,
     ) -> None:
         super().__init__(window, bg=theme.BG)
@@ -114,7 +114,7 @@ class Panel(tk.Frame):
 
         self._connection.configure(text="● " + text, fg=colour)
 
-    def set_mirrors(self, mirrors: Sequence[MirrorInfo]) -> None:
+    def set_mirrors(self, mirrors: Sequence[MirrorInfo] | None) -> None:
         """Show these mirrors on the Mirrors page. Do nothing when nothing changed."""
         if mirrors == self._mirrors:
             return

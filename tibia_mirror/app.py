@@ -1228,12 +1228,12 @@ class App2:
             message = tr_n(failed, "{n} mirror failed to load", "{n} mirrors failed to load")
             self.panel.set_message(message, "error")
 
-    def _get_mirror_infos(self) -> list[MirrorInfo]:
-        """What the Mirrors page shows. Nothing while Tibia is not connected."""
+    def _get_mirror_infos(self) -> list[MirrorInfo] | None:
+        """What the Mirrors page shows. None while Tibia is not connected."""
         game_window = self.connection.game_window
 
         if game_window is None:
-            return []
+            return None
 
         return self.mirror_manager.get_mirror_infos(game_window)
 
@@ -1242,7 +1242,7 @@ class App2:
             active_name=self.profile_manager.active_name,
             names=tuple(self.profile_manager.get_names()),
         )
-        mirror_infos: list[MirrorInfo] = self._get_mirror_infos()
+        mirror_infos: list[MirrorInfo] | None = self._get_mirror_infos()
 
         self.panel = Panel(
             self.window,

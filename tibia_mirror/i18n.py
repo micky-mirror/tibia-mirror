@@ -60,6 +60,9 @@ POLISH = {
     "This profile's mirrors appear once Tibia is restored.": (
         "Odbicia z tego profilu pojawią się po przywróceniu okna Tibii."
     ),
+    "This profile's mirrors appear once Tibia is connected.": (
+        "Odbicia z tego profilu pojawią się po połączeniu z Tibią."
+    ),
     # Mirrors page
     "Add region": "Dodaj region",
     "REGIONS": "REGIONY",

@@ -19,7 +19,7 @@ CAPTION_BOTTOM_PAD = 7  # between the caption and the Add region button
 ADD_BUTTON_HEIGHT = 42
 LIST_TOP_PAD = 2  # between the shadow of the Add region button and the list
 LIST_BOTTOM_PAD = 8  # below the list
-HINT_TOP_PAD = 10  # above the sentence that shows when there are no mirrors
+HINT_TOP_PAD = 10  # above the sentence that shows in place of the cards
 CARD_GAP = 6  # under each mirror card
 
 
@@ -32,13 +32,13 @@ class MirrorsPage(tk.Frame):
         width: int,
         side_pad: int,
         profile_info: ProfileInfo,
-        mirrors: Sequence[MirrorInfo],
+        mirrors: Sequence[MirrorInfo] | None,
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
         self._profile_info = profile_info
-        self._mirrors = mirrors
+        self._mirrors = mirrors  # None while Tibia is not connected
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
@@ -117,31 +117,38 @@ class MirrorsPage(tk.Frame):
         )
         self._mirror_list = scroll_list.inner
 
-    def set_mirrors(self, mirrors: Sequence[MirrorInfo]) -> None:
+    def set_mirrors(self, mirrors: Sequence[MirrorInfo] | None) -> None:
         """Show these mirrors in place of the ones shown before."""
         self._mirrors = mirrors
         self._clear_mirror_list()
         self._show_mirrors()
 
     def _clear_mirror_list(self) -> None:
-        """Remove every card, or the help sentence, from the list."""
+        """Remove every card, or the sentence, from the list."""
         for child in self._mirror_list.winfo_children():
             child.destroy()
 
     def _show_mirrors(self) -> None:
-        """Fill the list: a card for each mirror, or the help sentence when there are none."""
-        if not self._mirrors:
-            self._add_empty_hint()
+        """Fill the list: a card for each mirror, or a sentence when there is nothing to show."""
+        if self._mirrors is None:
+            hint = tr("This profile's mirrors appear once Tibia is connected.")
+            self._add_hint(hint)
             return
+
+        if not self._mirrors:
+            hint = tr("Click Add region, then drag a box over the part of the game to mirror.")
+            self._add_hint(hint)
+            return
+
         for mirror in self._mirrors:
             card = MirrorCard(self._mirror_list, self._width, mirror)
             card.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
 
-    def _add_empty_hint(self) -> None:
-        """The sentence that tells how to add the first mirror. It is for a list with no mirrors."""
+    def _add_hint(self, text: str) -> None:
+        """A grey sentence in the list, in place of the cards."""
         hint = tk.Label(
             self._mirror_list,
-            text=tr("Click Add region, then drag a box over the part of the game to mirror."),
+            text=text,
             bg=theme.BG,
             fg=theme.SUBTEXT,
             font=theme.FONT,
