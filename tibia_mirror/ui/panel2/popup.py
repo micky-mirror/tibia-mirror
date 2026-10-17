@@ -111,11 +111,16 @@ class Popup(tk.Toplevel):
         return clamp_box(center_x - width // 2, center_y - height // 2, width, height, work_area)
 
     def _confirm(self) -> None:
-        """What OK does: close the popup."""
+        """What OK and Enter do: close the popup."""
         self.destroy()
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
+        self.bind("<Return>", self._on_enter)
+        self.bind("<KP_Enter>", self._on_enter)  # the Enter key of the number pad
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
         self.destroy()
+
+    def _on_enter(self, event: tk.Event[tk.Misc]) -> None:
+        self._confirm()
