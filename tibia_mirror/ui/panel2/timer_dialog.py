@@ -8,6 +8,7 @@ from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
+from tibia_mirror.ui.panel2.key_row import KeyRow
 from tibia_mirror.ui.panel2.popup import PAD, Popup
 from tibia_mirror.ui.panel2.row_card import RowCard
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow
@@ -45,6 +46,12 @@ class TimerDialog(Popup):
             self._timer.direction,
             on_change=lambda direction: self._keep_timer(replace(self._timer, direction=direction)),
         )
+        key_row = KeyRow(
+            tr("Key"),
+            tr("A click on this region in the game, or the key, starts it again."),
+            key=self._timer.key,
+            on_change=lambda key: self._keep_timer(replace(self._timer, key=key)),
+        )
         pause_row = ToggleRow(
             tr("Pause while logged out"),
             tr(
@@ -55,7 +62,7 @@ class TimerDialog(Popup):
             on_change=lambda is_on: self._keep_timer(replace(self._timer, is_paused_offline=is_on)),
         )
 
-        card = RowCard(self, self._content_width, [timer_on_row, direction_row, pause_row])
+        card = RowCard(self, self._content_width, [timer_on_row, direction_row, key_row, pause_row])
         card.pack(anchor="w", padx=px(PAD))
 
     def _keep_timer(self, timer: MirrorTimer) -> None:
