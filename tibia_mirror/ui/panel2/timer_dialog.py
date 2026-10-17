@@ -51,7 +51,11 @@ class TimerDialog(Popup):
             on_change=lambda is_on: self._keep_timer(replace(self._timer, is_paused_offline=is_on)),
         )
         # the dialog asks this row for its time on OK: a time can be half written before that
-        self._alert_row = TimeRow(tr("Alert after"), self._timer.alert_seconds)
+        self._alert_row = TimeRow(
+            tr("Alert after"),
+            tr("The alert time must be 0:01 to 59:59."),
+            self._timer.alert_seconds,
+        )
         direction_row = ChoiceRow(
             tr("Count"),
             (("down", tr("Down")), ("up", tr("Up"))),

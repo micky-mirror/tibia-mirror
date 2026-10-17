@@ -8,10 +8,10 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import TextField
-from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_label
+from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
 
 # Sizes at 100% display scaling; px() scales them where they are used.
-FIELDS_TOP_PAD = 8  # between the label and the fields
+FIELDS_TOP_PAD = 8  # between the help text and the fields
 FIELD_WIDTH = 52  # room for two digits
 UNIT_GAP = 6  # between a field and its unit
 SECONDS_GAP = 16  # between the unit of the minutes and the field of the seconds
@@ -26,15 +26,18 @@ class TimeRow:
     themselves, so the pointer methods of the row have nothing to do.
     """
 
-    def __init__(self, label: str, seconds: int) -> None:
+    def __init__(self, label: str, hint: str, seconds: int) -> None:
         self._label = label
+        self._hint = hint  # the help text under the label
         self._seconds = seconds  # the time that the fields show first
         self._fields: list[TextField] = []  # the field of the minutes, then of the seconds
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
         label_end_y = draw_label(canvas, row_start_y, self._label)
-        fields_start_y = label_end_y + px(FIELDS_TOP_PAD)
+        content_width = width - 2 * px(SIDE_PAD)
+        hint_end_y = draw_hint(canvas, label_end_y, self._hint, content_width)
+        fields_start_y = hint_end_y + px(FIELDS_TOP_PAD)
         self._add_fields(canvas, fields_start_y)
         return fields_start_y + px(TextField.HEIGHT) + px(ROW_PAD)
 
