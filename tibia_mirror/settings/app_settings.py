@@ -7,8 +7,6 @@ from dataclasses import dataclass
 from typing import Any, TypedDict
 
 from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
-from tibia_mirror.core import characters
-from tibia_mirror.core.characters import Links
 from tibia_mirror.core.regions import clamp_opacity
 from tibia_mirror.core.timers import (
     KeyCombo,
@@ -42,8 +40,6 @@ class AppSettings:
     # Where the panel was when the app closed, to open it there again.
     # None: nothing is saved, and the panel opens in the middle of the screen.
     panel_rect: PanelRect | None = None
-    # Which profile each character opens: pairs of (character, profile).
-    character_links: Links = ()
     # Where the timers that pause at logout stopped: (character, mirror id, seconds).
     timer_pauses: Pauses = ()
 
@@ -76,7 +72,6 @@ class AppSettings:
             # the place of the panel
             panel_rect=saved.get_panel_rect("panel_rect"),
             # lists the app keeps by itself
-            character_links=saved.get_character_links("characters"),
             timer_pauses=saved.get_timer_pauses("timer_pauses"),
         )
 
@@ -106,7 +101,6 @@ class AppSettings:
             # the place of the panel
             "panel_rect": panel_rect,
             # lists the app keeps by itself
-            "characters": characters.to_json(self.character_links),
             "timer_pauses": pauses_to_json(self.timer_pauses),
         }
 
@@ -126,7 +120,6 @@ class AppSettingsUpdate(TypedDict, total=False):
     last_character: str
     hide_all_key: KeyCombo | None
     panel_rect: PanelRect | None
-    character_links: Links
     timer_pauses: Pauses
 
 
@@ -209,10 +202,6 @@ class _SavedData:
             return None
 
         return x, y, width, height
-
-    def get_character_links(self, name: str) -> Links:
-        """The saved links from characters to profiles. Wrong entries are left out."""
-        return characters.from_json(self._data.get(name))
 
     def get_timer_pauses(self, name: str) -> Pauses:
         """The saved moments where the paused timers stopped. Wrong entries are left out."""

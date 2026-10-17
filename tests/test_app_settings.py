@@ -21,7 +21,6 @@ CHANGED_SETTINGS = AppSettings(
     last_character="Bubble",
     hide_all_key=(120, ("ctrl", "shift")),
     panel_rect=(-300, 50, 400, 600),
-    character_links=(("Bubble", "Knight"),),
     timer_pauses=(("Bubble", "mirror-1", 12.5),),
 )
 
@@ -146,12 +145,6 @@ def test_wrong_panel_place_means_no_saved_place() -> None:
         assert AppSettings.from_json({"panel_rect": value}).panel_rect is None
 
 
-def test_saved_character_links_are_read() -> None:
-    settings = AppSettings.from_json({"characters": {"Bubble": "Knight", "Eternal": 5}})
-
-    assert settings.character_links == (("Bubble", "Knight"),)
-
-
 def test_saved_timer_pauses_are_read() -> None:
     data = {"timer_pauses": {"Bubble": {"mirror-1": 12.5, "mirror-2": "long"}}}
 
@@ -174,9 +167,10 @@ def test_the_old_settings_class_reads_and_writes_the_same_file() -> None:
     file_content = CHANGED_SETTINGS.to_json()
 
     old_file_content = Settings.from_json(file_content).to_json()
-    # only the old app still has fade animations and the autosave setting
+    # only the old app still has fade animations, the autosave setting and character links
     del old_file_content["fades"]
     del old_file_content["autosave"]
+    del old_file_content["characters"]
 
     assert old_file_content == file_content
 
