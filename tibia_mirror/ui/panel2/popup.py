@@ -44,6 +44,7 @@ class Popup(tk.Toplevel):
 
         self.geometry(f"{width}x{height}+{position_x}+{position_y}")
         self.deiconify()
+        self.grab_set()  # the rest of the app takes no clicks or keys until the popup closes
         self.focus_force()
 
     def _bind_events(self) -> None:
