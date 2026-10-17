@@ -37,6 +37,7 @@ class ProfilePicker(tk.Canvas):
         on_profile_selected: Callable[[str], None],
         on_new_profile: Callable[[str], None],
         on_duplicate_profile: Callable[[str], None],
+        on_rename_profile: Callable[[str], None],
     ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
@@ -54,6 +55,7 @@ class ProfilePicker(tk.Canvas):
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
         self._on_new_profile = on_new_profile  # gets the name typed for a new profile
         self._on_duplicate_profile = on_duplicate_profile  # gets the name typed for the copy
+        self._on_rename_profile = on_rename_profile  # gets the new name typed for the profile
         self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the profile menu is open
 
@@ -171,6 +173,7 @@ class ProfilePicker(tk.Canvas):
             self._on_profile_selected,
             self._on_new_profile,
             self._on_duplicate_profile,
+            self._on_rename_profile,
         )
         profile_menu.open(box, on_close=self._on_menu_closed)
 

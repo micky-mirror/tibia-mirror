@@ -60,6 +60,7 @@ class Panel(tk.Frame):
         on_profile_selected: Callable[[str], None],
         on_new_profile: Callable[[str], None],
         on_duplicate_profile: Callable[[str], None],
+        on_rename_profile: Callable[[str], None],
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
@@ -72,6 +73,7 @@ class Panel(tk.Frame):
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
         self._on_new_profile = on_new_profile  # gets the name typed for a new profile
         self._on_duplicate_profile = on_duplicate_profile  # gets the name typed for the copy
+        self._on_rename_profile = on_rename_profile  # gets the new name typed for the profile
         self._mirrors = mirrors
         self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
@@ -164,6 +166,7 @@ class Panel(tk.Frame):
             self._on_profile_selected,
             self._on_new_profile,
             self._on_duplicate_profile,
+            self._on_rename_profile,
             self._mirrors,
             self._on_mirror_changed,
             self._on_mirror_removed,

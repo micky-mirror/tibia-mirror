@@ -27,6 +27,7 @@ class ProfileMenu:
         on_select: Callable[[str], None],
         on_new: Callable[[str], None],
         on_duplicate: Callable[[str], None],
+        on_rename: Callable[[str], None],
     ) -> None:
         self._window = window  # the main window, the menu and its dialogs open over it
         self._active_name = active_name  # the name of the active profile
@@ -34,6 +35,7 @@ class ProfileMenu:
         self._on_select = on_select  # gets the name of the profile picked in the menu
         self._on_new = on_new  # gets the name typed for a new profile
         self._on_duplicate = on_duplicate  # gets the name typed for the copy
+        self._on_rename = on_rename  # gets the new name typed for the active profile
 
     def open(self, box: Box, on_close: Callable[[], None]) -> None:
         """Open the menu under `box`, as wide as it. `box` is a place on the screen.
@@ -109,6 +111,18 @@ class ProfileMenu:
 
     def _rename(self) -> None:
         """Ask for a new name for the active profile."""
+        other_names = [name for name in self._profile_names if name != self._active_name]
+        center = self._get_window_center()
+
+        NameDialog(
+            self._window,
+            self._active_name,
+            center,
+            on_ok=self._on_rename,
+            on_cancel=lambda: None,
+            title=tr("Rename profile"),
+            validate=partial(name_error, taken=other_names),
+        )
 
     def _characters(self) -> None:
         """Let the user choose which characters open the active profile when they log in."""

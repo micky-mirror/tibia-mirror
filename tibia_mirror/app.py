@@ -1223,6 +1223,15 @@ class App2:
         else:
             self._on_profile_selected(name)
 
+    def _on_rename_profile(self, name: str) -> None:
+        """Give the open profile the name typed in the menu, and show it in the picker."""
+        try:
+            self.profile_manager.rename(name)
+        except OSError:
+            self.panel.set_message(tr("Could not rename profile"), "error")
+        else:
+            self.panel.set_profile_info(self._get_profile_info())
+
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, and redraw the mirrors."""
         open_page = self.panel.open_page
@@ -1291,6 +1300,7 @@ class App2:
             self._on_profile_selected,
             self._on_new_profile,
             self._on_duplicate_profile,
+            self._on_rename_profile,
             mirror_infos,
             self.mirror_manager.update_mirror,
             self.mirror_manager.remove_mirror,
