@@ -120,17 +120,6 @@ def test_a_renamed_profile_is_opened_again_at_the_next_start(tmp_path, folder):
     assert next_start.active_name == "Team hunt"
 
 
-def test_characters_linked_to_a_renamed_profile_stay_linked(tmp_path, folder):
-    add_profile(folder, "Knight")
-    settings = make_settings(tmp_path, "Knight")
-    settings.update(character_links=(("Bubble", "Knight"),))
-    manager = ProfileManager(folder, settings)
-
-    manager.rename("Team hunt")
-
-    assert settings.current.character_links == (("Bubble", "Team hunt"),)
-
-
 def test_a_deleted_profile_is_gone_and_the_first_profile_left_is_opened(tmp_path, folder):
     add_profile(folder, "Druid")
     add_profile(folder, "Knight")
@@ -143,18 +132,6 @@ def test_a_deleted_profile_is_gone_and_the_first_profile_left_is_opened(tmp_path
     assert manager.get_names() == ["Knight", "Sorcerer"]
     assert manager.active_name == "Knight"
     assert settings.current.last_profile == "Knight"
-
-
-def test_characters_linked_to_a_deleted_profile_lose_their_link(tmp_path, folder):
-    add_profile(folder, "Knight")
-    add_profile(folder, "Sorcerer")
-    settings = make_settings(tmp_path, "Knight")
-    settings.update(character_links=(("Bubble", "Knight"), ("Cachero", "Sorcerer")))
-    manager = ProfileManager(folder, settings)
-
-    manager.delete()
-
-    assert settings.current.character_links == (("Cachero", "Sorcerer"),)
 
 
 def test_the_mirrors_of_the_open_profile_are_read(tmp_path, folder):
