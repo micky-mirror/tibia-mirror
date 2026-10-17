@@ -50,7 +50,8 @@ class TimerDialog(Popup):
             is_on=self._timer.is_paused_offline,
             on_change=lambda is_on: self._keep_timer(replace(self._timer, is_paused_offline=is_on)),
         )
-        alert_row = TimeRow(tr("Alert after"), self._timer.alert_seconds)
+        # the dialog asks this row for its time on OK: a time can be half written before that
+        self._alert_row = TimeRow(tr("Alert after"), self._timer.alert_seconds)
         direction_row = ChoiceRow(
             tr("Count"),
             (("down", tr("Down")), ("up", tr("Up"))),
@@ -67,7 +68,7 @@ class TimerDialog(Popup):
         card = RowCard(
             self,
             self._content_width,
-            [timer_on_row, pause_row, alert_row, direction_row, key_row],
+            [timer_on_row, pause_row, self._alert_row, direction_row, key_row],
         )
         card.pack(anchor="w", padx=px(PAD))
 
@@ -76,6 +77,12 @@ class TimerDialog(Popup):
         self._timer = timer
 
     def _confirm(self) -> None:
-        """Close, and hand the timer with its changes to the card."""
+        """Close, and hand the timer to the card. A wrong alert time keeps the dialog open."""
+        alert_seconds = self._alert_row.get_seconds()
+
+        if alert_seconds is None:
+            self._alert_row.set_error(True)
+            return
+
         self.destroy()
-        self._on_ok(self._timer)
+        self._on_ok(replace(self._timer, alert_seconds=alert_seconds))

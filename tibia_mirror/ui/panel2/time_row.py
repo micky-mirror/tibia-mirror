@@ -2,6 +2,7 @@
 
 import tkinter as tk
 
+from tibia_mirror.core.timers import parse_alert
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
@@ -25,6 +26,7 @@ class TimeRow:
     def __init__(self, label: str, seconds: int) -> None:
         self._label = label
         self._seconds = seconds  # the time that the fields show first
+        self._fields: list[TextField] = []  # the field of the minutes, then of the seconds
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
@@ -32,6 +34,15 @@ class TimeRow:
         fields_start_y = label_end_y + px(FIELDS_TOP_PAD)
         self._add_fields(canvas, fields_start_y)
         return fields_start_y + px(TextField.HEIGHT) + px(ROW_PAD)
+
+    def get_seconds(self) -> int | None:
+        """The time written in the fields, in seconds. None if it is not from 0:01 to 59:59."""
+        return parse_alert(self._minutes_text.get(), self._seconds_text.get())
+
+    def set_error(self, is_error: bool) -> None:
+        """Show the fields with a red border, or with the normal one again."""
+        for field in self._fields:
+            field.set_error(is_error)
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Nothing to do: the fields hear the pointer by themselves."""
@@ -70,6 +81,8 @@ class TimeRow:
         """One field with its unit after it. Return the x where the unit ends."""
         field = TextField(canvas, text, width=px(FIELD_WIDTH), background=theme.SURFACE)
         canvas.create_window(field_start_x, fields_start_y, window=field, anchor="nw")
+        self._fields.append(field)
+        text.trace_add("write", self._on_text_changed)
         unit_text = canvas.create_text(
             field_start_x + px(FIELD_WIDTH) + px(UNIT_GAP),
             fields_start_y + px(TextField.HEIGHT) // 2,
@@ -80,3 +93,6 @@ class TimeRow:
         )
         unit_end_x: int = canvas.bbox(unit_text)[2]
         return unit_end_x
+
+    def _on_text_changed(self, *trace_details: str) -> None:
+        self.set_error(False)
