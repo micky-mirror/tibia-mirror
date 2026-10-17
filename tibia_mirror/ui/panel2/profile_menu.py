@@ -57,8 +57,6 @@ class ProfileMenu:
             MenuItem(tr("Duplicate…"), self._duplicate),
             MenuItem(tr("Rename…"), self._rename),
             SEPARATOR,
-            MenuItem(tr("Characters…"), self._characters),
-            SEPARATOR,
             MenuItem(tr("Delete profile"), self._delete, enabled=has_other_profiles, danger=True),
         ]
 
@@ -120,9 +118,6 @@ class ProfileMenu:
             title=tr("Rename profile"),
             validate=partial(name_error, taken=other_names),
         )
-
-    def _characters(self) -> None:
-        """Let the user choose which characters open the active profile when they log in."""
 
     def _delete(self) -> None:
         """Ask if the user is sure, then delete the active profile."""
