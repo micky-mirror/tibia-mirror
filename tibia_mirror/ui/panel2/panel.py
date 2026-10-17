@@ -23,7 +23,8 @@ from tibia_mirror.ui.panel2.shortcuts_page import ShortcutsPage
 # Sizes at 100% display scaling; px() scales them where they are used.
 SIDE_PAD = 20  # left and right of the content
 CONNECTION_TOP_PAD = 14  # above the connection line
-MESSAGE_GAP = 12  # at least this much between the connection text and the message
+NOTE_GAP = 12  # between the connection text and the note about hidden mirrors
+MESSAGE_GAP = 12  # at least this much between the texts on the left and the message
 FOOTER_TOP_PAD = 10  # between the thin line and the footer
 FOOTER_BOTTOM_PAD = 12  # below the footer
 
@@ -104,6 +105,7 @@ class Panel(tk.Frame):
             pady=(px(CONNECTION_TOP_PAD), 0),
         )
         self._add_connection_text(top_line)
+        self._add_hidden_note(top_line)
         self._add_message(top_line)
 
     def _add_connection_text(self, top_line: tk.Frame) -> None:
@@ -112,11 +114,17 @@ class Panel(tk.Frame):
         self._connection.pack(side="left")
         self.set_connection_state(self._connection_state)
 
+    def _add_hidden_note(self, top_line: tk.Frame) -> None:
+        """A yellow note after the connection text. Shown only while the mirrors are hidden."""
+        self._hidden_note = tk.Label(top_line, bg=theme.BG, fg=theme.YELLOW, font=theme.FONT)
+
     def _add_message(self, top_line: tk.Frame) -> None:
         """A short message for the user, on the right. Empty until set_message() is called."""
         self._message = tk.Label(top_line, bg=theme.BG, font=theme.FONT)
         self._message.place(relx=1.0, rely=0.5, anchor="e")
         self._message_font = tkfont.Font(font=theme.FONT)
+        self._message_text = ""  # the whole text, before it is cut short to fit
+        self._message_tone = "muted"
 
     def set_connection_state(self, state: str) -> None:
         """Set Tibia connection state."""
@@ -138,9 +146,38 @@ class Panel(tk.Frame):
 
     def set_message(self, text: str, tone: str = "muted") -> None:
         """Show a short message for the user. An empty text hides it."""
-        free_width = content_width() - self._connection.winfo_reqwidth() - px(MESSAGE_GAP)
-        text = elide(text, self._message_font, free_width)
-        self._message.configure(text=text, fg=getattr(theme, MESSAGE_TONES[tone]))
+        self._message_text = text
+        self._message_tone = tone
+        self._draw_message()
+
+    def set_all_hidden(self, key_name: str | None) -> None:
+        """Say that the hide-all key `key_name` hides every mirror. None takes the note away."""
+        if key_name is None:
+            self._hidden_note.pack_forget()
+        else:
+            self._hidden_note.configure(text=tr("Mirrors hidden ({key})", key=key_name))
+            self._hidden_note.pack(side="left", padx=(px(NOTE_GAP), 0))
+
+        # the message gets the space that is left
+        self._draw_message()
+
+    def _draw_message(self) -> None:
+        """The message, cut short with "…" when it does not fit after the texts on the left."""
+        free_width = content_width() - self._get_left_width() - px(MESSAGE_GAP)
+        text = elide(self._message_text, self._message_font, free_width)
+        colour = getattr(theme, MESSAGE_TONES[self._message_tone])
+
+        self._message.configure(text=text, fg=colour)
+
+    def _get_left_width(self) -> int:
+        """The width of the connection text, and of the note about hidden mirrors."""
+        left_width = self._connection.winfo_reqwidth()
+
+        # the note is packed only while the mirrors are hidden
+        if self._hidden_note.winfo_manager():
+            left_width += px(NOTE_GAP) + self._hidden_note.winfo_reqwidth()
+
+        return left_width
 
     def _add_footer(self) -> None:
         """The footer at the bottom, under a thin line."""

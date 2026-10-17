@@ -1232,6 +1232,16 @@ class App2:
         """Hide all mirrors, or bring them back."""
         self._is_all_hidden = not self._is_all_hidden
         self._show_mirrors()
+        self._show_hidden_note()
+
+    def _show_hidden_note(self) -> None:
+        """Say on the panel if the hide-all key hides the mirrors, and which key it is."""
+        hide_all_key = self.settings.current.hide_all_key
+
+        if not self._is_all_hidden or hide_all_key is None:
+            self.panel.set_all_hidden(None)
+        else:
+            self.panel.set_all_hidden(key_combo_name(hide_all_key))
 
     def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the open profile after one of them changed."""
@@ -1364,6 +1374,7 @@ class App2:
             start_page,
         )
         self.panel.pack(fill="both", expand=True)
+        self._show_hidden_note()
 
 
 def main() -> None:
