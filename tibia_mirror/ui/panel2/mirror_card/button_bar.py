@@ -100,6 +100,9 @@ class MirrorCardButtonBar:
         icon, colour, hovered_colour = self._get_eye_look()
         self._eye_button.set_look(icon, colour, hovered_colour, self._get_eye_tip())
 
+        icon, colour, hovered_colour = self._get_timer_look()
+        self._timer_button.set_look(icon, colour, hovered_colour, self._get_timer_tip())
+
     def _draw_remove_button(self) -> None:
         tip = Tip(tr("Remove region"))
 
@@ -161,22 +164,25 @@ class MirrorCardButtonBar:
 
     def _draw_timer_button(self) -> None:
         """A clock, in the accent colour for a mirror with its timer on, grey if not."""
-        is_timer_on: bool = self._mirror.timer.is_on
-        colour = theme.ACCENT if is_timer_on else theme.SUBTEXT
-        hovered_colour = theme.ACCENT if is_timer_on else theme.TEXT
-        tip = self._get_timer_tip()
+        icon, colour, hovered_colour = self._get_timer_look()
 
         self._timer_button = IconButton(
             self._canvas,
             self._get_button_position_x(3),
             px(TOP_ROW_Y),
-            TIMER_ICON,
+            icon,
             theme.FONT_ICON,
             colour,
             hovered_colour,
-            tip,
+            self._get_timer_tip(),
             self._open_timer,
         )
+
+    def _get_timer_look(self) -> tuple[str, str, str]:
+        """The icon, the colour and the hovered colour of the timer button."""
+        if self._mirror.timer.is_on:
+            return TIMER_ICON, theme.ACCENT, theme.ACCENT
+        return TIMER_ICON, theme.SUBTEXT, theme.TEXT
 
     def _get_button_position_x(self, place: int) -> int:
         """The middle of a button. `place` counts the buttons from the right, from 0."""
