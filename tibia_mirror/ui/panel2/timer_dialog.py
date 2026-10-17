@@ -7,6 +7,7 @@ from dataclasses import replace
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel2.choice_row import ChoiceRow
 from tibia_mirror.ui.panel2.popup import PAD, Popup
 from tibia_mirror.ui.panel2.row_card import RowCard
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow
@@ -38,8 +39,14 @@ class TimerDialog(Popup):
             is_on=self._timer.is_on,
             on_change=lambda is_on: self._keep_timer(replace(self._timer, is_on=is_on)),
         )
+        direction_row = ChoiceRow(
+            tr("Count"),
+            (("down", tr("Down")), ("up", tr("Up"))),
+            self._timer.direction,
+            on_change=lambda direction: self._keep_timer(replace(self._timer, direction=direction)),
+        )
 
-        card = RowCard(self, self._content_width, [timer_on_row])
+        card = RowCard(self, self._content_width, [timer_on_row, direction_row])
         card.pack(anchor="w", padx=px(PAD))
 
     def _keep_timer(self, timer: MirrorTimer) -> None:
