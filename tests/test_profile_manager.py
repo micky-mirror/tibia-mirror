@@ -76,6 +76,20 @@ def test_the_first_profile_is_opened_when_the_last_one_is_gone(tmp_path, folder)
     assert manager.active_name == "Knight"
 
 
+def test_a_profile_name_is_found_in_other_letter_case(tmp_path, folder):
+    add_profile(folder, "Knight")
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    assert manager.find_name("KNIGHT") == "Knight"
+
+
+def test_a_missing_profile_name_is_not_found(tmp_path, folder):
+    add_profile(folder, "Knight")
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    assert manager.find_name("Sorcerer") is None
+
+
 def test_an_opened_profile_is_the_one_whose_mirrors_are_read(tmp_path, folder):
     write_profile_file(folder, "Knight", {"version": 2, "mirrors": []})
     write_profile_file(folder, "Sorcerer", {"version": 2, "mirrors": [MIRROR_JSON]})

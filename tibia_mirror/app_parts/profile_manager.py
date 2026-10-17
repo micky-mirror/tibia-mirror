@@ -32,6 +32,15 @@ class ProfileManager:
 
         return sorted(names, key=str.casefold)
 
+    def find_name(self, name: str) -> str | None:
+        """The profile called `name`, in its own letter case. None if there is none."""
+        # Windows file names ignore case, so the names are compared the same way.
+        for profile_name in self.get_names():
+            if profile_name.casefold() == name.casefold():
+                return profile_name
+
+        return None
+
     def open(self, name: str) -> None:
         """Make the profile `name` the open one, and open it again at the next start."""
         self._active_name = name
@@ -88,15 +97,12 @@ class ProfileManager:
 
         If that profile is gone, it is the first profile of the list.
         """
-        names = self.get_names()
-        last_name = self._settings.current.last_profile.casefold()
+        last_name = self.find_name(self._settings.current.last_profile)
 
-        # Windows file names ignore case, so the names are compared the same way.
-        for name in names:
-            if name.casefold() == last_name:
-                return name
+        if last_name is None:
+            return self.get_names()[0]
 
-        return names[0]
+        return last_name
 
     def _create_first_profile(self) -> None:
         """Create an empty "Default" profile if there is no profile at all."""
