@@ -1175,6 +1175,9 @@ class App2:
         if current.is_profile_per_character_on and not previous.is_profile_per_character_on:
             self._on_character_changed(self.connection.character)
 
+        if current.hide_all_key != previous.hide_all_key:
+            self._follow_hide_all_key()
+
         is_mirror_look_changed = (
             current.is_mirror_frame_on != previous.is_mirror_frame_on
             or current.is_rounded_corners_on != previous.is_rounded_corners_on
@@ -1242,6 +1245,14 @@ class App2:
             self.panel.set_all_hidden(None)
         else:
             self.panel.set_all_hidden(key_combo_name(hide_all_key))
+
+    def _follow_hide_all_key(self) -> None:
+        """Bring the mirrors back when the key is cleared, else name the new key in the note."""
+        if self.settings.current.hide_all_key is None and self._is_all_hidden:
+            # no key is left to bring the mirrors back
+            self._toggle_all_hidden()
+        else:
+            self._show_hidden_note()
 
     def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the open profile after one of them changed."""
