@@ -1,5 +1,6 @@
 """A row of a card where the user writes a time in minutes and seconds, such as the alert time."""
 
+import string
 import tkinter as tk
 
 from tibia_mirror.core.timers import parse_alert
@@ -14,6 +15,8 @@ FIELDS_TOP_PAD = 8  # between the label and the fields
 FIELD_WIDTH = 52  # room for two digits
 UNIT_GAP = 6  # between a field and its unit
 SECONDS_GAP = 16  # between the unit of the minutes and the field of the seconds
+
+MAX_DIGITS = 2  # the minutes and the seconds go up to 59
 
 
 class TimeRow:
@@ -83,6 +86,9 @@ class TimeRow:
         canvas.create_window(field_start_x, fields_start_y, window=field, anchor="nw")
         self._fields.append(field)
         text.trace_add("write", self._on_text_changed)
+        # Tk asks before every change. %P: the text the field would have after it.
+        allowed_text = (canvas.register(self._is_allowed_text), "%P")
+        field.entry.configure(validate="key", validatecommand=allowed_text)
         unit_text = canvas.create_text(
             field_start_x + px(FIELD_WIDTH) + px(UNIT_GAP),
             fields_start_y + px(TextField.HEIGHT) // 2,
@@ -93,6 +99,9 @@ class TimeRow:
         )
         unit_end_x: int = canvas.bbox(unit_text)[2]
         return unit_end_x
+
+    def _is_allowed_text(self, text: str) -> bool:
+        return len(text) <= MAX_DIGITS and all(char in string.digits for char in text)
 
     def _on_text_changed(self, *trace_details: str) -> None:
         self.set_error(False)
