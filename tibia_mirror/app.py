@@ -1155,6 +1155,9 @@ class App2:
         else:
             self._show_mirrors()
 
+        # open the profile of a character who was logged in before the app started
+        self._on_character_changed(self.connection.character)
+
     def run(self) -> None:
         self.window.mainloop()
 
@@ -1164,6 +1167,9 @@ class App2:
 
         if current.is_panel_on_top != previous.is_panel_on_top:
             self.window.set_panel_on_top()
+
+        if current.is_profile_per_character_on and not previous.is_profile_per_character_on:
+            self._on_character_changed(self.connection.character)
 
         is_mirror_look_changed = (
             current.is_mirror_frame_on != previous.is_mirror_frame_on
