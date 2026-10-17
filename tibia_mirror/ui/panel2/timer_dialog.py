@@ -52,7 +52,7 @@ class TimerDialog(Popup):
         )
         # the dialog asks this row for its time on OK: a time can be half written before that
         self._alert_row = TimeRow(
-            tr("Alert after"),
+            tr("Notify after time"),
             tr("The alert time must be 0:01 to 59:59."),
             self._timer.alert_seconds,
         )

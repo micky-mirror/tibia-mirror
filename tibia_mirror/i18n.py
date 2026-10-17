@@ -198,6 +198,7 @@ POLISH = {
     ),
     "Timer on": "Minutnik włączony",
     "Alert after": "Alarm po",
+    "Notify after time": "Powiadom po czasie",
     "min": "min",
     "s": "s",
     "Count": "Liczenie",
