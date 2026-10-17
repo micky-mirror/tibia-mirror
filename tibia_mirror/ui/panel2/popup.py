@@ -32,7 +32,17 @@ class Popup(tk.Toplevel):
         self._bind_events()
 
     def _add_title(self, title: str) -> None:
-        label = tk.Label(self, text=title, bg=theme.BG, fg=theme.TEXT, font=theme.FONT_BOLD)
+        label = tk.Label(
+            self,
+            text=title,
+            bg=theme.BG,
+            fg=theme.TEXT,
+            font=theme.FONT_BOLD,
+            bd=0,
+            padx=0,
+            justify="left",
+            wraplength=px(WIDTH) - 2 * px(PAD),  # a long name goes on to the next line
+        )
         label.pack(anchor="w", padx=px(PAD), pady=(px(PAD), px(TITLE_GAP)))
 
     def _open(self) -> None:
