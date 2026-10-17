@@ -35,6 +35,7 @@ class ProfilePicker(tk.Canvas):
         name: str,
         profile_names: Sequence[str],
         on_profile_selected: Callable[[str], None],
+        on_new_profile: Callable[[str], None],
     ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
@@ -48,8 +49,9 @@ class ProfilePicker(tk.Canvas):
         )
         self._width = width
         self._profile_name = name  # the name of the active profile
+        self._profile_names = profile_names  # the names of all profiles, for the menu
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
-        self._profile_menu = ProfileMenu(name, profile_names, on_profile_selected)
+        self._on_new_profile = on_new_profile  # gets the name typed for a new profile
         self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the profile menu is open
 
@@ -63,9 +65,9 @@ class ProfilePicker(tk.Canvas):
         self._bind_events()
 
     def set_profile(self, name: str, profile_names: Sequence[str]) -> None:
-        """Show another active profile, and give the menu the new list of profiles."""
+        """Show another active profile, and keep the new list of profiles for the menu."""
         self._profile_name = name
-        self._profile_menu = ProfileMenu(name, profile_names, self._on_profile_selected)
+        self._profile_names = profile_names
         self.delete(self._name_item)
         self._draw_name()
 
@@ -159,7 +161,15 @@ class ProfilePicker(tk.Canvas):
         left = self.winfo_rootx()
         top = self.winfo_rooty()
         box = (left, top, left + self._width, top + px(HEIGHT))
-        self._profile_menu.open(self.winfo_toplevel(), box, on_close=self._on_menu_closed)
+
+        profile_menu = ProfileMenu(
+            self.winfo_toplevel(),
+            self._profile_name,
+            self._profile_names,
+            self._on_profile_selected,
+            self._on_new_profile,
+        )
+        profile_menu.open(box, on_close=self._on_menu_closed)
 
     def _on_menu_closed(self) -> None:
         self._set_open(False)

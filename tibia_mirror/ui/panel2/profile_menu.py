@@ -4,8 +4,11 @@ import tkinter as tk
 from collections.abc import Callable, Sequence
 from functools import partial
 
-from tibia_mirror.core.geometry import Box
+from tibia_mirror.core.geometry import Box, Point
+from tibia_mirror.core.profiles import name_error
+from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
+from tibia_mirror.ui.controls.dialogs import NameDialog
 from tibia_mirror.ui.controls.menu import SEPARATOR, MenuItem, PopupMenu
 
 
@@ -18,20 +21,24 @@ class ProfileMenu:
 
     def __init__(
         self,
+        window: tk.Misc,
         active_name: str,
         profile_names: Sequence[str],
         on_select: Callable[[str], None],
+        on_new: Callable[[str], None],
     ) -> None:
+        self._window = window  # the main window, the menu and its dialogs open over it
         self._active_name = active_name  # the name of the active profile
         self._profile_names = profile_names  # the names of all profiles
         self._on_select = on_select  # gets the name of the profile picked in the menu
+        self._on_new = on_new  # gets the name typed for a new profile
 
-    def open(self, window: tk.Misc, box: Box, on_close: Callable[[], None]) -> None:
+    def open(self, box: Box, on_close: Callable[[], None]) -> None:
         """Open the menu under `box`, as wide as it. `box` is a place on the screen.
 
         `on_close` is called when the menu closes.
         """
-        PopupMenu(window, box, self._get_items(), on_close=on_close)
+        PopupMenu(self._window, box, self._get_items(), on_close=on_close)
 
     def _get_items(self) -> list[MenuItem | None]:
         """The entries of the menu: every profile, then what can be done with profiles."""
@@ -70,6 +77,18 @@ class ProfileMenu:
 
     def _new(self) -> None:
         """Ask for a name and make a new, empty profile."""
+        default_name = next_default_name(self._profile_names, stem=tr("Profile"))
+        center = self._get_window_center()
+
+        NameDialog(
+            self._window,
+            default_name,
+            center,
+            on_ok=self._on_new,
+            on_cancel=lambda: None,
+            title=tr("New profile"),
+            validate=partial(name_error, taken=self._profile_names),
+        )
 
     def _duplicate(self) -> None:
         """Ask for a name and make a copy of the active profile."""
@@ -91,3 +110,10 @@ class ProfileMenu:
 
     def _delete(self) -> None:
         """Ask if the user is sure, then delete the active profile."""
+
+    def _get_window_center(self) -> Point:
+        """The middle of the main window on the screen, where the dialogs open."""
+        center_x = self._window.winfo_rootx() + self._window.winfo_width() // 2
+        center_y = self._window.winfo_rooty() + self._window.winfo_height() // 2
+
+        return center_x, center_y

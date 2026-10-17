@@ -1205,6 +1205,15 @@ class App2:
 
         self._show_mirrors()
 
+    def _on_new_profile(self, name: str) -> None:
+        """Create an empty profile with the name typed in the menu, and open it."""
+        try:
+            self.profile_manager.write_mirrors(name, [])
+        except OSError:
+            self.panel.set_message(tr("Could not create profile"), "error")
+        else:
+            self._on_profile_selected(name)
+
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, and redraw the mirrors."""
         open_page = self.panel.open_page
@@ -1271,6 +1280,7 @@ class App2:
             self.connection.state,
             profile_info,
             self._on_profile_selected,
+            self._on_new_profile,
             mirror_infos,
             self.mirror_manager.update_mirror,
             self.mirror_manager.remove_mirror,

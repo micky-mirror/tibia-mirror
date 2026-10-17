@@ -33,6 +33,7 @@ class MirrorsPage(tk.Frame):
         side_pad: int,
         profile_info: ProfileInfo,
         on_profile_selected: Callable[[str], None],
+        on_new_profile: Callable[[str], None],
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
@@ -42,6 +43,7 @@ class MirrorsPage(tk.Frame):
         self._side_pad = side_pad
         self._profile_info = profile_info
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
+        self._on_new_profile = on_new_profile  # gets the name typed for a new profile
         self._mirrors = mirrors  # None while Tibia is not connected
         self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
@@ -60,6 +62,7 @@ class MirrorsPage(tk.Frame):
             self._profile_info.active_name,
             self._profile_info.names,
             self._on_profile_selected,
+            self._on_new_profile,
         )
         self._profile_picker.pack(
             side="top",
