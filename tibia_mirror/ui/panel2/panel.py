@@ -176,7 +176,9 @@ class Panel(tk.Frame):
         )
         self._pages: dict[str, tk.Frame] = {
             "mirrors": self._mirrors_page,
-            "shortcuts": ShortcutsPage(self._content, content_width(), px(SIDE_PAD)),
+            "shortcuts": ShortcutsPage(
+                self._content, content_width(), px(SIDE_PAD), self._settings
+            ),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),
         }

@@ -1,6 +1,7 @@
 """A row of a card where the user sets a key, such as the key that hides all mirrors."""
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.i18n import tr
@@ -22,10 +23,17 @@ class KeyRow:
     keyboard by itself, so the pointer methods of the row have nothing to do.
     """
 
-    def __init__(self, label: str, hint: str, key: KeyCombo | None) -> None:
+    def __init__(
+        self,
+        label: str,
+        hint: str,
+        key: KeyCombo | None,
+        on_change: Callable[[KeyCombo | None], None],
+    ) -> None:
         self._label = label
         self._hint = hint  # the help text under the label
         self._key = key  # the key that is set now, or None when no key is set
+        self._on_change = on_change  # called with the new key, or None when it is cleared
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
         """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
@@ -59,6 +67,7 @@ class KeyRow:
             empty=tr("Click to set a key"),
             waiting=tr("Press a key..."),
             modifiers=win32.modifiers_down,
+            on_change=self._on_change,
         )
         field_start_y = hint_end_y + px(FIELD_GAP)
         canvas.create_window(px(SIDE_PAD), field_start_y, window=field, anchor="nw")

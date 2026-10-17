@@ -3,6 +3,7 @@
 import tkinter as tk
 
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.panel2.key_row import KeyRow
 from tibia_mirror.ui.panel2.scroll_cards import ScrollCards
@@ -11,10 +12,13 @@ from tibia_mirror.ui.panel2.scroll_cards import ScrollCards
 class ShortcutsPage(tk.Frame):
     """The Shortcuts page."""
 
-    def __init__(self, parent: tk.Misc, width: int, side_pad: int) -> None:
+    def __init__(
+        self, parent: tk.Misc, width: int, side_pad: int, settings: AppSettingsStore
+    ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
+        self._settings = settings
         # initialize scrollable card
         self._add_scroll_cards()
         # add card blocks to scrollable card
@@ -31,6 +35,7 @@ class ShortcutsPage(tk.Frame):
         hide_all_row = KeyRow(
             tr("Hide all mirrors"),
             tr("Press again to bring them back. Works while Tibia is active."),
-            key=None,
+            key=self._settings.current.hide_all_key,
+            on_change=lambda key: self._settings.update(hide_all_key=key),
         )
         self._scroll_cards.add_card([hide_all_row])
