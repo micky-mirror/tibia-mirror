@@ -1143,6 +1143,10 @@ class App2:
         )
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings)
         self.mirror_manager = MirrorManager(self.window, self.settings, self._on_mirrors_changed)
+        self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
+        # hear the keys and clicks of the whole computer, to act on those meant for Tibia
+        self.input_watcher = InputWatcher(self._on_click, self._on_key)
+        self.input_watcher.start(self.window)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         # check if mirrors were loaded from profile file
@@ -1208,6 +1212,26 @@ class App2:
             self._on_duplicate_profile(character)
         elif name != self.profile_manager.active_name:
             self._on_profile_selected(name)
+
+    def _on_click(self, button: str, position_x: int, position_y: int, pressed_at: float) -> None:
+        """Start the timers of the mirrors whose area was clicked in Tibia."""
+
+    def _on_key(self, key_code: int, modifiers: tuple[str, ...]) -> None:
+        """Hide all mirrors, or bring them back, when the hide-all key is pressed in Tibia."""
+        game_window = self.connection.game_window
+        hide_all_key = self.settings.current.hide_all_key
+
+        # only keys pressed while Tibia has the focus count, not keys typed in the panel
+        if game_window is None or win32.foreground_window() != game_window.handle:
+            return
+
+        if combo_matches(hide_all_key, key_code, modifiers):
+            self._toggle_all_hidden()
+
+    def _toggle_all_hidden(self) -> None:
+        """Hide all mirrors, or bring them back."""
+        self._is_all_hidden = not self._is_all_hidden
+        self._show_mirrors()
 
     def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the open profile after one of them changed."""
@@ -1289,12 +1313,12 @@ class App2:
     def _show_mirrors(self) -> None:
         """Show the kept mirrors on the Mirrors page and on the window of Tibia.
 
-        Without a window of Tibia, the page shows its waiting sentence and the windows close.
+        The windows close without a window of Tibia, and while the hide-all key hides them.
         """
         self.panel.set_mirrors(self._get_mirror_infos())
         game_window = self.connection.game_window
 
-        if game_window is None:
+        if game_window is None or self._is_all_hidden:
             self.mirror_manager.close()
             return
 
