@@ -11,8 +11,8 @@ from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import Layout
-from tibia_mirror.core.timers import TimerSettings
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
@@ -214,7 +214,7 @@ def test_mirror_infos_have_the_region_for_the_size_of_the_game():
         colour="red",
         is_hidden=True,
         is_locked=True,
-        timer=TimerSettings(enabled=True, alert=90),
+        timer=MirrorTimer(is_on=True, alert_seconds=90),
     )
     manager = make_manager()
     manager.set_mirrors([mirror])

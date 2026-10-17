@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from tibia_mirror.config import DEFAULT_OPACITY, FRAME_COLORS
+from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import (
     Layout,
     clamp_opacity,
@@ -13,7 +14,6 @@ from tibia_mirror.core.regions import (
     new_id,
     parse_size_key,
 )
-from tibia_mirror.core.timers import TimerSettings
 
 
 @dataclass(frozen=True)
@@ -28,7 +28,7 @@ class MirrorSettings:
     colour: str = FRAME_COLORS[0]  # the name of the frame colour, one of FRAME_COLORS
     is_hidden: bool = False
     is_locked: bool = False  # clicks go through a locked mirror to the game
-    timer: TimerSettings = field(default_factory=TimerSettings)
+    timer: MirrorTimer = field(default_factory=MirrorTimer)
 
     @classmethod
     def from_json(cls, data: object) -> MirrorSettings:
@@ -145,8 +145,8 @@ class _SavedMirror:
 
         return False
 
-    def get_timer(self) -> TimerSettings:
-        return TimerSettings.from_json(self._data.get("timer"))
+    def get_timer(self) -> MirrorTimer:
+        return MirrorTimer.from_json(self._data.get("timer"))
 
     def _is_window_size(self, key: str) -> bool:
         """True for a text like "1920x1080" with both numbers above zero."""
