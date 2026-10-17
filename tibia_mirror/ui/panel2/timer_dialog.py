@@ -11,6 +11,7 @@ from tibia_mirror.ui.panel2.choice_row import ChoiceRow
 from tibia_mirror.ui.panel2.key_row import KeyRow
 from tibia_mirror.ui.panel2.popup import PAD, Popup
 from tibia_mirror.ui.panel2.row_card import RowCard
+from tibia_mirror.ui.panel2.time_row import TimeRow
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow
 
 
@@ -49,6 +50,7 @@ class TimerDialog(Popup):
             is_on=self._timer.is_paused_offline,
             on_change=lambda is_on: self._keep_timer(replace(self._timer, is_paused_offline=is_on)),
         )
+        alert_row = TimeRow(tr("Alert after"), self._timer.alert_seconds)
         direction_row = ChoiceRow(
             tr("Count"),
             (("down", tr("Down")), ("up", tr("Up"))),
@@ -62,7 +64,11 @@ class TimerDialog(Popup):
             on_change=lambda key: self._keep_timer(replace(self._timer, key=key)),
         )
 
-        card = RowCard(self, self._content_width, [timer_on_row, pause_row, direction_row, key_row])
+        card = RowCard(
+            self,
+            self._content_width,
+            [timer_on_row, pause_row, alert_row, direction_row, key_row],
+        )
         card.pack(anchor="w", padx=px(PAD))
 
     def _keep_timer(self, timer: MirrorTimer) -> None:

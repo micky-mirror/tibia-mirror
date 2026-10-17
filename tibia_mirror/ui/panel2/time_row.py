@@ -1,0 +1,82 @@
+"""A row of a card where the user writes a time in minutes and seconds, such as the alert time."""
+
+import tkinter as tk
+
+from tibia_mirror.i18n import tr
+from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.widgets import TextField
+from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_label
+
+# Sizes at 100% display scaling; px() scales them where they are used.
+FIELDS_TOP_PAD = 8  # between the label and the fields
+FIELD_WIDTH = 52  # room for two digits
+UNIT_GAP = 6  # between a field and its unit
+SECONDS_GAP = 16  # between the unit of the minutes and the field of the seconds
+
+
+class TimeRow:
+    """One setting that is a time in minutes and seconds, such as 1:30.
+
+    The fields are widgets of their own. They hear the mouse and the keyboard by
+    themselves, so the pointer methods of the row have nothing to do.
+    """
+
+    def __init__(self, label: str, seconds: int) -> None:
+        self._label = label
+        self._seconds = seconds  # the time that the fields show first
+
+    def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
+        """Draw the row on the card from `row_start_y` down. Return the y where the row ends."""
+        label_end_y = draw_label(canvas, row_start_y, self._label)
+        fields_start_y = label_end_y + px(FIELDS_TOP_PAD)
+        self._add_fields(canvas, fields_start_y)
+        return fields_start_y + px(TextField.HEIGHT) + px(ROW_PAD)
+
+    def pointer_moved(self, position_x: int, position_y: int) -> bool:
+        """Nothing to do: the fields hear the pointer by themselves."""
+        return False
+
+    def pointer_left(self) -> None:
+        """Nothing to do: the fields hear the pointer by themselves."""
+
+    def pointer_pressed(self, position_x: int, position_y: int) -> None:
+        """Nothing to do: the fields hear the pointer by themselves."""
+
+    def pointer_released(self, position_x: int, position_y: int) -> None:
+        """Nothing to do: the fields hear the pointer by themselves."""
+
+    def _add_fields(self, canvas: tk.Canvas, fields_start_y: int) -> None:
+        """The minutes and the seconds side by side, each with its unit after it."""
+        minutes, seconds = divmod(self._seconds, 60)
+        # the row keeps the texts: Tk empties a field whose text is thrown away
+        self._minutes_text = tk.StringVar(canvas, str(minutes))
+        self._seconds_text = tk.StringVar(canvas, f"{seconds:02d}")
+
+        minutes_end_x = self._add_field(
+            canvas, px(SIDE_PAD), fields_start_y, self._minutes_text, tr("min")
+        )
+        seconds_start_x = minutes_end_x + px(SECONDS_GAP)
+        self._add_field(canvas, seconds_start_x, fields_start_y, self._seconds_text, tr("s"))
+
+    def _add_field(
+        self,
+        canvas: tk.Canvas,
+        field_start_x: int,
+        fields_start_y: int,
+        text: tk.StringVar,
+        unit: str,
+    ) -> int:
+        """One field with its unit after it. Return the x where the unit ends."""
+        field = TextField(canvas, text, width=px(FIELD_WIDTH), background=theme.SURFACE)
+        canvas.create_window(field_start_x, fields_start_y, window=field, anchor="nw")
+        unit_text = canvas.create_text(
+            field_start_x + px(FIELD_WIDTH) + px(UNIT_GAP),
+            fields_start_y + px(TextField.HEIGHT) // 2,
+            text=unit,
+            anchor="w",
+            font=theme.FONT,
+            fill=theme.SUBTEXT,
+        )
+        unit_end_x: int = canvas.bbox(unit_text)[2]
+        return unit_end_x
