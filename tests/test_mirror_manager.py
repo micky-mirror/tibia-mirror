@@ -301,6 +301,19 @@ def test_an_opacity_from_the_mirrors_page_is_kept_and_passed_on():
     assert told == [[replace(health, opacity=0.3)]]
 
 
+def test_a_timer_from_the_mirrors_page_is_kept_and_passed_on():
+    told = []
+    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
+    health = make_shown_mirror("Health")
+    manager.set_mirrors([health])
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    timer = MirrorTimer(is_on=True, alert_seconds=90)
+
+    manager.update_mirror(replace(health_info, timer=timer))
+
+    assert told == [[replace(health, timer=timer)]]
+
+
 def test_a_removed_mirror_is_forgotten_and_the_others_passed_on():
     told = []
     manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
