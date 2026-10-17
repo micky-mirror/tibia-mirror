@@ -1232,6 +1232,15 @@ class App2:
         else:
             self.panel.set_profile_info(self._get_profile_info())
 
+    def _on_delete_profile(self) -> None:
+        """Delete the open profile, and show the profile opened in its place."""
+        try:
+            self.profile_manager.delete()
+        except OSError:
+            self.panel.set_message(tr("Could not delete profile"), "error")
+        else:
+            self._on_profile_selected(self.profile_manager.active_name)
+
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, and redraw the mirrors."""
         open_page = self.panel.open_page
@@ -1301,6 +1310,7 @@ class App2:
             self._on_new_profile,
             self._on_duplicate_profile,
             self._on_rename_profile,
+            self._on_delete_profile,
             mirror_infos,
             self.mirror_manager.update_mirror,
             self.mirror_manager.remove_mirror,

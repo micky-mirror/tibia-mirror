@@ -36,6 +36,7 @@ class MirrorsPage(tk.Frame):
         on_new_profile: Callable[[str], None],
         on_duplicate_profile: Callable[[str], None],
         on_rename_profile: Callable[[str], None],
+        on_delete_profile: Callable[[], None],
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
@@ -48,6 +49,7 @@ class MirrorsPage(tk.Frame):
         self._on_new_profile = on_new_profile  # gets the name typed for a new profile
         self._on_duplicate_profile = on_duplicate_profile  # gets the name typed for the copy
         self._on_rename_profile = on_rename_profile  # gets the new name typed for the profile
+        self._on_delete_profile = on_delete_profile  # called when the user confirms the delete
         self._mirrors = mirrors  # None while Tibia is not connected
         self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
@@ -69,6 +71,7 @@ class MirrorsPage(tk.Frame):
             self._on_new_profile,
             self._on_duplicate_profile,
             self._on_rename_profile,
+            self._on_delete_profile,
         )
         self._profile_picker.pack(
             side="top",

@@ -8,7 +8,7 @@ from tibia_mirror.core.geometry import Box, Point
 from tibia_mirror.core.profiles import copy_name, name_error
 from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui.controls.dialogs import NameDialog
+from tibia_mirror.ui.controls.dialogs import Choice, ChoiceDialog, NameDialog
 from tibia_mirror.ui.controls.menu import SEPARATOR, MenuItem, PopupMenu
 
 
@@ -28,6 +28,7 @@ class ProfileMenu:
         on_new: Callable[[str], None],
         on_duplicate: Callable[[str], None],
         on_rename: Callable[[str], None],
+        on_delete: Callable[[], None],
     ) -> None:
         self._window = window  # the main window, the menu and its dialogs open over it
         self._active_name = active_name  # the name of the active profile
@@ -36,6 +37,7 @@ class ProfileMenu:
         self._on_new = on_new  # gets the name typed for a new profile
         self._on_duplicate = on_duplicate  # gets the name typed for the copy
         self._on_rename = on_rename  # gets the new name typed for the active profile
+        self._on_delete = on_delete  # called when the user confirms the delete
 
     def open(self, box: Box, on_close: Callable[[], None]) -> None:
         """Open the menu under `box`, as wide as it. `box` is a place on the screen.
@@ -124,6 +126,17 @@ class ProfileMenu:
 
     def _delete(self) -> None:
         """Ask if the user is sure, then delete the active profile."""
+        message = tr(
+            'Delete "{name}" and all its mirrors? This can\'t be undone.',
+            name=self._active_name,
+        )
+        center = self._get_window_center()
+        choices = [
+            Choice(tr("Cancel"), lambda: None),
+            Choice(tr("Delete"), self._on_delete, "danger"),
+        ]
+
+        ChoiceDialog(self._window, tr("Delete profile"), message, center, choices)
 
     def _get_window_center(self) -> Point:
         """The middle of the main window on the screen, where the dialogs open."""
