@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import replace
 
@@ -22,7 +23,7 @@ BUTTONS_TOP_PAD = 16  # between the content and the buttons
 BUTTON_HEIGHT = 34
 
 
-class Popup(tk.Toplevel):
+class Popup(tk.Toplevel, ABC):
     """The base of every dialog of the panel."""
 
     def __init__(self, window: tk.Misc, title: str) -> None:
@@ -110,9 +111,9 @@ class Popup(tk.Toplevel):
 
         return clamp_box(center_x - width // 2, center_y - height // 2, width, height, work_area)
 
+    @abstractmethod
     def _confirm(self) -> None:
-        """What OK and Enter do: close the popup."""
-        self.destroy()
+        """What OK and Enter do. Each dialog keeps its answer and closes itself."""
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)

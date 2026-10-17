@@ -4,6 +4,7 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
 
+from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.timers import clock
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
@@ -236,4 +237,16 @@ class MirrorCardButtonBar:
 
     def _open_timer(self) -> None:
         """Open the settings of the mirror's timer."""
-        TimerDialog(self._canvas.winfo_toplevel(), self._mirror.name)
+        TimerDialog(
+            self._canvas.winfo_toplevel(),
+            self._mirror.name,
+            self._mirror.timer,
+            on_ok=self._on_timer_confirmed,
+        )
+
+    def _on_timer_confirmed(self, timer: MirrorTimer) -> None:
+        """Hand up the mirror with its new timer. Do nothing when it is the same timer."""
+        if timer == self._mirror.timer:
+            return
+
+        self._on_changed(replace(self._mirror, timer=timer))
