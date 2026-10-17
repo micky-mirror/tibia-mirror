@@ -3,16 +3,23 @@
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
+from dataclasses import replace
 
 from tibia_mirror.core.geometry import Point, clamp_box
+from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.render import margins
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.controls.widgets import RaisedButton
 from tibia_mirror.winapi import dwm, win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 WIDTH = 340
 PAD = 18  # between the sides of the popup and its content
 TITLE_GAP = 8  # below the title
+BUTTONS_TOP_PAD = 16  # between the content and the buttons
+BUTTON_HEIGHT = 34
 
 
 class Popup(tk.Toplevel):
@@ -45,6 +52,44 @@ class Popup(tk.Toplevel):
         )
         label.pack(anchor="w", padx=px(PAD), pady=(px(PAD), px(TITLE_GAP)))
 
+    def _add_buttons(self) -> None:
+        """Cancel and OK, side by side at the bottom."""
+        # The button widgets are bigger than the buttons we see: they hold the shadows.
+        shadow = margins(theme.SECONDARY_BUTTON)
+        row = tk.Frame(self, bg=theme.BG)
+        row.pack(
+            anchor="w",
+            padx=(px(PAD) - shadow.left, 0),
+            pady=(px(BUTTONS_TOP_PAD) - shadow.top, px(PAD) - shadow.bottom),
+        )
+
+        self._add_button(row, tr("Cancel"), self.destroy, is_primary=False)
+        self._add_button(row, tr("OK"), self._confirm, is_primary=True)
+
+    def _add_button(
+        self, row: tk.Frame, text: str, command: Callable[[], None], *, is_primary: bool
+    ) -> None:
+        """One of two buttons of the same width, with the room for their shadows between them."""
+        shadow = margins(theme.SECONDARY_BUTTON)
+        width = (px(WIDTH) - 2 * px(PAD) - shadow.left - shadow.right) // 2
+        fill = theme.ACCENT if is_primary else theme.SURFACE
+        hover_fill = theme.ACCENT_HI if is_primary else theme.SURFACE_HI
+        text_colour = theme.ON_ACCENT if is_primary else theme.TEXT
+
+        button = RaisedButton(
+            row,
+            text,
+            command,
+            width=width,
+            height=px(BUTTON_HEIGHT),
+            style=replace(theme.SECONDARY_BUTTON, fill=fill),
+            hover_fill=hover_fill,
+            font=theme.FONT_BOLD,
+            fg=text_colour,
+            background=theme.BG,
+        )
+        button.pack(side="left")
+
     def _open(self) -> None:
         """Show the popup in the middle of the main window, ready for keys."""
         self.update_idletasks()
@@ -64,6 +109,10 @@ class Popup(tk.Toplevel):
         work_area = win32.work_area_at((center_x, center_y))
 
         return clamp_box(center_x - width // 2, center_y - height // 2, width, height, work_area)
+
+    def _confirm(self) -> None:
+        """What OK does: close the popup."""
+        self.destroy()
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)

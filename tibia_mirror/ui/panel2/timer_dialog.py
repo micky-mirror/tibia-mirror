@@ -12,4 +12,5 @@ class TimerDialog(Popup):
     def __init__(self, window: tk.Misc, name: str) -> None:
         super().__init__(window, tr('Timer for "{name}"', name=name))
 
+        self._add_buttons()
         self._open()
