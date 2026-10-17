@@ -1136,7 +1136,10 @@ class App2:
         self.window = AppWindow(self.settings)
         self.settings_writer = SettingsWriter(self.window, self.settings)
         self.connection = TibiaConnection(
-            self.window, self._on_connection_changed, self._on_game_window_changed
+            self.window,
+            self._on_connection_changed,
+            self._on_game_window_changed,
+            self._on_character_changed,
         )
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings)
         self.mirror_manager = MirrorManager(self.window, self.settings, self._on_mirrors_changed)
@@ -1186,6 +1189,20 @@ class App2:
         self.mirror_manager.set_game_window(game_window)
         self.panel.set_mirrors(self._get_mirror_infos())
 
+    def _on_character_changed(self, character: str | None) -> None:
+        """Open the profile of the character that logged in, when Profile per character is on."""
+        if character is not None and self.settings.current.is_profile_per_character_on:
+            self._open_character_profile(character)
+
+    def _open_character_profile(self, character: str) -> None:
+        """Open the profile with the character's name, or make one from the open profile."""
+        name = self.profile_manager.find_name(character)
+
+        if name is None:
+            self._on_duplicate_profile(character)
+        elif name != self.profile_manager.active_name:
+            self._on_profile_selected(name)
+
     def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the open profile after one of them changed."""
         try:
@@ -1194,7 +1211,7 @@ class App2:
             self.panel.set_message(tr("Save failed"), "error")
 
     def _on_profile_selected(self, name: str) -> None:
-        """Open the profile picked in the menu, and show its mirrors."""
+        """Open another profile, and show its mirrors."""
         self.profile_manager.open(name)
         self.panel.set_profile_info(self._get_profile_info())
 
@@ -1215,7 +1232,7 @@ class App2:
             self._on_profile_selected(name)
 
     def _on_duplicate_profile(self, name: str) -> None:
-        """Copy the open profile under the name typed in the menu, and open the copy."""
+        """Copy the open profile under a new name, and open the copy."""
         try:
             self.profile_manager.write_mirrors(name, self.mirror_manager.mirrors)
         except OSError:

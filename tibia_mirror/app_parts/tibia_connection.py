@@ -18,11 +18,13 @@ class TibiaConnection:
         window: tk.Misc,
         on_state_changed: Callable[[str], None],
         on_game_window_changed: Callable[[GameWindow], None],
+        on_character_changed: Callable[[str | None], None],
     ) -> None:
         self._window = window
         # Called with the new state every time the state changes.
         self._on_state_changed = on_state_changed
         self._on_game_window_changed = on_game_window_changed
+        self._on_character_changed = on_character_changed
         self._game = Game()
         self._front_window_tracker = FrontWindowTracker()
         self._is_minimized = False
@@ -73,6 +75,7 @@ class TibiaConnection:
 
         previous_state = self.state
         previous_game_window = self.game_window
+        previous_character = self._character
         self._look_for_tibia()
         game_window = self.game_window
 
@@ -80,3 +83,6 @@ class TibiaConnection:
             self._on_state_changed(self.state)
         elif game_window is not None and game_window != previous_game_window:
             self._on_game_window_changed(game_window)
+
+        if self._character != previous_character:
+            self._on_character_changed(self._character)
