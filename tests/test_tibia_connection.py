@@ -38,6 +38,7 @@ def tibia(monkeypatch):
         "is_minimized": False,
         "client_area": AREA,
         "front_window": HWND,
+        "title": "Tibia",
     }
 
     def find_window():
@@ -50,6 +51,7 @@ def tibia(monkeypatch):
     monkeypatch.setattr(win32, "foreground_window", lambda: reported["front_window"])
     monkeypatch.setattr(win32, "window_process_id", lambda hwnd: 1)
     monkeypatch.setattr(win32, "window_class", lambda hwnd: "AppWindow")
+    monkeypatch.setattr(win32, "window_title", lambda hwnd: reported["title"])
     return reported
 
 
@@ -109,6 +111,29 @@ def test_game_window_is_kept_while_tibia_is_minimized_later(tibia):
     window.run_planned()
 
     assert connection.game_window == GameWindow(HWND, AREA, is_minimized=True, is_in_front=True)
+
+
+def test_the_logged_in_character_is_read_from_the_title_of_tibia(tibia):
+    tibia["title"] = "Tibia - Bubble"
+
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
+
+    assert connection.character == "Bubble"
+
+
+def test_there_is_no_character_on_the_login_screen(tibia):
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
+
+    assert connection.character is None
+
+
+def test_there_is_no_character_when_tibia_is_not_running(tibia):
+    tibia["is_running"] = False
+    tibia["title"] = "Tibia - Bubble"
+
+    connection = TibiaConnection(FakeWindow(), do_nothing, do_nothing)
+
+    assert connection.character is None
 
 
 def test_nothing_is_told_while_the_state_stays_the_same(tibia):

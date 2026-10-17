@@ -5,12 +5,13 @@ from collections.abc import Callable
 
 from tibia_mirror.app_parts.front_window_tracker import FrontWindowTracker
 from tibia_mirror.config import CONNECTION_POLL_MS
+from tibia_mirror.core import characters
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.services.game import Game
 
 
 class TibiaConnection:
-    """Knows if Tibia is running and if its window can be seen."""
+    """Knows if Tibia is running, if its window can be seen, and who is logged in."""
 
     def __init__(
         self,
@@ -25,6 +26,7 @@ class TibiaConnection:
         self._game = Game()
         self._front_window_tracker = FrontWindowTracker()
         self._is_minimized = False
+        self._character: str | None = None
         self._look_for_tibia()
         self._check_on_delay()
 
@@ -46,12 +48,18 @@ class TibiaConnection:
 
         return GameWindow(handle, client_area, self._is_minimized, is_in_front)
 
+    @property
+    def character(self) -> str | None:
+        """The character logged in to Tibia. None on the login screen and without Tibia."""
+        return self._character
+
     def _look_for_tibia(self) -> None:
         """Read what is true about Tibia now."""
         self._game.check_closed()
         self._game.find()
         self._game.current_client()
         self._is_minimized = self._game.is_minimized()
+        self._character = characters.character_in_title(self._game.title())
         self._front_window_tracker.update()
 
     def _check_on_delay(self) -> None:
