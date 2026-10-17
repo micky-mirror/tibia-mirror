@@ -6,6 +6,7 @@ import tkinter as tk
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.winapi import dwm, win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 WIDTH = 340
@@ -23,6 +24,8 @@ class Popup(tk.Toplevel):
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
         self.attributes("-topmost", True)  # above the panel and the mirrors, which can be on top
+        # rounded corners, a shadow and a thin border, all drawn by Windows
+        dwm.round_popup(win32.toplevel_hwnd(self), theme.SURFACE_HI)
         # add popup content
         self._add_title(title)
         self._bind_events()
