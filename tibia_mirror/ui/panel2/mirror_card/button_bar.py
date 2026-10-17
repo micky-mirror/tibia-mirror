@@ -12,6 +12,7 @@ from tibia_mirror.ui.panel2.mirror_card.icon_button import IconButton
 from tibia_mirror.ui.panel2.mirror_card.layout import TOP_ROW_Y
 from tibia_mirror.ui.panel2.mirror_card.tip import Tip
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.timer_dialog import TimerDialog
 
 REMOVE_ICON = "✕"
 LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
@@ -235,3 +236,4 @@ class MirrorCardButtonBar:
 
     def _open_timer(self) -> None:
         """Open the settings of the mirror's timer."""
+        TimerDialog(self._canvas.winfo_toplevel(), self._mirror.name)
