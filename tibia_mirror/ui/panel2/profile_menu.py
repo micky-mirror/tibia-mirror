@@ -46,8 +46,7 @@ class ProfileMenu:
 
     def _get_items(self) -> list[MenuItem | None]:
         """The entries of the menu: every profile, then what can be done with profiles."""
-        # two entries need a second profile: there is nothing to copy from, and the last
-        # profile cannot be deleted
+        # the last profile cannot be deleted
         has_other_profiles: bool = len(self._profile_names) > 1
         return [
             *self._get_profile_items(),
@@ -57,10 +56,6 @@ class ProfileMenu:
             MenuItem(tr("Rename…"), self._rename),
             SEPARATOR,
             MenuItem(tr("Characters…"), self._characters),
-            MenuItem(tr("Copy from…"), self._copy_from, enabled=has_other_profiles),
-            SEPARATOR,
-            MenuItem(tr("Import…"), self._import),
-            MenuItem(tr("Export…"), self._export),
             SEPARATOR,
             MenuItem(tr("Delete profile"), self._delete, enabled=has_other_profiles, danger=True),
         ]
@@ -126,15 +121,6 @@ class ProfileMenu:
 
     def _characters(self) -> None:
         """Let the user choose which characters open the active profile when they log in."""
-
-    def _copy_from(self) -> None:
-        """Ask for another profile and copy its mirrors into the active one."""
-
-    def _import(self) -> None:
-        """Ask for a profile file and add it as a new profile."""
-
-    def _export(self) -> None:
-        """Ask where to save, and write the active profile to a file."""
 
     def _delete(self) -> None:
         """Ask if the user is sure, then delete the active profile."""
