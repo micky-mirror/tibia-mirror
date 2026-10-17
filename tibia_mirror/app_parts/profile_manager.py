@@ -51,6 +51,18 @@ class ProfileManager:
         self._settings.update(character_links=new_links)
         self.open(new_name)
 
+    def delete(self) -> None:
+        """Delete the open profile and its character links, then open the first profile left.
+
+        If the file cannot be deleted, this raises OSError.
+        """
+        old_links = self._settings.current.character_links
+        new_links = characters.drop_profile(old_links, self._active_name)
+
+        self._get_file(self._active_name).unlink(missing_ok=True)
+        self._settings.update(character_links=new_links)
+        self.open(self.get_names()[0])
+
     def read_mirrors(self) -> list[MirrorSettings]:
         """Read the mirrors of the open profile from its file.
 

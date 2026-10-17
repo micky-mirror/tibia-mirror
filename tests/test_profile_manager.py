@@ -131,6 +131,32 @@ def test_characters_linked_to_a_renamed_profile_stay_linked(tmp_path, folder):
     assert settings.current.character_links == (("Bubble", "Team hunt"),)
 
 
+def test_a_deleted_profile_is_gone_and_the_first_profile_left_is_opened(tmp_path, folder):
+    add_profile(folder, "Druid")
+    add_profile(folder, "Knight")
+    add_profile(folder, "Sorcerer")
+    settings = make_settings(tmp_path, "Druid")
+    manager = ProfileManager(folder, settings)
+
+    manager.delete()
+
+    assert manager.get_names() == ["Knight", "Sorcerer"]
+    assert manager.active_name == "Knight"
+    assert settings.current.last_profile == "Knight"
+
+
+def test_characters_linked_to_a_deleted_profile_lose_their_link(tmp_path, folder):
+    add_profile(folder, "Knight")
+    add_profile(folder, "Sorcerer")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(character_links=(("Bubble", "Knight"), ("Cachero", "Sorcerer")))
+    manager = ProfileManager(folder, settings)
+
+    manager.delete()
+
+    assert settings.current.character_links == (("Cachero", "Sorcerer"),)
+
+
 def test_the_mirrors_of_the_open_profile_are_read(tmp_path, folder):
     write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
     write_profile_file(folder, "Sorcerer", {"version": 2, "mirrors": []})
