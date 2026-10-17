@@ -5,7 +5,7 @@ from collections.abc import Callable, Sequence
 from functools import partial
 
 from tibia_mirror.core.geometry import Box, Point
-from tibia_mirror.core.profiles import name_error
+from tibia_mirror.core.profiles import copy_name, name_error
 from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.controls.dialogs import NameDialog
@@ -26,12 +26,14 @@ class ProfileMenu:
         profile_names: Sequence[str],
         on_select: Callable[[str], None],
         on_new: Callable[[str], None],
+        on_duplicate: Callable[[str], None],
     ) -> None:
         self._window = window  # the main window, the menu and its dialogs open over it
         self._active_name = active_name  # the name of the active profile
         self._profile_names = profile_names  # the names of all profiles
         self._on_select = on_select  # gets the name of the profile picked in the menu
         self._on_new = on_new  # gets the name typed for a new profile
+        self._on_duplicate = on_duplicate  # gets the name typed for the copy
 
     def open(self, box: Box, on_close: Callable[[], None]) -> None:
         """Open the menu under `box`, as wide as it. `box` is a place on the screen.
@@ -92,6 +94,18 @@ class ProfileMenu:
 
     def _duplicate(self) -> None:
         """Ask for a name and make a copy of the active profile."""
+        default_name = copy_name(self._active_name, self._profile_names, tr("copy"))
+        center = self._get_window_center()
+
+        NameDialog(
+            self._window,
+            default_name,
+            center,
+            on_ok=self._on_duplicate,
+            on_cancel=lambda: None,
+            title=tr("Duplicate profile"),
+            validate=partial(name_error, taken=self._profile_names),
+        )
 
     def _rename(self) -> None:
         """Ask for a new name for the active profile."""

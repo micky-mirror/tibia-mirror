@@ -1214,6 +1214,15 @@ class App2:
         else:
             self._on_profile_selected(name)
 
+    def _on_duplicate_profile(self, name: str) -> None:
+        """Copy the open profile under the name typed in the menu, and open the copy."""
+        try:
+            self.profile_manager.write_mirrors(name, self.mirror_manager.mirrors)
+        except OSError:
+            self.panel.set_message(tr("Could not duplicate profile"), "error")
+        else:
+            self._on_profile_selected(name)
+
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, and redraw the mirrors."""
         open_page = self.panel.open_page
@@ -1281,6 +1290,7 @@ class App2:
             profile_info,
             self._on_profile_selected,
             self._on_new_profile,
+            self._on_duplicate_profile,
             mirror_infos,
             self.mirror_manager.update_mirror,
             self.mirror_manager.remove_mirror,
