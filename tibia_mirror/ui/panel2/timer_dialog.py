@@ -40,6 +40,15 @@ class TimerDialog(Popup):
             is_on=self._timer.is_on,
             on_change=lambda is_on: self._keep_timer(replace(self._timer, is_on=is_on)),
         )
+        pause_row = ToggleRow(
+            tr("Pause while logged out"),
+            tr(
+                "For timers that only count while your character is online: "
+                "each character continues from where it logged out."
+            ),
+            is_on=self._timer.is_paused_offline,
+            on_change=lambda is_on: self._keep_timer(replace(self._timer, is_paused_offline=is_on)),
+        )
         direction_row = ChoiceRow(
             tr("Count"),
             (("down", tr("Down")), ("up", tr("Up"))),
@@ -52,17 +61,8 @@ class TimerDialog(Popup):
             key=self._timer.key,
             on_change=lambda key: self._keep_timer(replace(self._timer, key=key)),
         )
-        pause_row = ToggleRow(
-            tr("Pause while logged out"),
-            tr(
-                "For timers that only count while your character is online: "
-                "each character continues from where it logged out."
-            ),
-            is_on=self._timer.is_paused_offline,
-            on_change=lambda is_on: self._keep_timer(replace(self._timer, is_paused_offline=is_on)),
-        )
 
-        card = RowCard(self, self._content_width, [timer_on_row, direction_row, key_row, pause_row])
+        card = RowCard(self, self._content_width, [timer_on_row, pause_row, direction_row, key_row])
         card.pack(anchor="w", padx=px(PAD))
 
     def _keep_timer(self, timer: MirrorTimer) -> None:
