@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from tibia_mirror.core.mirror_timer import MirrorTimer
+
 
 @dataclass(frozen=True)
 class MirrorInfo:
@@ -15,5 +17,4 @@ class MirrorInfo:
     colour: str  # the name of the frame colour, one of config.FRAME_COLORS
     is_hidden: bool
     is_locked: bool
-    is_timer_on: bool
-    timer_alert_seconds: int  # the timer alerts this long after it starts
+    timer: MirrorTimer

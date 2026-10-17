@@ -99,8 +99,7 @@ class MirrorManager:
                     colour=mirror_settings.colour,
                     is_hidden=mirror_settings.is_hidden,
                     is_locked=mirror_settings.is_locked,
-                    is_timer_on=mirror_settings.timer.is_on,
-                    timer_alert_seconds=mirror_settings.timer.alert_seconds,
+                    timer=mirror_settings.timer,
                 )
             )
 

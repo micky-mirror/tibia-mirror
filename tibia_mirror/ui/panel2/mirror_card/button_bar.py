@@ -159,7 +159,7 @@ class MirrorCardButtonBar:
 
     def _draw_timer_button(self) -> None:
         """A clock, in the accent colour for a mirror with its timer on, grey if not."""
-        is_timer_on: bool = self._mirror.is_timer_on
+        is_timer_on: bool = self._mirror.timer.is_on
         colour = theme.ACCENT if is_timer_on else theme.SUBTEXT
         hovered_colour = theme.ACCENT if is_timer_on else theme.TEXT
         tip = self._get_timer_tip()
@@ -205,8 +205,8 @@ class MirrorCardButtonBar:
 
     def _get_timer_tip(self) -> Tip:
         """The hint of the timer button. For a timer that is on, it tells the alert time."""
-        if self._mirror.is_timer_on:
-            time = clock(self._mirror.timer_alert_seconds)
+        if self._mirror.timer.is_on:
+            time = clock(self._mirror.timer.alert_seconds)
             return Tip(tr("Timer"), tr("On: alerts after {time}.", time=time))
         return Tip(
             tr("Timer"),

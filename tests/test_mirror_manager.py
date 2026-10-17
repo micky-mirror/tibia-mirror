@@ -229,8 +229,7 @@ def test_mirror_infos_have_the_region_for_the_size_of_the_game():
             colour="red",
             is_hidden=True,
             is_locked=True,
-            is_timer_on=True,
-            timer_alert_seconds=90,
+            timer=MirrorTimer(is_on=True, alert_seconds=90),
         )
     ]
 
