@@ -98,6 +98,39 @@ def test_an_opened_profile_is_opened_again_at_the_next_start(tmp_path, folder):
     assert next_start.active_name == "Sorcerer"
 
 
+def test_a_renamed_profile_keeps_its_mirrors_under_the_new_name(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+
+    manager.rename("Elite Knight")
+
+    assert manager.get_names() == ["Elite Knight"]
+    assert manager.active_name == "Elite Knight"
+    assert manager.read_mirrors() == [MirrorSettings.from_json(MIRROR_JSON)]
+
+
+def test_a_renamed_profile_is_opened_again_at_the_next_start(tmp_path, folder):
+    add_profile(folder, "Knight")
+    add_profile(folder, "Sorcerer")
+    settings = make_settings(tmp_path, "Knight")
+    ProfileManager(folder, settings).rename("Team hunt")
+
+    next_start = ProfileManager(folder, settings)
+
+    assert next_start.active_name == "Team hunt"
+
+
+def test_characters_linked_to_a_renamed_profile_stay_linked(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(character_links=(("Bubble", "Knight"),))
+    manager = ProfileManager(folder, settings)
+
+    manager.rename("Team hunt")
+
+    assert settings.current.character_links == (("Bubble", "Team hunt"),)
+
+
 def test_the_mirrors_of_the_open_profile_are_read(tmp_path, folder):
     write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
     write_profile_file(folder, "Sorcerer", {"version": 2, "mirrors": []})

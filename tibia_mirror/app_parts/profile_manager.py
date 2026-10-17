@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from tibia_mirror.config import DEFAULT_PROFILE
+from tibia_mirror.core import characters
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
@@ -36,6 +37,19 @@ class ProfileManager:
         """Make the profile `name` the open one, and open it again at the next start."""
         self._active_name = name
         self._settings.update(last_profile=name)
+
+    def rename(self, new_name: str) -> None:
+        """Give the open profile a new name. Its characters stay linked to it.
+
+        If the file cannot be renamed, this raises OSError.
+        """
+        old_name = self._active_name
+        old_links = self._settings.current.character_links
+        new_links = characters.rename_profile(old_links, old_name, new_name)
+
+        self._get_file(old_name).rename(self._get_file(new_name))
+        self._settings.update(character_links=new_links)
+        self.open(new_name)
 
     def read_mirrors(self) -> list[MirrorSettings]:
         """Read the mirrors of the open profile from its file.
