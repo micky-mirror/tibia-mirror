@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import tkinter as tk
 
+from tibia_mirror.core.geometry import Point, clamp_box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.winapi import dwm, win32
@@ -39,13 +40,20 @@ class Popup(tk.Toplevel):
         self.update_idletasks()
         width = px(WIDTH)
         height = self.winfo_reqheight()
-        position_x = self._window.winfo_rootx() + (self._window.winfo_width() - width) // 2
-        position_y = self._window.winfo_rooty() + (self._window.winfo_height() - height) // 2
+        position_x, position_y = self._get_position(width, height)
 
         self.geometry(f"{width}x{height}+{position_x}+{position_y}")
         self.deiconify()
         self.grab_set()  # the rest of the app takes no clicks or keys until the popup closes
         self.focus_force()
+
+    def _get_position(self, width: int, height: int) -> Point:
+        """The top-left corner: the middle of the main window, kept on its screen."""
+        center_x = self._window.winfo_rootx() + self._window.winfo_width() // 2
+        center_y = self._window.winfo_rooty() + self._window.winfo_height() // 2
+        work_area = win32.work_area_at((center_x, center_y))
+
+        return clamp_box(center_x - width // 2, center_y - height // 2, width, height, work_area)
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
