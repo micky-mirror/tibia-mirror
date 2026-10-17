@@ -16,7 +16,7 @@ from tibia_mirror.ui.controls.widgets import RaisedButton
 from tibia_mirror.winapi import dwm, win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
-WIDTH = 340
+WIDTH = 396  # the content is as wide as the cards of the Settings page
 PAD = 18  # between the sides of the popup and its content
 TITLE_GAP = 8  # below the title
 BUTTONS_TOP_PAD = 16  # between the content and the buttons
@@ -30,6 +30,7 @@ class Popup(tk.Toplevel, ABC):
         super().__init__(window, bg=theme.BG)
         self.withdraw()  # hidden until it has a size and a place
         self._window = window
+        self._content_width = px(WIDTH) - 2 * px(PAD)  # between the two side pads
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
         self.attributes("-topmost", True)  # above the panel and the mirrors, which can be on top
@@ -49,7 +50,7 @@ class Popup(tk.Toplevel, ABC):
             bd=0,
             padx=0,
             justify="left",
-            wraplength=px(WIDTH) - 2 * px(PAD),  # a long name goes on to the next line
+            wraplength=self._content_width,  # a long name goes on to the next line
         )
         label.pack(anchor="w", padx=px(PAD), pady=(px(PAD), px(TITLE_GAP)))
 
@@ -72,7 +73,7 @@ class Popup(tk.Toplevel, ABC):
     ) -> None:
         """One of two buttons of the same width, with the room for their shadows between them."""
         shadow = margins(theme.SECONDARY_BUTTON)
-        width = (px(WIDTH) - 2 * px(PAD) - shadow.left - shadow.right) // 2
+        width = (self._content_width - shadow.left - shadow.right) // 2
         fill = theme.ACCENT if is_primary else theme.SURFACE
         hover_fill = theme.ACCENT_HI if is_primary else theme.SURFACE_HI
         text_colour = theme.ON_ACCENT if is_primary else theme.TEXT
