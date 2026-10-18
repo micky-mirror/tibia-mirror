@@ -1255,11 +1255,13 @@ class App2:
             self._show_hidden_note()
 
     def _on_profile_changed(self, previous: Profile, current: Profile) -> None:
-        """Save the open profile after it changed."""
+        """Save the open profile after it changed, and make the mirror windows follow it."""
         try:
             self.profile_manager.save()
         except OSError:
             self.panel.set_message(tr("Save failed"), "error")
+
+        self.mirror_manager.update_windows()
 
     def _on_profile_selected(self, name: str) -> None:
         """Open another profile, and show its mirrors."""
@@ -1378,7 +1380,7 @@ class App2:
             self._on_delete_profile,
             mirror_infos,
             self.mirror_manager.update_mirror,
-            self.mirror_manager.remove_mirror,
+            self.profile_manager.remove_mirror,
             start_page,
         )
         self.panel.pack(fill="both", expand=True)

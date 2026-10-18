@@ -65,6 +65,24 @@ class MirrorManager:
         for mirror_window in self._mirror_windows:
             mirror_window.set_mirror_look(mirror_look)
 
+    def update_windows(self) -> None:
+        """Make every mirror window follow the open profile after it changed.
+
+        Each window gets the settings of its mirror. The window of a removed mirror closes.
+        """
+        kept_windows: list[MirrorWindow] = []
+
+        for mirror_window in self._mirror_windows:
+            mirror_settings = self._get_mirror(mirror_window.mirror_id)
+
+            if mirror_settings is None:
+                mirror_window.destroy()
+            else:
+                mirror_window.set_mirror_settings(mirror_settings)
+                kept_windows.append(mirror_window)
+
+        self._mirror_windows = kept_windows
+
     def close(self) -> None:
         """Close all mirror windows. The mirrors are still kept."""
         for mirror_window in self._mirror_windows:
@@ -101,7 +119,7 @@ class MirrorManager:
         return mirror_infos
 
     def update_mirror(self, mirror_info: MirrorInfo) -> None:
-        """Put a change from the Mirrors page into the open profile, and show it on its window."""
+        """Put a change from the Mirrors page into the open profile."""
         mirror_settings = self._get_mirror(mirror_info.mirror_id)
 
         if mirror_settings is None:
@@ -116,24 +134,7 @@ class MirrorManager:
             timer=mirror_info.timer,
         )
 
-        for mirror_window in self._mirror_windows:
-            if mirror_window.mirror_id == new_settings.mirror_id:
-                mirror_window.set_mirror_settings(new_settings)
-
         self._profile_manager.update_mirror(new_settings)
-
-    def remove_mirror(self, mirror_id: str) -> None:
-        """Take a mirror out of the open profile, and close its window."""
-        kept_windows: list[MirrorWindow] = []
-
-        for mirror_window in self._mirror_windows:
-            if mirror_window.mirror_id == mirror_id:
-                mirror_window.destroy()
-            else:
-                kept_windows.append(mirror_window)
-
-        self._mirror_windows = kept_windows
-        self._profile_manager.remove_mirror(mirror_id)
 
     def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:
         """The kept mirror with this id. None if there is none."""

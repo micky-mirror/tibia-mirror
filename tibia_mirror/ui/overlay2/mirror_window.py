@@ -76,7 +76,10 @@ class MirrorWindow(tk.Toplevel):
         return self._mirror_settings.mirror_id
 
     def set_mirror_settings(self, mirror_settings: MirrorSettings) -> None:
-        """Show the window with new settings of its mirror."""
+        """Show the window with new settings of its mirror. Do nothing when nothing changed."""
+        if mirror_settings == self._mirror_settings:
+            return
+
         self._mirror_settings = mirror_settings
         win32.set_alpha(self._window_handle, mirror_settings.opacity)
         win32.set_click_through(self._window_handle, mirror_settings.is_locked)

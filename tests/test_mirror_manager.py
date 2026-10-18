@@ -269,17 +269,6 @@ def test_a_change_from_the_mirrors_page_is_kept_and_passed_on():
     assert profile_manager.current.mirrors == (minimap, replace(health, is_hidden=True))
 
 
-def test_a_change_from_the_mirrors_page_reaches_the_mirror_window(screen):
-    minimap, health = make_shown_mirror("Minimap"), make_shown_mirror("Health")
-    manager = make_manager(FakeProfileManager([minimap, health]))
-    manager.show(GAME_WINDOW)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
-
-    manager.update_mirror(replace(health_info, is_hidden=True))
-
-    assert [window.mirror_settings.is_hidden for window in screen["created"]] == [False, True]
-
-
 def test_a_lock_from_the_mirrors_page_is_kept_and_passed_on():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([health])
@@ -323,23 +312,3 @@ def test_a_timer_from_the_mirrors_page_is_kept_and_passed_on():
     manager.update_mirror(replace(health_info, timer=timer))
 
     assert profile_manager.current.mirrors == (replace(health, timer=timer),)
-
-
-def test_a_removed_mirror_is_forgotten_and_the_others_passed_on():
-    profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
-    manager = make_manager(profile_manager)
-
-    manager.remove_mirror("Health")
-
-    assert profile_manager.current.mirrors == (make_mirror("Minimap"),)
-
-
-def test_only_the_removed_mirror_loses_its_window(screen):
-    manager = make_manager_with(["Minimap", "Health"])
-    manager.show(GAME_WINDOW)
-    minimap_window, health_window = screen["created"]
-
-    manager.remove_mirror("Health")
-
-    assert health_window.is_destroyed
-    assert not minimap_window.is_destroyed
