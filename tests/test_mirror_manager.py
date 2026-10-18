@@ -34,6 +34,13 @@ class FakeProfileManager:
     def set_mirrors(self, mirrors):
         self.current = Profile(mirrors=tuple(mirrors))
 
+    def update_mirror(self, mirror_settings):
+        mirrors = [
+            mirror_settings if kept.mirror_id == mirror_settings.mirror_id else kept
+            for kept in self.current.mirrors
+        ]
+        self.set_mirrors(mirrors)
+
 
 def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
     settings_store = SimpleNamespace(current=app_settings)

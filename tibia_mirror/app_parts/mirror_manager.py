@@ -44,7 +44,7 @@ class MirrorManager:
                     mirror_settings,
                     game_window,
                     mirror_look,
-                    self._on_mirror_changed,
+                    self._profile_manager.update_mirror,
                 )
             except OSError:
                 failed += 1
@@ -101,7 +101,7 @@ class MirrorManager:
         return mirror_infos
 
     def update_mirror(self, mirror_info: MirrorInfo) -> None:
-        """Keep a change made on the Mirrors page, and show it on the mirror window."""
+        """Put a change from the Mirrors page into the open profile, and show it on its window."""
         mirror_settings = self._get_mirror(mirror_info.mirror_id)
 
         if mirror_settings is None:
@@ -120,7 +120,7 @@ class MirrorManager:
             if mirror_window.mirror_id == new_settings.mirror_id:
                 mirror_window.set_mirror_settings(new_settings)
 
-        self._on_mirror_changed(new_settings)
+        self._profile_manager.update_mirror(new_settings)
 
     def remove_mirror(self, mirror_id: str) -> None:
         """Take a mirror out of the open profile, and close its window."""
@@ -138,16 +138,6 @@ class MirrorManager:
                 kept_windows.append(mirror_window)
 
         self._mirror_windows = kept_windows
-        self._profile_manager.set_mirrors(mirrors)
-
-    def _on_mirror_changed(self, mirror_settings: MirrorSettings) -> None:
-        """Keep the new settings of a changed mirror in the open profile."""
-        mirrors = list(self._profile_manager.current.mirrors)
-
-        for index, kept_settings in enumerate(mirrors):
-            if kept_settings.mirror_id == mirror_settings.mirror_id:
-                mirrors[index] = mirror_settings
-
         self._profile_manager.set_mirrors(mirrors)
 
     def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:

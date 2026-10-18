@@ -89,6 +89,16 @@ class ProfileManager:
         """Keep these mirrors in the open profile."""
         self._set_current(replace(self.current, mirrors=tuple(mirrors)))
 
+    def update_mirror(self, mirror_settings: MirrorSettings) -> None:
+        """Give the mirror with the same id these new settings, in the open profile."""
+        mirrors = list(self.current.mirrors)
+
+        for index, kept_settings in enumerate(mirrors):
+            if kept_settings.mirror_id == mirror_settings.mirror_id:
+                mirrors[index] = mirror_settings
+
+        self._set_current(replace(self.current, mirrors=tuple(mirrors)))
+
     def save(self) -> None:
         """Write the open profile to its file. If that fails, this raises OSError."""
         self._write(self._active_name, self.current)
