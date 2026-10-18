@@ -33,6 +33,13 @@ def make_manager(folder, settings):
     return ProfileManager(folder, settings, lambda previous, current: None)
 
 
+def make_watched_manager(folder, settings, changes):
+    """A profile manager that adds each change it reports to `changes`."""
+    return ProfileManager(
+        folder, settings, lambda previous, current: changes.append((previous, current))
+    )
+
+
 # One mirror as a profile file holds it.
 MIRROR_JSON = {
     "id": "mirror-1",
@@ -188,6 +195,48 @@ def test_set_mirrors_are_kept_and_saved(tmp_path, folder):
     next_start.load()
     assert manager.current.mirrors == (mirror,)
     assert next_start.current.mirrors == (mirror,)
+
+
+def test_a_change_is_reported_with_the_profile_before_and_after_it(tmp_path, folder):
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Default"), changes)
+    mirror = MirrorSettings.from_json(MIRROR_JSON)
+
+    manager.set_mirrors([mirror])
+
+    assert changes == [(Profile(), Profile(mirrors=(mirror,)))]
+
+
+def test_the_same_mirrors_are_not_reported_again(tmp_path, folder):
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Default"), changes)
+    mirror = MirrorSettings.from_json(MIRROR_JSON)
+
+    manager.set_mirrors([mirror])
+    manager.set_mirrors([mirror])
+
+    assert len(changes) == 1
+
+
+def test_set_mirrors_are_not_written_before_save(tmp_path, folder):
+    settings = make_settings(tmp_path, "Default")
+    manager = make_manager(folder, settings)
+
+    manager.set_mirrors([MirrorSettings.from_json(MIRROR_JSON)])
+
+    next_start = make_manager(folder, settings)
+    next_start.load()
+    assert next_start.current.mirrors == ()
+
+
+def test_a_loaded_profile_is_not_reported_as_a_change(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+
+    manager.load()
+
+    assert changes == []
 
 
 def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
