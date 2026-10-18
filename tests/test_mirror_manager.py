@@ -12,6 +12,7 @@ from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.mirror_timer import MirrorTimer
+from tibia_mirror.core.profile import Profile
 from tibia_mirror.core.regions import Layout
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
@@ -24,15 +25,24 @@ def make_mirror(name):
     return MirrorSettings(mirror_id=name, name=name, layouts={})
 
 
-def make_manager(app_settings=DEFAULT_SETTINGS):
+class FakeProfileManager:
+    """Stands in for the profile manager. It keeps the mirrors of the open profile."""
+
+    def __init__(self, mirrors):
+        self.current = Profile(mirrors=tuple(mirrors))
+
+    def set_mirrors(self, mirrors):
+        self.current = Profile(mirrors=tuple(mirrors))
+
+
+def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
     settings_store = SimpleNamespace(current=app_settings)
-    return MirrorManager(None, settings_store, lambda mirrors: None)
+    return MirrorManager(None, settings_store, profile_manager)
 
 
 def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
-    manager = make_manager(app_settings)
-    manager.set_mirrors([make_mirror(name) for name in names])
-    return manager
+    profile_manager = FakeProfileManager([make_mirror(name) for name in names])
+    return make_manager(profile_manager, app_settings)
 
 
 def make_shown_mirror(name):
@@ -169,8 +179,8 @@ def test_new_windows_get_the_look_from_the_settings(screen):
 
 def test_update_mirror_look_reaches_every_window(screen):
     settings_store = SimpleNamespace(current=DEFAULT_SETTINGS)
-    manager = MirrorManager(None, settings_store, lambda mirrors: None)
-    manager.set_mirrors([make_mirror("Minimap"), make_mirror("Health")])
+    profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
+    manager = MirrorManager(None, settings_store, profile_manager)
     manager.show(GAME_WINDOW)
     frameless = MirrorLook(is_frame_on=False, is_rounded_on=False, is_tint_on=False)
 
@@ -195,15 +205,14 @@ def test_a_changed_mirror_is_kept_for_the_next_show(screen):
 
 
 def test_a_changed_mirror_is_passed_on_with_all_mirrors(screen):
-    told = []
-    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
-    manager.set_mirrors([make_mirror("Minimap"), make_mirror("Health")])
+    profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
+    manager = make_manager(profile_manager)
     manager.show(GAME_WINDOW)
     changed = replace(make_mirror("Health"), zoom=2.0)
 
     screen["created"][1].on_changed(changed)
 
-    assert told == [[make_mirror("Minimap"), changed]]
+    assert profile_manager.current.mirrors == (make_mirror("Minimap"), changed)
 
 
 def test_mirror_infos_have_the_region_for_the_size_of_the_game():
@@ -216,8 +225,7 @@ def test_mirror_infos_have_the_region_for_the_size_of_the_game():
         is_locked=True,
         timer=MirrorTimer(is_on=True, alert_seconds=90),
     )
-    manager = make_manager()
-    manager.set_mirrors([mirror])
+    manager = make_manager(FakeProfileManager([mirror]))
 
     assert manager.get_mirror_infos(GAME_WINDOW) == [
         MirrorInfo(
@@ -236,27 +244,26 @@ def test_mirror_infos_have_the_region_for_the_size_of_the_game():
 
 def test_a_mirror_without_a_layout_for_the_size_of_the_game_gets_no_info():
     other_size = {"1920x1080": Layout(Rect(5, 5, 320, 64), (0, 0))}
-    manager = make_manager()
-    manager.set_mirrors([replace(make_mirror("Cooldowns"), layouts=other_size)])
+    mirror = replace(make_mirror("Cooldowns"), layouts=other_size)
+    manager = make_manager(FakeProfileManager([mirror]))
 
     assert manager.get_mirror_infos(GAME_WINDOW) == []
 
 
 def test_a_change_from_the_mirrors_page_is_kept_and_passed_on():
-    told = []
-    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
     minimap, health = make_shown_mirror("Minimap"), make_shown_mirror("Health")
-    manager.set_mirrors([minimap, health])
+    profile_manager = FakeProfileManager([minimap, health])
+    manager = make_manager(profile_manager)
     health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
 
     manager.update_mirror(replace(health_info, is_hidden=True))
 
-    assert told == [[minimap, replace(health, is_hidden=True)]]
+    assert profile_manager.current.mirrors == (minimap, replace(health, is_hidden=True))
 
 
 def test_a_change_from_the_mirrors_page_reaches_the_mirror_window(screen):
-    manager = make_manager()
-    manager.set_mirrors([make_shown_mirror("Minimap"), make_shown_mirror("Health")])
+    minimap, health = make_shown_mirror("Minimap"), make_shown_mirror("Health")
+    manager = make_manager(FakeProfileManager([minimap, health]))
     manager.show(GAME_WINDOW)
     health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
 
@@ -266,62 +273,57 @@ def test_a_change_from_the_mirrors_page_reaches_the_mirror_window(screen):
 
 
 def test_a_lock_from_the_mirrors_page_is_kept_and_passed_on():
-    told = []
-    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
     health = make_shown_mirror("Health")
-    manager.set_mirrors([health])
+    profile_manager = FakeProfileManager([health])
+    manager = make_manager(profile_manager)
     health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
 
     manager.update_mirror(replace(health_info, is_locked=True))
 
-    assert told == [[replace(health, is_locked=True)]]
+    assert profile_manager.current.mirrors == (replace(health, is_locked=True),)
 
 
 def test_a_colour_from_the_mirrors_page_is_kept_and_passed_on():
-    told = []
-    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
     health = make_shown_mirror("Health")
-    manager.set_mirrors([health])
+    profile_manager = FakeProfileManager([health])
+    manager = make_manager(profile_manager)
     health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
 
     manager.update_mirror(replace(health_info, colour="red"))
 
-    assert told == [[replace(health, colour="red")]]
+    assert profile_manager.current.mirrors == (replace(health, colour="red"),)
 
 
 def test_an_opacity_from_the_mirrors_page_is_kept_and_passed_on():
-    told = []
-    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
     health = make_shown_mirror("Health")
-    manager.set_mirrors([health])
+    profile_manager = FakeProfileManager([health])
+    manager = make_manager(profile_manager)
     health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
 
     manager.update_mirror(replace(health_info, opacity=0.3))
 
-    assert told == [[replace(health, opacity=0.3)]]
+    assert profile_manager.current.mirrors == (replace(health, opacity=0.3),)
 
 
 def test_a_timer_from_the_mirrors_page_is_kept_and_passed_on():
-    told = []
-    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
     health = make_shown_mirror("Health")
-    manager.set_mirrors([health])
+    profile_manager = FakeProfileManager([health])
+    manager = make_manager(profile_manager)
     health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
     timer = MirrorTimer(is_on=True, alert_seconds=90)
 
     manager.update_mirror(replace(health_info, timer=timer))
 
-    assert told == [[replace(health, timer=timer)]]
+    assert profile_manager.current.mirrors == (replace(health, timer=timer),)
 
 
 def test_a_removed_mirror_is_forgotten_and_the_others_passed_on():
-    told = []
-    manager = MirrorManager(None, SimpleNamespace(current=DEFAULT_SETTINGS), told.append)
-    manager.set_mirrors([make_mirror("Minimap"), make_mirror("Health")])
+    profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
+    manager = make_manager(profile_manager)
 
     manager.remove_mirror("Health")
 
-    assert told == [[make_mirror("Minimap")]]
+    assert profile_manager.current.mirrors == (make_mirror("Minimap"),)
 
 
 def test_only_the_removed_mirror_loses_its_window(screen):

@@ -6,7 +6,7 @@ import os
 import sys
 import time
 import tkinter as tk
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from pathlib import Path
 from tkinter import filedialog
 from types import TracebackType
@@ -42,7 +42,6 @@ from tibia_mirror.core.characters import Links
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
 from tibia_mirror.core.handles import Hwnd
-from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.profile import Profile
 from tibia_mirror.core.profiles import ProfileStore, copy_name, name_error
 from tibia_mirror.core.timers import (
@@ -1143,19 +1142,19 @@ class App2:
             self._on_character_changed,
         )
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings, self._on_profile_changed)
-        self.mirror_manager = MirrorManager(self.window, self.settings, self._on_mirrors_changed)
+        self.mirror_manager = MirrorManager(self.window, self.settings, self.profile_manager)
         self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
         self.input_watcher = InputWatcher(self._on_click, self._on_key)
         self.input_watcher.start(self.window)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
-        # check if mirrors were loaded from profile file
-        is_mirror_loaded = self._load_mirrors()
+        # check if the profile was loaded from its file
+        is_profile_loaded = self._load_profile()
         self._show_panel()
         self.window.show()
 
-        if not is_mirror_loaded:
+        if not is_profile_loaded:
             self.panel.set_message(tr("Profile file is invalid"), "error")
         else:
             self._show_mirrors()
@@ -1255,10 +1254,6 @@ class App2:
         else:
             self._show_hidden_note()
 
-    def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
-        """Keep the mirrors in the open profile after one of them changed."""
-        self.profile_manager.set_mirrors(mirrors)
-
     def _on_profile_changed(self, previous: Profile, current: Profile) -> None:
         """Save the open profile after it changed."""
         try:
@@ -1271,7 +1266,7 @@ class App2:
         self.profile_manager.open(name)
         self.panel.set_profile_info(self._get_profile_info())
 
-        if self._load_mirrors():
+        if self._load_profile():
             self.panel.set_message("")
         else:
             self.panel.set_message(tr("Profile file is invalid"), "error")
@@ -1290,7 +1285,7 @@ class App2:
     def _on_duplicate_profile(self, name: str) -> None:
         """Copy the open profile under a new name, and open the copy."""
         try:
-            self.profile_manager.write_mirrors(name, self.mirror_manager.mirrors)
+            self.profile_manager.write_mirrors(name, self.profile_manager.current.mirrors)
         except OSError:
             self.panel.set_message(tr("Could not duplicate profile"), "error")
         else:
@@ -1324,16 +1319,13 @@ class App2:
         i18n.use(self.settings.current.language)
         self._show_panel(open_page)
 
-    def _load_mirrors(self) -> bool:
-        """Read the mirrors of the open profile. False if its file is invalid."""
+    def _load_profile(self) -> bool:
+        """Read the open profile. False if its file is invalid."""
         try:
             self.profile_manager.load()
         except (OSError, ValueError):
-            # keep none, so the mirrors of the last profile are never saved into this one
-            self.mirror_manager.set_mirrors([])
             return False
         else:
-            self.mirror_manager.set_mirrors(self.profile_manager.current.mirrors)
             return True
 
     def _show_mirrors(self) -> None:

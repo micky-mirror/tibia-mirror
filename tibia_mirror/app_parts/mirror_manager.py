@@ -1,9 +1,9 @@
 """The mirrors on the screen."""
 
 import tkinter as tk
-from collections.abc import Callable, Sequence
 from dataclasses import replace
 
+from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
@@ -20,17 +20,12 @@ class MirrorManager:
         self,
         window: tk.Misc,
         settings: AppSettingsStore,
-        on_changed: Callable[[Sequence[MirrorSettings]], None],
+        profile_manager: ProfileManager,
     ) -> None:
         self._window = window
         self._settings = settings
-        self._on_changed = on_changed
-        self.mirrors: list[MirrorSettings] = []
+        self._profile_manager = profile_manager
         self._mirror_windows: list[MirrorWindow] = []
-
-    def set_mirrors(self, mirrors: Sequence[MirrorSettings]) -> None:
-        """Keep the mirrors of the open profile while the app runs."""
-        self.mirrors = list(mirrors)
 
     def show(self, game_window: GameWindow) -> int:
         """Show a window for each kept mirror, on the given window of Tibia.
@@ -42,7 +37,7 @@ class MirrorManager:
         mirror_look = self._get_mirror_look()
         failed = 0
 
-        for mirror_settings in self.mirrors:
+        for mirror_settings in self._profile_manager.current.mirrors:
             try:
                 mirror_window = MirrorWindow(
                     self._window,
@@ -83,7 +78,7 @@ class MirrorManager:
         game_size_key = size_key(client_area.w, client_area.h)
         mirror_infos: list[MirrorInfo] = []
 
-        for mirror_settings in self.mirrors:
+        for mirror_settings in self._profile_manager.current.mirrors:
             layout = mirror_settings.layouts.get(game_size_key)
 
             if layout is None:
@@ -128,10 +123,10 @@ class MirrorManager:
         self._on_mirror_changed(new_settings)
 
     def remove_mirror(self, mirror_id: str) -> None:
-        """Forget a mirror and close its window, then pass all the other mirrors on."""
-        self.mirrors = [
+        """Take a mirror out of the open profile, and close its window."""
+        mirrors = [
             mirror_settings
-            for mirror_settings in self.mirrors
+            for mirror_settings in self._profile_manager.current.mirrors
             if mirror_settings.mirror_id != mirror_id
         ]
         kept_windows: list[MirrorWindow] = []
@@ -143,19 +138,21 @@ class MirrorManager:
                 kept_windows.append(mirror_window)
 
         self._mirror_windows = kept_windows
-        self._on_changed(list(self.mirrors))
+        self._profile_manager.set_mirrors(mirrors)
 
     def _on_mirror_changed(self, mirror_settings: MirrorSettings) -> None:
-        """Keep the new settings of a changed mirror, and pass all mirrors on."""
-        for index, kept_settings in enumerate(self.mirrors):
-            if kept_settings.mirror_id == mirror_settings.mirror_id:
-                self.mirrors[index] = mirror_settings
+        """Keep the new settings of a changed mirror in the open profile."""
+        mirrors = list(self._profile_manager.current.mirrors)
 
-        self._on_changed(list(self.mirrors))
+        for index, kept_settings in enumerate(mirrors):
+            if kept_settings.mirror_id == mirror_settings.mirror_id:
+                mirrors[index] = mirror_settings
+
+        self._profile_manager.set_mirrors(mirrors)
 
     def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:
         """The kept mirror with this id. None if there is none."""
-        for mirror_settings in self.mirrors:
+        for mirror_settings in self._profile_manager.current.mirrors:
             if mirror_settings.mirror_id == mirror_id:
                 return mirror_settings
 
