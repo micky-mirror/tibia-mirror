@@ -198,6 +198,48 @@ def test_update_mirror_look_reaches_every_window(screen):
     assert all(window.mirror_look == frameless for window in screen["created"])
 
 
+def test_update_windows_gives_a_changed_mirror_its_new_settings(screen):
+    profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
+    manager = make_manager(profile_manager)
+    manager.show(GAME_WINDOW)
+    changed = replace(make_mirror("Health"), opacity=0.3)
+    profile_manager.update_mirror(changed)
+
+    manager.update_windows()
+
+    assert [window.mirror_settings for window in screen["created"]] == [
+        make_mirror("Minimap"),
+        changed,
+    ]
+
+
+def test_update_windows_closes_only_the_window_of_a_removed_mirror(screen):
+    profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
+    manager = make_manager(profile_manager)
+    manager.show(GAME_WINDOW)
+    minimap_window, health_window = screen["created"]
+    profile_manager.remove_mirror("Health")
+
+    manager.update_windows()
+
+    assert health_window.is_destroyed
+    assert not minimap_window.is_destroyed
+
+
+def test_the_closed_window_of_a_removed_mirror_is_forgotten(screen):
+    profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
+    manager = make_manager(profile_manager)
+    manager.show(GAME_WINDOW)
+    health_window = screen["created"][1]
+    profile_manager.remove_mirror("Health")
+    manager.update_windows()
+    moved = GameWindow(100, Rect(50, 60, 800, 600), is_minimized=False, is_in_front=True)
+
+    manager.set_game_window(moved)
+
+    assert health_window.game_window == GAME_WINDOW
+
+
 def test_a_changed_mirror_is_kept_for_the_next_show(screen):
     manager = make_manager_with(["Minimap", "Health"])
     manager.show(GAME_WINDOW)
