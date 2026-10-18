@@ -1,7 +1,7 @@
 """The profiles of the user."""
 
 import json
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
 
@@ -14,9 +14,15 @@ from tibia_mirror.settings.app_settings_store import AppSettingsStore
 class ProfileManager:
     """Knows which profiles exist, and keeps the open one."""
 
-    def __init__(self, folder: Path, settings: AppSettingsStore) -> None:
+    def __init__(
+        self,
+        folder: Path,
+        settings: AppSettingsStore,
+        on_changed: Callable[[Profile, Profile], None],
+    ) -> None:
         self._folder = folder
         self._settings = settings
+        self._on_changed = on_changed  # gets the profile before and after each change
         self.current = Profile()  # the open profile, as it is now
         self._create_first_profile()
         self._active_name = self._get_start_name()
@@ -80,11 +86,11 @@ class ProfileManager:
             self.current = profile
 
     def set_mirrors(self, mirrors: Sequence[MirrorSettings]) -> None:
-        """Keep these mirrors in the open profile, and write it to its file.
+        """Keep these mirrors in the open profile."""
+        self._set_current(replace(self.current, mirrors=tuple(mirrors)))
 
-        If the file cannot be written, this raises OSError.
-        """
-        self.current = replace(self.current, mirrors=tuple(mirrors))
+    def save(self) -> None:
+        """Write the open profile to its file. If that fails, this raises OSError."""
         self._write(self._active_name, self.current)
 
     def write_mirrors(self, name: str, mirrors: Sequence[MirrorSettings]) -> None:
@@ -112,6 +118,16 @@ class ProfileManager:
 
         if not has_profiles:
             self.write_mirrors(DEFAULT_PROFILE, [])
+
+    def _set_current(self, profile: Profile) -> None:
+        """Keep a changed profile in `current`, and report the change."""
+        previous_profile = self.current
+
+        if profile == previous_profile:
+            return
+
+        self.current = profile
+        self._on_changed(previous_profile, profile)
 
     def _write(self, name: str, profile: Profile) -> None:
         """Write the profile to the file of the profile `name`. If that fails, OSError."""
