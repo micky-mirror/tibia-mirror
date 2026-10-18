@@ -60,6 +60,70 @@ def test_update_with_the_same_values_does_not_tell_the_app(tmp_path: Path) -> No
     assert calls == []
 
 
+def test_a_listener_is_called_after_a_change_and_reads_the_new_settings(tmp_path: Path) -> None:
+    store = AppSettingsStore(tmp_path / "settings.json", do_nothing)
+    seen_themes: list[str] = []
+    store.add_listener(lambda: seen_themes.append(store.current.theme))
+
+    store.update(theme="light")
+
+    assert seen_themes == ["light"]
+
+
+def test_a_listener_is_called_after_the_app(tmp_path: Path) -> None:
+    calls: list[str] = []
+    store = AppSettingsStore(
+        tmp_path / "settings.json",
+        lambda previous, current: calls.append("app"),
+    )
+    store.add_listener(lambda: calls.append("listener"))
+
+    store.update(theme="light")
+
+    assert calls == ["app", "listener"]
+
+
+def test_a_listener_is_not_called_when_nothing_changed(tmp_path: Path) -> None:
+    store = AppSettingsStore(tmp_path / "settings.json", do_nothing)
+    calls: list[str] = []
+    store.add_listener(lambda: calls.append("listener"))
+
+    store.update(theme=store.current.theme)
+
+    assert calls == []
+
+
+def test_a_removed_listener_is_not_called(tmp_path: Path) -> None:
+    store = AppSettingsStore(tmp_path / "settings.json", do_nothing)
+    calls: list[str] = []
+
+    def listener() -> None:
+        calls.append("listener")
+
+    store.add_listener(listener)
+    store.remove_listener(listener)
+
+    store.update(theme="light")
+
+    assert calls == []
+
+
+def test_a_listener_can_remove_itself_while_the_others_are_called(tmp_path: Path) -> None:
+    store = AppSettingsStore(tmp_path / "settings.json", do_nothing)
+    calls: list[str] = []
+
+    def first_listener() -> None:
+        calls.append("first")
+        store.remove_listener(first_listener)
+
+    store.add_listener(first_listener)
+    store.add_listener(lambda: calls.append("second"))
+
+    store.update(theme="light")
+
+    assert calls == ["first", "second"]
+
+
 def test_save_writes_what_the_next_store_loads(tmp_path: Path) -> None:
     file = tmp_path / "settings.json"
     store = AppSettingsStore(file, do_nothing)
