@@ -262,6 +262,46 @@ def test_an_updated_mirror_is_not_written_before_save(tmp_path, folder):
     assert next_start.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
 
 
+def test_a_removed_mirror_is_gone_and_the_others_keep_their_order(tmp_path, folder):
+    health_json = {**MIRROR_JSON, "id": "mirror-2", "name": "Health"}
+    mana_json = {**MIRROR_JSON, "id": "mirror-3", "name": "Mana"}
+    saved_mirrors = [MIRROR_JSON, health_json, mana_json]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    manager = make_manager(folder, make_settings(tmp_path, "Knight"))
+    manager.load()
+
+    manager.remove_mirror("mirror-2")
+
+    assert manager.current.mirrors == (
+        MirrorSettings.from_json(MIRROR_JSON),
+        MirrorSettings.from_json(mana_json),
+    )
+
+
+def test_a_removal_is_reported_with_the_profile_before_and_after_it(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+    manager.load()
+    mirror = MirrorSettings.from_json(MIRROR_JSON)
+
+    manager.remove_mirror("mirror-1")
+
+    assert changes == [(Profile(mirrors=(mirror,)), Profile())]
+
+
+def test_removing_an_unknown_mirror_changes_nothing(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+    manager.load()
+
+    manager.remove_mirror("mirror-2")
+
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
+    assert changes == []
+
+
 def test_a_loaded_profile_is_not_reported_as_a_change(tmp_path, folder):
     write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
     changes = []
