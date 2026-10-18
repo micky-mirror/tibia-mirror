@@ -1,6 +1,7 @@
 """The profile manager: which profiles exist and which one it opens at the start."""
 
 import json
+from dataclasses import replace
 
 import pytest
 
@@ -183,50 +184,82 @@ def test_written_mirrors_are_read_back(tmp_path, folder):
     assert manager.current.mirrors == tuple(mirrors)
 
 
-def test_set_mirrors_are_kept_and_saved(tmp_path, folder):
-    settings = make_settings(tmp_path, "Default")
+def test_an_updated_mirror_is_kept_and_saved(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    settings = make_settings(tmp_path, "Knight")
     manager = make_manager(folder, settings)
-    mirror = MirrorSettings.from_json(MIRROR_JSON)
+    manager.load()
+    changed = replace(MirrorSettings.from_json(MIRROR_JSON), zoom=2.0)
 
-    manager.set_mirrors([mirror])
+    manager.update_mirror(changed)
     manager.save()
 
     next_start = make_manager(folder, settings)
     next_start.load()
-    assert manager.current.mirrors == (mirror,)
-    assert next_start.current.mirrors == (mirror,)
+    assert manager.current.mirrors == (changed,)
+    assert next_start.current.mirrors == (changed,)
+
+
+def test_only_the_mirror_with_the_same_id_is_updated(tmp_path, folder):
+    health_json = {**MIRROR_JSON, "id": "mirror-2", "name": "Health"}
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON, health_json]})
+    manager = make_manager(folder, make_settings(tmp_path, "Knight"))
+    manager.load()
+    changed_health = replace(MirrorSettings.from_json(health_json), zoom=2.0)
+
+    manager.update_mirror(changed_health)
+
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON), changed_health)
 
 
 def test_a_change_is_reported_with_the_profile_before_and_after_it(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
     changes = []
-    manager = make_watched_manager(folder, make_settings(tmp_path, "Default"), changes)
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+    manager.load()
     mirror = MirrorSettings.from_json(MIRROR_JSON)
+    changed = replace(mirror, zoom=2.0)
 
-    manager.set_mirrors([mirror])
+    manager.update_mirror(changed)
 
-    assert changes == [(Profile(), Profile(mirrors=(mirror,)))]
+    assert changes == [(Profile(mirrors=(mirror,)), Profile(mirrors=(changed,)))]
 
 
-def test_the_same_mirrors_are_not_reported_again(tmp_path, folder):
+def test_the_same_mirror_settings_are_not_reported(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
     changes = []
-    manager = make_watched_manager(folder, make_settings(tmp_path, "Default"), changes)
-    mirror = MirrorSettings.from_json(MIRROR_JSON)
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+    manager.load()
 
-    manager.set_mirrors([mirror])
-    manager.set_mirrors([mirror])
+    manager.update_mirror(MirrorSettings.from_json(MIRROR_JSON))
 
-    assert len(changes) == 1
+    assert changes == []
 
 
-def test_set_mirrors_are_not_written_before_save(tmp_path, folder):
-    settings = make_settings(tmp_path, "Default")
+def test_an_unknown_mirror_changes_nothing(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+    manager.load()
+    unknown = replace(MirrorSettings.from_json(MIRROR_JSON), mirror_id="mirror-2", zoom=2.0)
+
+    manager.update_mirror(unknown)
+
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
+    assert changes == []
+
+
+def test_an_updated_mirror_is_not_written_before_save(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    settings = make_settings(tmp_path, "Knight")
     manager = make_manager(folder, settings)
+    manager.load()
 
-    manager.set_mirrors([MirrorSettings.from_json(MIRROR_JSON)])
+    manager.update_mirror(replace(MirrorSettings.from_json(MIRROR_JSON), zoom=2.0))
 
     next_start = make_manager(folder, settings)
     next_start.load()
-    assert next_start.current.mirrors == ()
+    assert next_start.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
 
 
 def test_a_loaded_profile_is_not_reported_as_a_change(tmp_path, folder):
