@@ -1375,6 +1375,7 @@ class App2:
         self.panel = Panel(
             self.window,
             self.settings,
+            self.profile_manager,
             self.connection.state,
             profile_info,
             self._on_profile_selected,

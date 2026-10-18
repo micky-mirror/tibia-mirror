@@ -4,6 +4,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
 
+from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.config import PANEL_SIZE
 from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
 from tibia_mirror.i18n import tr
@@ -56,6 +57,7 @@ class Panel(tk.Frame):
         self,
         window: tk.Misc,
         settings: AppSettingsStore,
+        profile_manager: ProfileManager,
         connection_state: str,
         profile_info: ProfileInfo,
         on_profile_selected: Callable[[str], None],
@@ -70,6 +72,7 @@ class Panel(tk.Frame):
     ) -> None:
         super().__init__(window, bg=theme.BG)
         self._settings = settings
+        self._profile_manager = profile_manager
         self._connection_state = connection_state  # the state the connection line shows
         self._profile_info = profile_info
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
@@ -214,7 +217,11 @@ class Panel(tk.Frame):
         self._pages: dict[str, tk.Frame] = {
             "mirrors": self._mirrors_page,
             "shortcuts": ShortcutsPage(
-                self._content, content_width(), px(SIDE_PAD), self._settings
+                self._content,
+                content_width(),
+                px(SIDE_PAD),
+                self._settings,
+                self._profile_manager,
             ),
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),
