@@ -6,6 +6,7 @@ import pytest
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.core.profile import Profile
 from tibia_mirror.core.profiles import ProfileStore
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
@@ -170,6 +171,19 @@ def test_written_mirrors_are_read_back(tmp_path, folder):
     assert manager.current.mirrors == tuple(mirrors)
 
 
+def test_set_mirrors_are_kept_and_written_to_the_file(tmp_path, folder):
+    settings = make_settings(tmp_path, "Default")
+    manager = ProfileManager(folder, settings)
+    mirror = MirrorSettings.from_json(MIRROR_JSON)
+
+    manager.set_mirrors([mirror])
+
+    next_start = ProfileManager(folder, settings)
+    next_start.load()
+    assert manager.current.mirrors == (mirror,)
+    assert next_start.current.mirrors == (mirror,)
+
+
 def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
     manager = ProfileManager(folder, make_settings(tmp_path, "Default"))
     manager.load()
@@ -219,3 +233,16 @@ def test_a_deleted_file_raises_os_error(tmp_path, folder):
 
     with pytest.raises(OSError):
         manager.load()
+
+
+def test_a_profile_that_fails_to_load_is_kept_empty(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    write_profile_file(folder, "Sorcerer", {"version": 2})
+    manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
+    manager.load()
+
+    manager.open("Sorcerer")
+    with pytest.raises(ValueError):
+        manager.load()
+
+    assert manager.current == Profile()
