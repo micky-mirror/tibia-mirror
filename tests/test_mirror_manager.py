@@ -19,6 +19,7 @@ from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 
 GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)
 DEFAULT_SETTINGS = AppSettings()
+F1 = (112, ())  # a hotkey as the app keeps it: (key code, modifiers held with it)
 
 
 def make_mirror(name):
@@ -30,6 +31,7 @@ class FakeProfileManager:
 
     def __init__(self, mirrors):
         self.current = Profile(mirrors=tuple(mirrors))
+        self.cleared_hotkeys = []
 
     def update_mirror(self, mirror_settings):
         mirrors = [
@@ -40,6 +42,14 @@ class FakeProfileManager:
 
     def remove_mirror(self, mirror_id):
         mirrors = [kept for kept in self.current.mirrors if kept.mirror_id != mirror_id]
+        self.current = Profile(mirrors=tuple(mirrors))
+
+    def clear_hotkey(self, key):
+        self.cleared_hotkeys.append(key)
+        mirrors = [
+            replace(kept, timer=replace(kept.timer, key=None)) if kept.timer.key == key else kept
+            for kept in self.current.mirrors
+        ]
         self.current = Profile(mirrors=tuple(mirrors))
 
 
@@ -354,3 +364,40 @@ def test_a_timer_from_the_mirrors_page_is_kept_and_passed_on():
     manager.update_mirror(replace(health_info, timer=timer))
 
     assert profile_manager.current.mirrors == (replace(health, timer=timer),)
+
+
+def test_a_new_timer_hotkey_is_first_cleared_from_every_place_that_has_it():
+    minimap = replace(make_shown_mirror("Minimap"), timer=MirrorTimer(is_on=True, key=F1))
+    health = make_shown_mirror("Health")
+    profile_manager = FakeProfileManager([minimap, health])
+    manager = make_manager(profile_manager)
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
+    timer = MirrorTimer(is_on=True, key=F1)
+
+    manager.update_mirror(replace(health_info, timer=timer))
+
+    assert profile_manager.cleared_hotkeys == [F1]
+    assert [mirror.timer.key for mirror in profile_manager.current.mirrors] == [None, F1]
+
+
+def test_a_timer_that_keeps_its_hotkey_clears_nothing():
+    health = replace(make_shown_mirror("Health"), timer=MirrorTimer(is_on=True, key=F1))
+    profile_manager = FakeProfileManager([health])
+    manager = make_manager(profile_manager)
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+
+    manager.update_mirror(replace(health_info, opacity=0.3))
+
+    assert profile_manager.cleared_hotkeys == []
+    assert profile_manager.current.mirrors == (replace(health, opacity=0.3),)
+
+
+def test_a_timer_whose_hotkey_is_taken_away_clears_nothing():
+    health = replace(make_shown_mirror("Health"), timer=MirrorTimer(is_on=True, key=F1))
+    profile_manager = FakeProfileManager([health])
+    manager = make_manager(profile_manager)
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+
+    manager.update_mirror(replace(health_info, timer=MirrorTimer(is_on=True)))
+
+    assert profile_manager.cleared_hotkeys == []
