@@ -2,12 +2,14 @@
 
 import json
 from collections.abc import Callable, Sequence
-from dataclasses import replace
+from dataclasses import fields, replace
 from pathlib import Path
+from typing import Any
 
 from tibia_mirror.config import DEFAULT_PROFILE
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.profile import Profile
+from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 
@@ -105,6 +107,11 @@ class ProfileManager:
 
         self._set_current(replace(self.current, mirrors=tuple(mirrors)))
 
+    def clear_hotkey(self, key: KeyCombo) -> None:
+        """Set every hotkey that is `key` to None, in the open profile and in the app settings."""
+        self._clear_mirror_hotkeys(key)
+        self._clear_settings_hotkeys(key)
+
     def save(self) -> None:
         """Write the open profile to its file. If that fails, this raises OSError."""
         self._write(self._active_name, self.current)
@@ -134,6 +141,28 @@ class ProfileManager:
 
         if not has_profiles:
             self.write_mirrors(DEFAULT_PROFILE, [])
+
+    def _clear_mirror_hotkeys(self, key: KeyCombo) -> None:
+        """Set every timer hotkey in the open profile that is `key` to None."""
+        mirrors = list(self.current.mirrors)
+
+        for index, mirror_settings in enumerate(mirrors):
+            if mirror_settings.timer.key == key:
+                timer = replace(mirror_settings.timer, key=None)
+                mirrors[index] = replace(mirror_settings, timer=timer)
+
+        self._set_current(replace(self.current, mirrors=tuple(mirrors)))
+
+    def _clear_settings_hotkeys(self, key: KeyCombo) -> None:
+        """Set every hotkey in the app settings that is `key` to None."""
+        app_settings = self._settings.current
+        changes: dict[str, Any] = {}
+
+        for setting_field in fields(app_settings):
+            if getattr(app_settings, setting_field.name) == key:
+                changes[setting_field.name] = None
+
+        self._settings.update(**changes)
 
     def _set_current(self, profile: Profile) -> None:
         """Keep a changed profile in `current`, and report the change."""
