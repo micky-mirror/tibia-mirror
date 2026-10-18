@@ -24,8 +24,18 @@ class AppSettingsStore:
         self._file = file
         # Called after every change, with the settings before it and after it.
         self._on_changed = on_changed
+        # Parts of the panel that show settings. Each one is called after every change.
+        self._listeners: list[Callable[[], None]] = []
         # The settings as they are now.
         self.current = self._load()
+
+    def add_listener(self, listener: Callable[[], None]) -> None:
+        """Call `listener` after every change. It reads the new settings from `current`."""
+        self._listeners.append(listener)
+
+    def remove_listener(self, listener: Callable[[], None]) -> None:
+        """Stop calling `listener` after a change."""
+        self._listeners.remove(listener)
 
     def update(self, **new_values: Unpack[AppSettingsUpdate]) -> None:
         """Change one or more settings, for example update(theme="dark")."""
@@ -37,6 +47,10 @@ class AppSettingsStore:
 
         self.current = changed_settings
         self._on_changed(previous_settings, changed_settings)
+
+        # a copy, so a listener can be removed while the others are called
+        for listener in tuple(self._listeners):
+            listener()
 
     def save(self) -> None:
         """Write the settings to the file. If that fails, this raises OSError."""

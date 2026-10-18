@@ -43,6 +43,11 @@ class KeyRow:
         field_end_y = self._add_field(canvas, hint_end_y, content_width)
         return field_end_y + px(ROW_PAD)
 
+    def set_key(self, key: KeyCombo | None) -> None:
+        """Show another key in the field, after it was changed somewhere else."""
+        self._key = key
+        self._field.set_value(key)
+
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Nothing to do: the field for the key hears the pointer by itself."""
         return False
@@ -58,7 +63,7 @@ class KeyRow:
 
     def _add_field(self, canvas: tk.Canvas, hint_end_y: int, width: int) -> int:
         """The field for the key, under the help text. Return the y where the field ends."""
-        field = KeyField(
+        self._field = KeyField(
             canvas,
             self._key,
             width=width,
@@ -70,5 +75,5 @@ class KeyRow:
             on_change=self._on_change,
         )
         field_start_y = hint_end_y + px(FIELD_GAP)
-        canvas.create_window(px(SIDE_PAD), field_start_y, window=field, anchor="nw")
+        canvas.create_window(px(SIDE_PAD), field_start_y, window=self._field, anchor="nw")
         return field_start_y + px(KeyField.HEIGHT)
