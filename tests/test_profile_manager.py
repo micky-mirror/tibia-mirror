@@ -56,6 +56,19 @@ def write_profile_file(folder, name, data):
     file.write_text(json.dumps(data), encoding="utf-8")
 
 
+# Hotkeys as the app keeps them: (key code, modifiers held with it).
+F1 = (112, ())
+CTRL_F1 = (112, ("ctrl",))
+F2 = (113, ())
+
+
+def make_mirror_json_with_hotkey(mirror_id, hotkey):
+    """One mirror as a profile file holds it, with a timer that `hotkey` starts."""
+    key_code, modifiers = hotkey
+    timer_json = {"enabled": True, "alert": 90, "key": key_code, "modifiers": list(modifiers)}
+    return {**MIRROR_JSON, "id": mirror_id, "timer": timer_json}
+
+
 def test_the_first_start_creates_the_default_profile(tmp_path, folder):
     manager = make_manager(folder, make_settings(tmp_path, "Default"))
 
@@ -299,6 +312,62 @@ def test_removing_an_unknown_mirror_changes_nothing(tmp_path, folder):
     manager.remove_mirror("mirror-2")
 
     assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
+    assert changes == []
+
+
+def test_a_timer_hotkey_is_cleared_in_every_mirror_that_uses_it(tmp_path, folder):
+    saved_mirrors = [
+        make_mirror_json_with_hotkey("mirror-1", F1),
+        make_mirror_json_with_hotkey("mirror-2", CTRL_F1),
+        make_mirror_json_with_hotkey("mirror-3", F1),
+    ]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    manager = make_manager(folder, make_settings(tmp_path, "Knight"))
+    manager.load()
+
+    manager.clear_hotkey(F1)
+
+    assert [mirror.timer.key for mirror in manager.current.mirrors] == [None, CTRL_F1, None]
+
+
+def test_a_cleared_timer_hotkey_is_reported_and_only_the_key_changes(tmp_path, folder):
+    saved_mirrors = [make_mirror_json_with_hotkey("mirror-1", F1)]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+    manager.load()
+    mirror = manager.current.mirrors[0]
+
+    manager.clear_hotkey(F1)
+
+    cleared_mirror = replace(mirror, timer=replace(mirror.timer, key=None))
+    assert changes == [(Profile(mirrors=(mirror,)), Profile(mirrors=(cleared_mirror,)))]
+
+
+def test_the_hide_all_key_is_cleared_when_it_is_the_hotkey(tmp_path, folder):
+    settings = make_settings(tmp_path, "Default")
+    settings.update(hide_all_key=F1)
+    manager = make_manager(folder, settings)
+
+    manager.clear_hotkey(F1)
+
+    assert settings.current.hide_all_key is None
+
+
+def test_a_hotkey_that_nothing_uses_changes_nothing(tmp_path, folder):
+    saved_mirrors = [make_mirror_json_with_hotkey("mirror-1", F1)]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(hide_all_key=CTRL_F1)
+    changes = []
+    manager = make_watched_manager(folder, settings, changes)
+    manager.load()
+    profile_before, settings_before = manager.current, settings.current
+
+    manager.clear_hotkey(F2)
+
+    assert manager.current == profile_before
+    assert settings.current == settings_before
     assert changes == []
 
 
