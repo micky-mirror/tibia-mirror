@@ -96,9 +96,10 @@ def test_an_opened_profile_is_the_one_whose_mirrors_are_read(tmp_path, folder):
     manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
 
     manager.open("Sorcerer")
+    manager.load()
 
     assert manager.active_name == "Sorcerer"
-    assert manager.read_mirrors() == [MirrorSettings.from_json(MIRROR_JSON)]
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
 
 
 def test_an_opened_profile_is_opened_again_at_the_next_start(tmp_path, folder):
@@ -117,10 +118,11 @@ def test_a_renamed_profile_keeps_its_mirrors_under_the_new_name(tmp_path, folder
     manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
 
     manager.rename("Elite Knight")
+    manager.load()
 
     assert manager.get_names() == ["Elite Knight"]
     assert manager.active_name == "Elite Knight"
-    assert manager.read_mirrors() == [MirrorSettings.from_json(MIRROR_JSON)]
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
 
 
 def test_a_renamed_profile_is_opened_again_at_the_next_start(tmp_path, folder):
@@ -153,9 +155,9 @@ def test_the_mirrors_of_the_open_profile_are_read(tmp_path, folder):
     write_profile_file(folder, "Sorcerer", {"version": 2, "mirrors": []})
     manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
 
-    mirrors = manager.read_mirrors()
+    manager.load()
 
-    assert mirrors == [MirrorSettings.from_json(MIRROR_JSON)]
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
 
 
 def test_written_mirrors_are_read_back(tmp_path, folder):
@@ -163,23 +165,25 @@ def test_written_mirrors_are_read_back(tmp_path, folder):
     mirrors = [MirrorSettings.from_json(MIRROR_JSON)]
 
     manager.write_mirrors(manager.active_name, mirrors)
+    manager.load()
 
-    assert manager.read_mirrors() == mirrors
+    assert manager.current.mirrors == tuple(mirrors)
 
 
 def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
     manager = ProfileManager(folder, make_settings(tmp_path, "Default"))
+    manager.load()
 
-    assert manager.read_mirrors() == []
+    assert manager.current.mirrors == ()
 
 
 def test_a_file_that_is_only_a_list_of_mirrors_is_read(tmp_path, folder):
     write_profile_file(folder, "Knight", [MIRROR_JSON])
     manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
 
-    mirrors = manager.read_mirrors()
+    manager.load()
 
-    assert mirrors == [MirrorSettings.from_json(MIRROR_JSON)]
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
 
 
 def test_broken_json_raises_value_error(tmp_path, folder):
@@ -188,7 +192,7 @@ def test_broken_json_raises_value_error(tmp_path, folder):
     manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
 
     with pytest.raises(ValueError):
-        manager.read_mirrors()
+        manager.load()
 
 
 def test_a_file_without_mirrors_raises_value_error(tmp_path, folder):
@@ -196,7 +200,7 @@ def test_a_file_without_mirrors_raises_value_error(tmp_path, folder):
     manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
 
     with pytest.raises(ValueError, match="the profile file is invalid"):
-        manager.read_mirrors()
+        manager.load()
 
 
 def test_a_layout_without_region_raises_value_error(tmp_path, folder):
@@ -205,7 +209,7 @@ def test_a_layout_without_region_raises_value_error(tmp_path, folder):
     manager = ProfileManager(folder, make_settings(tmp_path, "Knight"))
 
     with pytest.raises(ValueError, match="the profile file is invalid"):
-        manager.read_mirrors()
+        manager.load()
 
 
 def test_a_deleted_file_raises_os_error(tmp_path, folder):
@@ -214,4 +218,4 @@ def test_a_deleted_file_raises_os_error(tmp_path, folder):
     (folder / "Knight.json").unlink()
 
     with pytest.raises(OSError):
-        manager.read_mirrors()
+        manager.load()

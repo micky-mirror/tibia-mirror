@@ -1257,7 +1257,7 @@ class App2:
     def _on_mirrors_changed(self, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the open profile after one of them changed."""
         try:
-            self.profile_manager.write_mirrors(self.profile_manager.active_name, mirrors)
+            self.profile_manager.set_mirrors(mirrors)
         except OSError:
             self.panel.set_message(tr("Save failed"), "error")
 
@@ -1322,13 +1322,13 @@ class App2:
     def _load_mirrors(self) -> bool:
         """Read the mirrors of the open profile. False if its file is invalid."""
         try:
-            mirrors = self.profile_manager.read_mirrors()
+            self.profile_manager.load()
         except (OSError, ValueError):
             # keep none, so the mirrors of the last profile are never saved into this one
             self.mirror_manager.set_mirrors([])
             return False
         else:
-            self.mirror_manager.set_mirrors(mirrors)
+            self.mirror_manager.set_mirrors(self.profile_manager.current.mirrors)
             return True
 
     def _show_mirrors(self) -> None:

@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Sequence
+from dataclasses import replace
 from pathlib import Path
 
 from tibia_mirror.config import DEFAULT_PROFILE
@@ -11,11 +12,12 @@ from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 
 class ProfileManager:
-    """Knows which profiles exist and which one is open."""
+    """Knows which profiles exist, and keeps the open one."""
 
     def __init__(self, folder: Path, settings: AppSettingsStore) -> None:
         self._folder = folder
         self._settings = settings
+        self.current = Profile()  # the open profile, as it is now
         self._create_first_profile()
         self._active_name = self._get_start_name()
 
@@ -61,27 +63,36 @@ class ProfileManager:
         self._get_file(self._active_name).unlink(missing_ok=True)
         self.open(self.get_names()[0])
 
-    def read_mirrors(self) -> list[MirrorSettings]:
-        """Read the mirrors of the open profile from its file.
+    def load(self) -> None:
+        """Read the open profile from its file into `current`.
 
         If the file cannot be read, this raises OSError.
         If the file is not a good profile file, this raises ValueError.
         """
-        file_content: str = self._get_file(self._active_name).read_text(encoding="utf-8")
-        profile = Profile.from_json(json.loads(file_content))
+        try:
+            file_content: str = self._get_file(self._active_name).read_text(encoding="utf-8")
+            profile = Profile.from_json(json.loads(file_content))
+        except (OSError, ValueError):
+            # keep an empty profile, so the last profile is never written into this one
+            self.current = Profile()
+            raise
+        else:
+            self.current = profile
 
-        return list(profile.mirrors)
+    def set_mirrors(self, mirrors: Sequence[MirrorSettings]) -> None:
+        """Keep these mirrors in the open profile, and write it to its file.
+
+        If the file cannot be written, this raises OSError.
+        """
+        self.current = replace(self.current, mirrors=tuple(mirrors))
+        self._write(self._active_name, self.current)
 
     def write_mirrors(self, name: str, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the file of the profile `name`.
 
         If the file cannot be written, this raises OSError.
         """
-        profile = Profile(mirrors=tuple(mirrors))
-        file_content: str = json.dumps(profile.to_json(), indent=2)
-
-        self._folder.mkdir(parents=True, exist_ok=True)
-        self._get_file(name).write_text(file_content, encoding="utf-8")
+        self._write(name, Profile(mirrors=tuple(mirrors)))
 
     def _get_start_name(self) -> str:
         """The profile to open at the start: the one that was open the last time.
@@ -101,6 +112,13 @@ class ProfileManager:
 
         if not has_profiles:
             self.write_mirrors(DEFAULT_PROFILE, [])
+
+    def _write(self, name: str, profile: Profile) -> None:
+        """Write the profile to the file of the profile `name`. If that fails, OSError."""
+        file_content: str = json.dumps(profile.to_json(), indent=2)
+
+        self._folder.mkdir(parents=True, exist_ok=True)
+        self._get_file(name).write_text(file_content, encoding="utf-8")
 
     def _get_file(self, name: str) -> Path:
         return self._folder / f"{name}.json"
