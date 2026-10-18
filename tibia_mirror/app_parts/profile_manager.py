@@ -85,10 +85,6 @@ class ProfileManager:
         else:
             self.current = profile
 
-    def set_mirrors(self, mirrors: Sequence[MirrorSettings]) -> None:
-        """Keep these mirrors in the open profile."""
-        self._set_current(replace(self.current, mirrors=tuple(mirrors)))
-
     def update_mirror(self, mirror_settings: MirrorSettings) -> None:
         """Give the mirror with the same id these new settings, in the open profile."""
         mirrors = list(self.current.mirrors)
@@ -96,6 +92,16 @@ class ProfileManager:
         for index, kept_settings in enumerate(mirrors):
             if kept_settings.mirror_id == mirror_settings.mirror_id:
                 mirrors[index] = mirror_settings
+
+        self._set_current(replace(self.current, mirrors=tuple(mirrors)))
+
+    def remove_mirror(self, mirror_id: str) -> None:
+        """Take the mirror with this id out of the open profile."""
+        mirrors = [
+            mirror_settings
+            for mirror_settings in self.current.mirrors
+            if mirror_settings.mirror_id != mirror_id
+        ]
 
         self._set_current(replace(self.current, mirrors=tuple(mirrors)))
 

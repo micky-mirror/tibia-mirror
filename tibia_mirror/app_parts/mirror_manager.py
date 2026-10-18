@@ -124,11 +124,6 @@ class MirrorManager:
 
     def remove_mirror(self, mirror_id: str) -> None:
         """Take a mirror out of the open profile, and close its window."""
-        mirrors = [
-            mirror_settings
-            for mirror_settings in self._profile_manager.current.mirrors
-            if mirror_settings.mirror_id != mirror_id
-        ]
         kept_windows: list[MirrorWindow] = []
 
         for mirror_window in self._mirror_windows:
@@ -138,7 +133,7 @@ class MirrorManager:
                 kept_windows.append(mirror_window)
 
         self._mirror_windows = kept_windows
-        self._profile_manager.set_mirrors(mirrors)
+        self._profile_manager.remove_mirror(mirror_id)
 
     def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:
         """The kept mirror with this id. None if there is none."""
