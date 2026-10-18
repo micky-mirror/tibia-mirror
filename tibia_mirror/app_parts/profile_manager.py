@@ -6,9 +6,8 @@ from pathlib import Path
 
 from tibia_mirror.config import DEFAULT_PROFILE
 from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.core.profile import Profile
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
-
-PROFILE_FILE_FORMAT = 2  # the "version" number written into every profile file
 
 
 class ProfileManager:
@@ -69,25 +68,17 @@ class ProfileManager:
         If the file is not a good profile file, this raises ValueError.
         """
         file_content: str = self._get_file(self._active_name).read_text(encoding="utf-8")
+        profile = Profile.from_json(json.loads(file_content))
 
-        try:
-            data = json.loads(file_content)
-            saved_mirrors = data if isinstance(data, list) else data["mirrors"]
-
-            return [MirrorSettings.from_json(saved_mirror) for saved_mirror in saved_mirrors]
-        except (KeyError, TypeError, AttributeError) as error:
-            raise ValueError("the profile file is invalid") from error
+        return list(profile.mirrors)
 
     def write_mirrors(self, name: str, mirrors: Sequence[MirrorSettings]) -> None:
         """Write the mirrors to the file of the profile `name`.
 
         If the file cannot be written, this raises OSError.
         """
-        data = {
-            "version": PROFILE_FILE_FORMAT,
-            "mirrors": [mirror.to_json() for mirror in mirrors],
-        }
-        file_content: str = json.dumps(data, indent=2)
+        profile = Profile(mirrors=tuple(mirrors))
+        file_content: str = json.dumps(profile.to_json(), indent=2)
 
         self._folder.mkdir(parents=True, exist_ok=True)
         self._get_file(name).write_text(file_content, encoding="utf-8")
