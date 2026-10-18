@@ -119,7 +119,10 @@ class MirrorManager:
         return mirror_infos
 
     def update_mirror(self, mirror_info: MirrorInfo) -> None:
-        """Put a change from the Mirrors page into the open profile."""
+        """Put a change from the Mirrors page into the open profile.
+
+        A hotkey that is new for the timer is first cleared from every place that has it.
+        """
         mirror_settings = self._get_mirror(mirror_info.mirror_id)
 
         if mirror_settings is None:
@@ -133,6 +136,10 @@ class MirrorManager:
             opacity=mirror_info.opacity,
             timer=mirror_info.timer,
         )
+        hotkey = new_settings.timer.key
+
+        if hotkey is not None and hotkey != mirror_settings.timer.key:
+            self._profile_manager.clear_hotkey(hotkey)
 
         self._profile_manager.update_mirror(new_settings)
 
