@@ -1,5 +1,7 @@
 """The timer of a mirror: reading it from a profile file and writing it back."""
 
+import pytest
+
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.timers import TimerSettings
 
@@ -44,6 +46,11 @@ def test_wrong_values_become_the_defaults():
     }
 
     assert MirrorTimer.from_json(data) == MirrorTimer()
+
+
+@pytest.mark.parametrize("sound", ["asterisk", "exclamation"])
+def test_a_removed_sound_becomes_the_default_sound(sound):
+    assert MirrorTimer.from_json({"sound": sound}).sound == MirrorTimer().sound
 
 
 def test_a_written_timer_is_read_back_the_same():
