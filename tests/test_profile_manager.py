@@ -381,6 +381,37 @@ def test_a_loaded_profile_is_not_reported_as_a_change(tmp_path, folder):
     assert changes == []
 
 
+def test_a_loaded_profile_loses_the_hide_all_key_from_its_timers(tmp_path, folder):
+    saved_mirrors = [
+        make_mirror_json_with_hotkey("mirror-1", F1),
+        make_mirror_json_with_hotkey("mirror-2", CTRL_F1),
+    ]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(hide_all_key=F1)
+    manager = make_manager(folder, settings)
+
+    manager.load()
+
+    assert [mirror.timer.key for mirror in manager.current.mirrors] == [None, CTRL_F1]
+    assert settings.current.hide_all_key == F1
+
+
+def test_the_hide_all_key_cleared_on_load_is_reported(tmp_path, folder):
+    saved_mirrors = [make_mirror_json_with_hotkey("mirror-1", F1)]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(hide_all_key=F1)
+    changes = []
+    manager = make_watched_manager(folder, settings, changes)
+
+    manager.load()
+
+    mirror = MirrorSettings.from_json(saved_mirrors[0])
+    cleared_mirror = replace(mirror, timer=replace(mirror.timer, key=None))
+    assert changes == [(Profile(mirrors=(mirror,)), Profile(mirrors=(cleared_mirror,)))]
+
+
 def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
     manager = make_manager(folder, make_settings(tmp_path, "Default"))
     manager.load()
