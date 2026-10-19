@@ -28,6 +28,8 @@ class DropdownMenu(tk.Toplevel):
     ) -> None:
         super().__init__(window, bg=theme.SURFACE)
         self.withdraw()  # hidden until it has a size and a place
+        self._window = window  # the window under the menu; it gets the focus back
+        self._is_window_modal = window.grab_status() is not None  # it gets the grab back too
         # (key, text) of each option, from top to bottom; tkinter itself uses self._options
         self._choices = options
         self._selected = selected  # the key of the chosen option
@@ -48,7 +50,17 @@ class DropdownMenu(tk.Toplevel):
 
         self.geometry(f"{width}x{height}+{left}+{position_y}")
         self.deiconify()
+        self.grab_set()  # every click of the app comes to the menu
         self.focus_force()  # the keys come to the menu
+
+    def close(self) -> None:
+        """Close the menu, and give the grab and the focus back to the window under it."""
+        self.destroy()
+
+        if self._is_window_modal:
+            self._window.grab_set()
+
+        self._window.focus_force()
 
     def _get_height(self) -> int:
         """Room for every option, with a pad above and below."""
@@ -56,6 +68,7 @@ class DropdownMenu(tk.Toplevel):
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
+        self.protocol("WM_DELETE_WINDOW", self.close)  # Alt+F4
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
-        self.destroy()
+        self.close()
