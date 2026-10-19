@@ -8,11 +8,14 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import outlined_image
 from tibia_mirror.ui.base.scale import px
 
+ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
+
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 28  # as high as the options of a ChoiceRow
 RADIUS = 8  # of the rounded corners
 TEXT_X = 10  # from the left side of the box to the start of the text
 ARROW_ROOM = 30  # kept free at the right side of the box, for the small arrow
+ARROW_X = 16  # from the right side of the box to the middle of the arrow
 
 
 class DropdownPicker(tk.Canvas):
@@ -43,6 +46,8 @@ class DropdownPicker(tk.Canvas):
 
         self.configure(width=self._width)
         self._draw_box()
+        self._draw_text()
+        self._draw_arrow()
 
     def _get_width(self) -> int:
         """Room for the longest option and the small arrow."""
@@ -66,3 +71,27 @@ class DropdownPicker(tk.Canvas):
     def _draw_box(self) -> None:
         """The box in its normal look."""
         self._box = self.create_image(0, 0, anchor="nw", image=self._normal_box)
+
+    def _draw_text(self) -> None:
+        """The text of the chosen option, at the left, in the middle of the box's height."""
+        self._text_item = self.create_text(
+            px(TEXT_X),
+            px(HEIGHT) // 2,
+            text=self._get_selected_text(),
+            anchor="w",
+            font=theme.FONT,
+            fill=theme.TEXT,
+        )
+
+    def _draw_arrow(self) -> None:
+        """The small arrow at the right, in the middle of the box's height."""
+        self._arrow = self.create_text(
+            self._width - px(ARROW_X),
+            px(HEIGHT) // 2,
+            text=ARROW_DOWN,
+            font=theme.FONT_ICON,
+            fill=theme.SUBTEXT,
+        )
+
+    def _get_selected_text(self) -> str:
+        return dict(self._choices)[self._selected]
