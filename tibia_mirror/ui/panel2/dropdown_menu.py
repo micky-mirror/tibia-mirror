@@ -162,6 +162,13 @@ class DropdownMenu(tk.Toplevel):
 
         return index
 
+    def _get_next_index(self, step: int) -> int:
+        """The option `step` rows away from the hovered one, going round at the ends."""
+        if self._hovered_index is None:
+            return 0 if step > 0 else len(self._choices) - 1
+
+        return (self._hovered_index + step) % len(self._choices)
+
     def _is_inside(self, position_x: int, position_y: int) -> bool:
         """Whether this place on the screen is on the menu."""
         left = self.winfo_rootx()
@@ -177,6 +184,10 @@ class DropdownMenu(tk.Toplevel):
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
+        self.bind("<Up>", self._on_up)
+        self.bind("<Down>", self._on_down)
+        self.bind("<Return>", self._on_enter)
+        self.bind("<KP_Enter>", self._on_enter)  # the Enter key of the number pad
         self.bind("<ButtonRelease>", self._on_mouse_up)
         self.bind("<FocusOut>", self._on_focus_out)
         self.protocol("WM_DELETE_WINDOW", self.close)  # Alt+F4
@@ -187,6 +198,16 @@ class DropdownMenu(tk.Toplevel):
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
         self.close()
+
+    def _on_up(self, event: tk.Event[tk.Misc]) -> None:
+        self._set_hovered(self._get_next_index(-1))
+
+    def _on_down(self, event: tk.Event[tk.Misc]) -> None:
+        self._set_hovered(self._get_next_index(1))
+
+    def _on_enter(self, event: tk.Event[tk.Misc]) -> None:
+        if self._hovered_index is not None:
+            self._pick(self._hovered_index)
 
     def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
         # the menu holds the grab, so every click of the app ends here
