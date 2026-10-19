@@ -12,6 +12,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.dropdown_menu import DropdownMenu
 
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
+ARROW_UP = "\ue70e"  # the same arrow, pointing up
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 28  # as high as the options of a ChoiceRow
@@ -46,6 +47,7 @@ class DropdownPicker(tk.Canvas):
         self._on_change = on_change  # called with the key of the option the user chose
         self._width = self._get_width()
         self._is_hovered = False  # True while the pointer is over the box
+        self._is_open = False  # True while the menu is open
 
         self._normal_box = self._render_normal_box()
         self._bright_box = self._render_bright_box()
@@ -136,18 +138,34 @@ class DropdownPicker(tk.Canvas):
         self._is_hovered = is_hovered
         self._update_look()
 
+    def _set_open(self, is_open: bool) -> None:
+        self._is_open = is_open
+        self._update_look()
+        self._update_arrow()
+
     def _update_look(self) -> None:
         """Show the box brighter while it is hovered or its menu is open."""
-        box_image = self._bright_box if self._is_hovered else self._normal_box
+        is_bright: bool = self._is_hovered or self._is_open
+        box_image = self._bright_box if is_bright else self._normal_box
 
         self.itemconfigure(self._box, image=box_image)
 
+    def _update_arrow(self) -> None:
+        """Point the arrow up while the menu is open."""
+        arrow = ARROW_UP if self._is_open else ARROW_DOWN
+
+        self.itemconfigure(self._arrow, text=arrow)
+
     def _open_menu(self) -> None:
         """Open the menu under the box, as wide as the box."""
+        self._set_open(True)
         # the menu is its own small window, so it needs the place of the box on the screen
         left = self.winfo_rootx()
         top = self.winfo_rooty()
         box = (left, top, left + self._width, top + px(HEIGHT))
 
         menu = DropdownMenu(self.winfo_toplevel(), self._choices, self._selected, self._on_change)
-        menu.open(box)
+        menu.open(box, on_close=self._on_menu_closed)
+
+    def _on_menu_closed(self) -> None:
+        self._set_open(False)

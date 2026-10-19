@@ -41,8 +41,12 @@ class DropdownMenu(tk.Toplevel):
         dwm.round_popup(win32.toplevel_hwnd(self), theme.SURFACE_HI)
         self._bind_events()
 
-    def open(self, box: Box) -> None:
-        """Show the menu under `box`, as wide as it. `box` is a place on the screen."""
+    def open(self, box: Box, on_close: Callable[[], None]) -> None:
+        """Show the menu under `box`, as wide as it. `box` is a place on the screen.
+
+        `on_close` is called when the menu closes.
+        """
+        self._on_close = on_close
         left, _top, right, bottom = box
         width = right - left
         height = self._get_height()
@@ -61,6 +65,7 @@ class DropdownMenu(tk.Toplevel):
             self._window.grab_set()
 
         self._window.focus_force()
+        self._on_close()
 
     def _get_height(self) -> int:
         """Room for every option, with a pad above and below."""
