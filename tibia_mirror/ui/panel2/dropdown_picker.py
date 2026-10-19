@@ -1,11 +1,13 @@
 """The box of a dropdown, which shows the chosen option and opens the menu of options."""
 
+from __future__ import annotations
+
 import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
 
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.images import outlined_image
+from tibia_mirror.ui.base.images import outlined_image, rounded_image
 from tibia_mirror.ui.base.scale import px
 
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
@@ -35,19 +37,23 @@ class DropdownPicker(tk.Canvas):
             bg=theme.SURFACE,
             highlightthickness=0,
             bd=0,
+            cursor="hand2",
         )
         # (key, text) of each option, from top to bottom; tkinter itself uses self._options
         self._choices = options
         self._selected = selected  # the key of the chosen option
         self._on_change = on_change  # called with the key of the option the user chose
         self._width = self._get_width()
+        self._is_hovered = False  # True while the pointer is over the box
 
         self._normal_box = self._render_normal_box()
+        self._bright_box = self._render_bright_box()
 
         self.configure(width=self._width)
         self._draw_box()
         self._draw_text()
         self._draw_arrow()
+        self._bind_events()
 
     def _get_width(self) -> int:
         """Room for the longest option and the small arrow."""
@@ -65,6 +71,17 @@ class DropdownPicker(tk.Canvas):
             radius=px(RADIUS),
             colour=theme.SURFACE,
             border=theme.SURFACE_HI,
+            background=theme.SURFACE,
+        )
+
+    def _render_bright_box(self) -> tk.PhotoImage:
+        """The rounded shape of the box, filled with the colour of its border."""
+        return rounded_image(
+            self,
+            width=self._width,
+            height=px(HEIGHT),
+            radius=px(RADIUS),
+            colour=theme.SURFACE_HI,
             background=theme.SURFACE,
         )
 
@@ -95,3 +112,23 @@ class DropdownPicker(tk.Canvas):
 
     def _get_selected_text(self) -> str:
         return dict(self._choices)[self._selected]
+
+    def _bind_events(self) -> None:
+        self.bind("<Enter>", self._on_mouse_enter)
+        self.bind("<Leave>", self._on_mouse_leave)
+
+    def _on_mouse_enter(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered(True)
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered(False)
+
+    def _set_hovered(self, is_hovered: bool) -> None:
+        self._is_hovered = is_hovered
+        self._update_look()
+
+    def _update_look(self) -> None:
+        """Show the box brighter while it is hovered or its menu is open."""
+        box_image = self._bright_box if self._is_hovered else self._normal_box
+
+        self.itemconfigure(self._box, image=box_image)
