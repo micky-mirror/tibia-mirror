@@ -8,6 +8,7 @@ from collections.abc import Callable, Sequence
 
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.winapi import dwm, win32
 
@@ -20,6 +21,8 @@ ROW_HEIGHT = 32  # of one option
 CHECK_X = 16  # from PAD to the middle of the check mark
 TEXT_X = 32  # from PAD to the start of the text
 TEXT_ROOM = 8  # kept free after the longest text, before PAD
+HIGHLIGHT_RADIUS = 6  # of the rounded corners of the highlight behind a hovered option
+HIGHLIGHT_GAP = 1  # above and below the highlight, so two rows never touch
 
 
 def get_menu_width(options: Sequence[tuple[str, str]]) -> int:
@@ -48,6 +51,7 @@ class DropdownMenu(tk.Toplevel):
         self._choices = options
         self._selected = selected  # the key of the chosen option
         self._on_pick = on_pick  # called with the key of the option the user picks
+        self._hovered_index: int | None = None  # the option under the pointer
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
         self.attributes("-topmost", True)  # above the dialog, which is on top too
@@ -69,6 +73,7 @@ class DropdownMenu(tk.Toplevel):
         height = self._get_height()
         position_y = bottom + px(GAP)
 
+        self._draw_highlight(width)
         self.geometry(f"{width}x{height}+{left}+{position_y}")
         self.deiconify()
         self.grab_set()  # every click of the app comes to the menu
@@ -117,9 +122,41 @@ class DropdownMenu(tk.Toplevel):
             fill=theme.ACCENT,
         )
 
+    def _draw_highlight(self, width: int) -> None:
+        """The lighter shape behind the hovered option, hidden until an option is hovered."""
+        self._highlight_image = rounded_image(
+            self._canvas,
+            width=width - 2 * px(PAD),
+            height=px(ROW_HEIGHT) - 2 * px(HIGHLIGHT_GAP),
+            radius=px(HIGHLIGHT_RADIUS),
+            colour=theme.SURFACE_HI,
+            background=theme.SURFACE,
+        )
+        self._highlight = self._canvas.create_image(
+            px(PAD), 0, anchor="nw", image=self._highlight_image, state="hidden"
+        )
+        # the options are drawn first, so the highlight must go under them
+        self._canvas.tag_lower(self._highlight)
+
+    def _get_row_top_y(self, index: int) -> int:
+        """The top of the row of the option at `index`, from the top of the menu."""
+        return px(PAD) + index * px(ROW_HEIGHT)
+
     def _get_row_middle_y(self, index: int) -> int:
         """The middle of the row of the option at `index`, from the top of the menu."""
-        return px(PAD) + index * px(ROW_HEIGHT) + px(ROW_HEIGHT) // 2
+        return self._get_row_top_y(index) + px(ROW_HEIGHT) // 2
+
+    def _get_index_at(self, position_y: int) -> int | None:
+        """The index of the option at this height. None between the options and the edges."""
+        if position_y < px(PAD):
+            return None
+
+        index = (position_y - px(PAD)) // px(ROW_HEIGHT)
+
+        if index >= len(self._choices):
+            return None
+
+        return index
 
     def _get_height(self) -> int:
         """Room for every option, with a pad above and below."""
@@ -128,6 +165,38 @@ class DropdownMenu(tk.Toplevel):
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
         self.protocol("WM_DELETE_WINDOW", self.close)  # Alt+F4
+        # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
+        self._canvas.bind("<Enter>", self._on_mouse_move)
+        self._canvas.bind("<Motion>", self._on_mouse_move)
+        self._canvas.bind("<Leave>", self._on_mouse_leave)
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
         self.close()
+
+    def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered(self._get_index_at(event.y))
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered(None)
+
+    def _set_hovered(self, index: int | None) -> None:
+        self._hovered_index = index
+        self._update_highlight()
+        self._update_cursor()
+
+    def _update_highlight(self) -> None:
+        """Show the highlight behind the hovered option, or hide it when none is hovered."""
+        if self._hovered_index is None:
+            self._canvas.itemconfigure(self._highlight, state="hidden")
+            return
+
+        top_y = self._get_row_top_y(self._hovered_index) + px(HIGHLIGHT_GAP)
+
+        self._canvas.coords(self._highlight, px(PAD), top_y)
+        self._canvas.itemconfigure(self._highlight, state="normal")
+
+    def _update_cursor(self) -> None:
+        """Show a hand over an option."""
+        cursor = "" if self._hovered_index is None else "hand2"
+
+        self._canvas.configure(cursor=cursor)
