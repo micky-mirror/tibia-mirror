@@ -1149,9 +1149,9 @@ class App2:
         self.input_watcher.start(self.window)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
+        self._show_panel()
         # check if the profile was loaded from its file
         is_profile_loaded = self._load_profile()
-        self._show_panel()
         self.window.show()
 
         if not is_profile_loaded:

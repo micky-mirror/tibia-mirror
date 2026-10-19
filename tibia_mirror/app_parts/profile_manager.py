@@ -86,6 +86,7 @@ class ProfileManager:
             raise
         else:
             self.current = profile
+            self._clear_hide_all_key_from_mirrors()
 
     def update_mirror(self, mirror_settings: MirrorSettings) -> None:
         """Give the mirror with the same id these new settings, in the open profile."""
@@ -141,6 +142,13 @@ class ProfileManager:
 
         if not has_profiles:
             self.write_mirrors(DEFAULT_PROFILE, [])
+
+    def _clear_hide_all_key_from_mirrors(self) -> None:
+        """Set every timer hotkey in the open profile that is the hide-all key to None."""
+        hide_all_key = self._settings.current.hide_all_key
+
+        if hide_all_key is not None:
+            self._clear_mirror_hotkeys(hide_all_key)
 
     def _clear_mirror_hotkeys(self, key: KeyCombo) -> None:
         """Set every timer hotkey in the open profile that is `key` to None."""
