@@ -9,6 +9,7 @@ from collections.abc import Callable, Sequence
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import outlined_image, rounded_image
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel2.dropdown_menu import DropdownMenu
 
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
 
@@ -116,12 +117,20 @@ class DropdownPicker(tk.Canvas):
     def _bind_events(self) -> None:
         self.bind("<Enter>", self._on_mouse_enter)
         self.bind("<Leave>", self._on_mouse_leave)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_mouse_enter(self, event: tk.Event[tk.Canvas]) -> None:
         self._set_hovered(True)
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
         self._set_hovered(False)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        # after a drag the button can go up outside the box
+        is_inside: bool = 0 <= event.x < self._width and 0 <= event.y < px(HEIGHT)
+
+        if is_inside:
+            self._open_menu()
 
     def _set_hovered(self, is_hovered: bool) -> None:
         self._is_hovered = is_hovered
@@ -132,3 +141,13 @@ class DropdownPicker(tk.Canvas):
         box_image = self._bright_box if self._is_hovered else self._normal_box
 
         self.itemconfigure(self._box, image=box_image)
+
+    def _open_menu(self) -> None:
+        """Open the menu under the box, as wide as the box."""
+        # the menu is its own small window, so it needs the place of the box on the screen
+        left = self.winfo_rootx()
+        top = self.winfo_rooty()
+        box = (left, top, left + self._width, top + px(HEIGHT))
+
+        menu = DropdownMenu(self.winfo_toplevel(), self._choices, self._selected, self._on_change)
+        menu.open(box)
