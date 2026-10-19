@@ -2,7 +2,7 @@
 
 import tkinter as tk
 
-from tibia_mirror.ui.base.render import ButtonStyle, Pixels, button_pixels
+from tibia_mirror.ui.base.render import ButtonStyle, Pixels, button_pixels, outlined_pixels
 
 
 def photo(master: tk.Misc, rows: Pixels) -> tk.PhotoImage:
@@ -21,3 +21,20 @@ def rounded_image(
     """
     style = ButtonStyle(fill=colour, radius=radius)
     return photo(master, button_pixels(width, height, style, background))
+
+
+def outlined_image(
+    master: tk.Misc,
+    *,
+    width: int,
+    height: int,
+    radius: int,
+    colour: str,
+    border: str,
+    background: str,
+) -> tk.PhotoImage:
+    """A picture of a box with rounded corners, in `colour`, with a thin `border`.
+
+    `background` is the colour behind the box: the smooth corners blend into it.
+    """
+    return photo(master, outlined_pixels(width, height, radius, colour, border, background))
