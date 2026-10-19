@@ -9,7 +9,7 @@ from collections.abc import Callable, Sequence
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import outlined_image, rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.dropdown_menu import DropdownMenu
+from tibia_mirror.ui.panel2.dropdown_menu import DropdownMenu, get_menu_width
 
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
 ARROW_UP = "\ue70e"  # the same arrow, pointing up
@@ -59,11 +59,12 @@ class DropdownPicker(tk.Canvas):
         self._bind_events()
 
     def _get_width(self) -> int:
-        """Room for the longest option and the small arrow."""
+        """Room for the longest option and the small arrow, and for the menu under the box."""
         font = tkfont.Font(font=theme.FONT)
         longest = max(font.measure(text) for _key, text in self._choices)
+        box_width = px(TEXT_X) + longest + px(ARROW_ROOM)
 
-        return px(TEXT_X) + longest + px(ARROW_ROOM)
+        return max(box_width, get_menu_width(self._choices))
 
     def _render_normal_box(self) -> tk.PhotoImage:
         """The rounded shape of the box with a thin border, like the other fields of a card."""
