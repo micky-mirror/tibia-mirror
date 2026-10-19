@@ -5,8 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from tibia_mirror.config import TIMER_ALERT_RANGE, TIMER_DIRECTIONS, TIMER_SOUNDS
+from tibia_mirror.config import TIMER_ALERT_RANGE, TIMER_DIRECTIONS
 from tibia_mirror.core.timers import KeyCombo, canonical_modifiers, parse_key
+
+# the sounds a timer can play; the first is the default
+SOUNDS = ("notification", "critical", "beep", "none")
 
 
 @dataclass(frozen=True)
@@ -15,7 +18,7 @@ class MirrorTimer:
     alert_seconds: int = 60  # the alert comes this long after the start, within TIMER_ALERT_RANGE
     direction: str = TIMER_DIRECTIONS[0]  # "down" or "up"
     key: KeyCombo | None = None  # the key that also starts the timer. None: no key is set
-    sound: str = TIMER_SOUNDS[0]  # the name of the sound played when the time is up
+    sound: str = SOUNDS[0]  # the name of the sound played when the time is up
     is_paused_offline: bool = True  # the timer counts only while the character is logged in
 
     @classmethod
@@ -28,7 +31,7 @@ class MirrorTimer:
             alert_seconds=saved.get_alert_seconds(),
             direction=saved.get_choice("direction", TIMER_DIRECTIONS),
             key=saved.get_key_combo(),
-            sound=saved.get_choice("sound", TIMER_SOUNDS),
+            sound=saved.get_choice("sound", SOUNDS),
             is_paused_offline=saved.get_bool("offline_pause", default=cls.is_paused_offline),
         )
 

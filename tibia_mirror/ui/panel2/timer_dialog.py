@@ -4,8 +4,7 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
 
-from tibia_mirror.config import TIMER_SOUNDS
-from tibia_mirror.core.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirror_timer import SOUNDS, MirrorTimer
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
@@ -19,8 +18,6 @@ from tibia_mirror.winapi import sounds
 
 # what the user sees for each sound, translated with tr()
 SOUND_LABELS = {
-    "asterisk": "Asterisk",
-    "exclamation": "Exclamation",
     "notification": "Notification",
     "critical": "Critical stop",
     "beep": "Beep",
@@ -71,7 +68,7 @@ class TimerDialog(Popup):
         )
         sound_row = DropdownRow(
             tr("Sound"),
-            [(sound, tr(SOUND_LABELS[sound])) for sound in TIMER_SOUNDS],
+            [(sound, tr(SOUND_LABELS[sound])) for sound in SOUNDS],
             self._timer.sound,
             on_change=self._on_sound_changed,
         )
