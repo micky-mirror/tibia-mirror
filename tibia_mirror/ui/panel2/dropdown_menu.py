@@ -81,12 +81,16 @@ class DropdownMenu(tk.Toplevel):
 
     def close(self) -> None:
         """Close the menu, and give the grab and the focus back to the window under it."""
+        self._close_window()
+        self._window.focus_force()
+
+    def _close_window(self) -> None:
+        """Close the menu, and give the grab back to the window under it."""
         self.destroy()
 
         if self._is_window_modal:
             self._window.grab_set()
 
-        self._window.focus_force()
         self._on_close()
 
     def _add_canvas(self) -> None:
@@ -158,12 +162,23 @@ class DropdownMenu(tk.Toplevel):
 
         return index
 
+    def _is_inside(self, position_x: int, position_y: int) -> bool:
+        """Whether this place on the screen is on the menu."""
+        left = self.winfo_rootx()
+        top = self.winfo_rooty()
+        is_inside_x: bool = left <= position_x < left + self.winfo_width()
+        is_inside_y: bool = top <= position_y < top + self.winfo_height()
+
+        return is_inside_x and is_inside_y
+
     def _get_height(self) -> int:
         """Room for every option, with a pad above and below."""
         return 2 * px(PAD) + len(self._choices) * px(ROW_HEIGHT)
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
+        self.bind("<ButtonRelease>", self._on_mouse_up)
+        self.bind("<FocusOut>", self._on_focus_out)
         self.protocol("WM_DELETE_WINDOW", self.close)  # Alt+F4
         # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
         self._canvas.bind("<Enter>", self._on_mouse_move)
@@ -172,6 +187,16 @@ class DropdownMenu(tk.Toplevel):
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
         self.close()
+
+    def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
+        # the menu holds the grab, so every click of the app ends here
+        if not self._is_inside(event.x_root, event.y_root):
+            self.close()
+
+    def _on_focus_out(self, event: tk.Event[tk.Misc]) -> None:
+        # another app has the focus now, so the menu closes and leaves the focus there
+        if event.widget is self:
+            self._close_window()
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
         self._set_hovered(self._get_index_at(event.y))
