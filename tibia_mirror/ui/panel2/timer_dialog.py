@@ -4,15 +4,27 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
 
+from tibia_mirror.config import TIMER_SOUNDS
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
+from tibia_mirror.ui.panel2.dropdown_row import DropdownRow
 from tibia_mirror.ui.panel2.key_row import KeyRow
 from tibia_mirror.ui.panel2.popup import PAD, Popup
 from tibia_mirror.ui.panel2.row_card import RowCard
 from tibia_mirror.ui.panel2.time_row import TimeRow
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow
+
+# what the user sees for each sound, translated with tr()
+SOUND_LABELS = {
+    "asterisk": "Asterisk",
+    "exclamation": "Exclamation",
+    "notification": "Notification",
+    "critical": "Critical stop",
+    "beep": "Beep",
+    "none": "No sound",
+}
 
 
 class TimerDialog(Popup):
@@ -56,6 +68,12 @@ class TimerDialog(Popup):
             tr("The alert time must be 0:01 to 59:59."),
             self._timer.alert_seconds,
         )
+        sound_row = DropdownRow(
+            tr("Sound"),
+            [(sound, tr(SOUND_LABELS[sound])) for sound in TIMER_SOUNDS],
+            self._timer.sound,
+            on_change=lambda sound: self._keep_timer(replace(self._timer, sound=sound)),
+        )
         direction_row = ChoiceRow(
             tr("Count"),
             (("down", tr("Down")), ("up", tr("Up"))),
@@ -72,7 +90,7 @@ class TimerDialog(Popup):
         card = RowCard(
             self,
             self._content_width,
-            [timer_on_row, pause_row, self._alert_row, direction_row, key_row],
+            [timer_on_row, pause_row, self._alert_row, sound_row, direction_row, key_row],
         )
         card.pack(anchor="w", padx=px(PAD))
 
