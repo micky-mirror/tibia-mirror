@@ -165,8 +165,15 @@ class DropdownPicker(tk.Canvas):
         top = self.winfo_rooty()
         box = (left, top, left + self._width, top + px(HEIGHT))
 
-        menu = DropdownMenu(self.winfo_toplevel(), self._choices, self._selected, self._on_change)
+        menu = DropdownMenu(
+            self.winfo_toplevel(), self._choices, self._selected, self._on_option_picked
+        )
         menu.open(box, on_close=self._on_menu_closed)
 
     def _on_menu_closed(self) -> None:
         self._set_open(False)
+
+    def _on_option_picked(self, key: str) -> None:
+        self._selected = key
+        self.itemconfigure(self._text_item, text=self._get_selected_text())
+        self._on_change(key)

@@ -190,8 +190,13 @@ class DropdownMenu(tk.Toplevel):
 
     def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
         # the menu holds the grab, so every click of the app ends here
+        position_y = event.y_root - self.winfo_rooty()
+        index = self._get_index_at(position_y)
+
         if not self._is_inside(event.x_root, event.y_root):
             self.close()
+        elif index is not None:
+            self._pick(index)
 
     def _on_focus_out(self, event: tk.Event[tk.Misc]) -> None:
         # another app has the focus now, so the menu closes and leaves the focus there
@@ -203,6 +208,13 @@ class DropdownMenu(tk.Toplevel):
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
         self._set_hovered(None)
+
+    def _pick(self, index: int) -> None:
+        """Close the menu, then hand over the key of the option at `index`."""
+        key, _text = self._choices[index]
+
+        self.close()
+        self._on_pick(key)
 
     def _set_hovered(self, index: int | None) -> None:
         self._hovered_index = index

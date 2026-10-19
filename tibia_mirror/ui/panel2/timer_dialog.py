@@ -15,6 +15,7 @@ from tibia_mirror.ui.panel2.popup import PAD, Popup
 from tibia_mirror.ui.panel2.row_card import RowCard
 from tibia_mirror.ui.panel2.time_row import TimeRow
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow
+from tibia_mirror.winapi import sounds
 
 # what the user sees for each sound, translated with tr()
 SOUND_LABELS = {
@@ -72,7 +73,7 @@ class TimerDialog(Popup):
             tr("Sound"),
             [(sound, tr(SOUND_LABELS[sound])) for sound in TIMER_SOUNDS],
             self._timer.sound,
-            on_change=lambda sound: self._keep_timer(replace(self._timer, sound=sound)),
+            on_change=self._on_sound_changed,
         )
         direction_row = ChoiceRow(
             tr("Count"),
@@ -97,6 +98,10 @@ class TimerDialog(Popup):
     def _keep_timer(self, timer: MirrorTimer) -> None:
         """Keep the timer with a change made in a row, until OK."""
         self._timer = timer
+
+    def _on_sound_changed(self, sound: str) -> None:
+        self._keep_timer(replace(self._timer, sound=sound))
+        sounds.play(sound)
 
     def _confirm(self) -> None:
         """Close, and hand the timer to the card. A wrong alert time keeps the dialog open."""
