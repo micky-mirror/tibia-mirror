@@ -196,11 +196,13 @@ class MirrorWindow(tk.Toplevel):
 
     def _show_timer_badge(self, picture_area: Rect, border: int) -> None:
         """Show the badge under the picture while the timer is on, or hide it."""
-        if not self._mirror_settings.timer.is_on:
+        timer = self._mirror_settings.timer
+
+        if not timer.is_on:
             self._timer_badge.withdraw()
             return
 
-        self._timer_badge.show(picture_area, border)
+        self._timer_badge.show(picture_area, border, timer.get_start_text())
 
     def _get_picture_area(self, layout: Layout) -> Rect:
         """Where the picture of the game goes on the screen."""
