@@ -23,7 +23,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.ui.overlay2.mirror_frame import MirrorFrame
-from tibia_mirror.ui.overlay2.timer_badge import IDLE_TEXT, RUNNING_TEXT, TimerBadge
+from tibia_mirror.ui.overlay2.timer_badge import DONE_TEXT, IDLE_TEXT, RUNNING_TEXT, TimerBadge
 from tibia_mirror.winapi import dwm, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
@@ -211,13 +211,16 @@ class MirrorWindow(tk.Toplevel):
         self._timer_badge.show(picture_area, border)
 
     def _update_timer_text(self) -> None:
-        """Show the start time in a dim colour, or the counting time in white."""
+        """Show the start time in a dim colour, the counting time in white, and the end in red."""
         timer = self._mirror_settings.timer
+        elapsed = self._timer_elapsed
 
-        if self._timer_elapsed is None:
+        if elapsed is None:
             self._timer_badge.set_text(timer.get_start_text(), IDLE_TEXT)
+        elif timer.is_done(elapsed):
+            self._timer_badge.set_text(timer.get_text(elapsed), DONE_TEXT)
         else:
-            self._timer_badge.set_text(timer.get_text(self._timer_elapsed), RUNNING_TEXT)
+            self._timer_badge.set_text(timer.get_text(elapsed), RUNNING_TEXT)
 
     def _get_picture_area(self, layout: Layout) -> Rect:
         """Where the picture of the game goes on the screen."""

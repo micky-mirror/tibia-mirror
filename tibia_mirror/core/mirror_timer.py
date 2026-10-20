@@ -66,6 +66,10 @@ class MirrorTimer:
 
         return clock(math.floor(counted))
 
+    def is_done(self, elapsed: float) -> bool:
+        """Whether the alert time has come this many seconds after the start."""
+        return elapsed >= self.alert_seconds
+
 
 class _SavedTimer:
     """The timer of a mirror in a profile file, with one method for each kind of value.

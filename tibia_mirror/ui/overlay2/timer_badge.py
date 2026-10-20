@@ -13,6 +13,7 @@ from tibia_mirror.winapi import dwm, win32
 BADGE_BG = "#11111b"
 IDLE_TEXT = "#a6adc8"  # before the timer starts
 RUNNING_TEXT = "#ffffff"
+DONE_TEXT = "#f38ba8"  # from the alert time on
 FONT = ("Segoe UI Semibold", 9)  # all digits of Segoe UI have the same width
 
 
