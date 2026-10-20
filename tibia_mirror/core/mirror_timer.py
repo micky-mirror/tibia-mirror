@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -51,9 +52,19 @@ class MirrorTimer:
 
     def get_start_text(self) -> str:
         """The time on the badge before the timer starts, for example "01:00"."""
-        seconds = self.alert_seconds if self.direction == "down" else 0
+        return self.get_text(0)
 
-        return clock(seconds)
+    def get_text(self, elapsed: float) -> str:
+        """The time on the badge this many seconds after the start, for example "00:42".
+
+        It stops at the alert time. Counting down rounds up, so it shows "00:01" until the end.
+        """
+        counted = min(elapsed, self.alert_seconds)
+
+        if self.direction == "down":
+            return clock(math.ceil(self.alert_seconds - counted))
+
+        return clock(math.floor(counted))
 
 
 class _SavedTimer:
