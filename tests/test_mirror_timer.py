@@ -101,3 +101,13 @@ def test_a_timer_counting_up_rounds_down_and_stops_at_its_alert_time(elapsed, te
     timer = MirrorTimer(alert_seconds=60, direction="up")
 
     assert timer.get_text(elapsed) == text
+
+
+@pytest.mark.parametrize(
+    ("elapsed", "is_done"),
+    [(0, False), (59.9, False), (60, True), (75, True)],
+)
+def test_a_timer_is_done_from_its_alert_time_on(elapsed, is_done):
+    timer = MirrorTimer(alert_seconds=60)
+
+    assert timer.is_done(elapsed) == is_done
