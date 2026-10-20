@@ -17,6 +17,7 @@ from tibia_mirror.app_parts.mirror_manager import MirrorManager
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.app_parts.settings_writer import SettingsWriter
 from tibia_mirror.app_parts.tibia_connection import TibiaConnection
+from tibia_mirror.app_parts.timer_manager import TimerManager
 from tibia_mirror.config import (
     APP_ID,
     ATTACH_POLL_MS,
@@ -1142,7 +1143,10 @@ class App2:
             self._on_character_changed,
         )
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings, self._on_profile_changed)
-        self.mirror_manager = MirrorManager(self.window, self.settings, self.profile_manager)
+        self.timer_manager = TimerManager(self.profile_manager)
+        self.mirror_manager = MirrorManager(
+            self.window, self.settings, self.profile_manager, self.timer_manager
+        )
         self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
         self.input_watcher = InputWatcher(self._on_click, self._on_key)
@@ -1161,6 +1165,8 @@ class App2:
 
         # open the profile of a character who was logged in before the app started
         self._on_character_changed(self.connection.character)
+        # show the time of the timers on their badges
+        self._tick_timers()
 
     def run(self) -> None:
         self.window.mainloop()
@@ -1220,7 +1226,7 @@ class App2:
         """Start the timers of the mirrors whose area was clicked in Tibia."""
 
     def _on_key(self, key_code: int, modifiers: tuple[str, ...]) -> None:
-        """Hide all mirrors, or bring them back, when the hide-all key is pressed in Tibia."""
+        """Act on a key pressed in Tibia: the hide-all key, or the key of a timer."""
         game_window = self.connection.game_window
         hide_all_key = self.settings.current.hide_all_key
 
@@ -1230,6 +1236,15 @@ class App2:
 
         if combo_matches(hide_all_key, key_code, modifiers):
             self._toggle_all_hidden()
+            return
+
+        self.timer_manager.start_by_key(key_code, modifiers, time.monotonic())
+
+    # It plans its next run first, so an error in one run cannot stop it for good.
+    def _tick_timers(self) -> None:
+        """Show the time of every timer on its badge, again every TIMER_TICK_MS."""
+        self.window.after(TIMER_TICK_MS, self._tick_timers)
+        self.mirror_manager.update_timer_badges(time.monotonic())
 
     def _toggle_all_hidden(self) -> None:
         """Hide all mirrors, or bring them back."""
@@ -1347,6 +1362,8 @@ class App2:
             return
 
         failed = self.mirror_manager.show(game_window)
+        # new windows show the time of a counting timer at once, not on the next tick
+        self.mirror_manager.update_timer_badges(time.monotonic())
 
         if failed:
             message = tr_n(failed, "{n} mirror failed to load", "{n} mirrors failed to load")

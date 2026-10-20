@@ -4,6 +4,7 @@ import tkinter as tk
 from dataclasses import replace
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
+from tibia_mirror.app_parts.timer_manager import TimerManager
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
@@ -21,10 +22,12 @@ class MirrorManager:
         window: tk.Misc,
         settings: AppSettingsStore,
         profile_manager: ProfileManager,
+        timer_manager: TimerManager,
     ) -> None:
         self._window = window
         self._settings = settings
         self._profile_manager = profile_manager
+        self._timer_manager = timer_manager
         self._mirror_windows: list[MirrorWindow] = []
 
     def show(self, game_window: GameWindow) -> int:
@@ -64,6 +67,12 @@ class MirrorManager:
 
         for mirror_window in self._mirror_windows:
             mirror_window.set_mirror_look(mirror_look)
+
+    def update_timer_badges(self, now: float) -> None:
+        """Show on every mirror window how long its timer has counted."""
+        for mirror_window in self._mirror_windows:
+            elapsed = self._timer_manager.get_elapsed(mirror_window.mirror_id, now)
+            mirror_window.set_timer_elapsed(elapsed)
 
     def update_windows(self) -> None:
         """Make every mirror window follow the open profile after it changed.

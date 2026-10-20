@@ -55,7 +55,7 @@ class FakeProfileManager:
 
 def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
     settings_store = SimpleNamespace(current=app_settings)
-    return MirrorManager(None, settings_store, profile_manager)
+    return MirrorManager(None, settings_store, profile_manager, None)
 
 
 def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
@@ -198,7 +198,7 @@ def test_new_windows_get_the_look_from_the_settings(screen):
 def test_update_mirror_look_reaches_every_window(screen):
     settings_store = SimpleNamespace(current=DEFAULT_SETTINGS)
     profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
-    manager = MirrorManager(None, settings_store, profile_manager)
+    manager = MirrorManager(None, settings_store, profile_manager, None)
     manager.show(GAME_WINDOW)
     frameless = MirrorLook(is_frame_on=False, is_rounded_on=False, is_tint_on=False)
 
