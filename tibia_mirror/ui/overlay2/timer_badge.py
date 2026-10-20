@@ -12,6 +12,7 @@ from tibia_mirror.winapi import dwm, win32
 # It sits over the game, not the panel, so its colours are the same in both themes.
 BADGE_BG = "#11111b"
 IDLE_TEXT = "#a6adc8"  # before the timer starts
+RUNNING_TEXT = "#ffffff"
 FONT = ("Segoe UI Semibold", 9)  # all digits of Segoe UI have the same width
 
 
@@ -41,15 +42,18 @@ class TimerBadge(tk.Toplevel):
         win32.set_click_through(self._window_handle, True)
         self._set_rounded_shape()
 
-    def show(self, picture_area: Rect, border: int, text: str) -> None:
-        """Show this time under the picture, in line with the right edge of its frame."""
+    def show(self, picture_area: Rect, border: int) -> None:
+        """Show the badge under the picture, in line with the right edge of its frame."""
         frame_area = picture_area.grown(border)
         left = frame_area.x + frame_area.w - self._width
         top = frame_area.y + frame_area.h + px(self.GAP)
-        self._label.configure(text=text)
         self.geometry(f"+{left}+{top}")
         self.deiconify()
         self.attributes("-topmost", True)  # above other windows, also above the game
+
+    def set_text(self, text: str, colour: str) -> None:
+        """Show this time on the badge, in this colour."""
+        self._label.configure(text=text, fg=colour)
 
     def _get_size(self) -> tuple[int, int]:
         """The size that fits the longest time, so the badge never changes size."""

@@ -23,7 +23,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.ui.overlay2.mirror_frame import MirrorFrame
-from tibia_mirror.ui.overlay2.timer_badge import TimerBadge
+from tibia_mirror.ui.overlay2.timer_badge import IDLE_TEXT, RUNNING_TEXT, TimerBadge
 from tibia_mirror.winapi import dwm, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
@@ -58,6 +58,8 @@ class MirrorWindow(tk.Toplevel):
         self._mirror_frame = MirrorFrame(self, mirror_settings.opacity)
         # the time of the timer, under the picture
         self._timer_badge = TimerBadge(self)
+        self._timer_elapsed: float | None = None  # seconds since the timer started, None before
+        self._update_timer_text()
         # initialize thumbnail connection
         self._thumbnail = self._create_thumbnail()
         # render window at given place
@@ -87,6 +89,7 @@ class MirrorWindow(tk.Toplevel):
         win32.set_alpha(self._window_handle, mirror_settings.opacity)
         win32.set_click_through(self._window_handle, mirror_settings.is_locked)
         self._mirror_frame.set_opacity(mirror_settings.opacity)
+        self._update_timer_text()
         self._show_at_saved_place()
 
     def set_game_window(self, game_window: GameWindow) -> None:
@@ -98,6 +101,11 @@ class MirrorWindow(tk.Toplevel):
         """Draw the window with a new look."""
         self._mirror_look = mirror_look
         self._show_at_saved_place()
+
+    def set_timer_elapsed(self, elapsed: float | None) -> None:
+        """Show the time of the timer this many seconds after its start. None: not started."""
+        self._timer_elapsed = elapsed
+        self._update_timer_text()
 
     def _bind_events(self) -> None:
         # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
@@ -196,13 +204,20 @@ class MirrorWindow(tk.Toplevel):
 
     def _show_timer_badge(self, picture_area: Rect, border: int) -> None:
         """Show the badge under the picture while the timer is on, or hide it."""
-        timer = self._mirror_settings.timer
-
-        if not timer.is_on:
+        if not self._mirror_settings.timer.is_on:
             self._timer_badge.withdraw()
             return
 
-        self._timer_badge.show(picture_area, border, timer.get_start_text())
+        self._timer_badge.show(picture_area, border)
+
+    def _update_timer_text(self) -> None:
+        """Show the start time in a dim colour, or the counting time in white."""
+        timer = self._mirror_settings.timer
+
+        if self._timer_elapsed is None:
+            self._timer_badge.set_text(timer.get_start_text(), IDLE_TEXT)
+        else:
+            self._timer_badge.set_text(timer.get_text(self._timer_elapsed), RUNNING_TEXT)
 
     def _get_picture_area(self, layout: Layout) -> Rect:
         """Where the picture of the game goes on the screen."""
