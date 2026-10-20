@@ -23,6 +23,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.ui.overlay2.mirror_frame import MirrorFrame
+from tibia_mirror.ui.overlay2.timer_badge import TimerBadge
 from tibia_mirror.winapi import dwm, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
@@ -55,6 +56,8 @@ class MirrorWindow(tk.Toplevel):
         win32.set_click_through(self._window_handle, mirror_settings.is_locked)
         # the frame behind a rounded picture
         self._mirror_frame = MirrorFrame(self, mirror_settings.opacity)
+        # the time of the timer, under the picture
+        self._timer_badge = TimerBadge(self)
         # initialize thumbnail connection
         self._thumbnail = self._create_thumbnail()
         # render window at given place
@@ -167,6 +170,7 @@ class MirrorWindow(tk.Toplevel):
         is_tibia_in_use = self._game_window.is_in_front and not self._game_window.is_minimized
 
         if layout is None or self._mirror_settings.is_hidden or not is_tibia_in_use:
+            self._timer_badge.withdraw()
             self._mirror_frame.withdraw()
             self.withdraw()
             return
@@ -188,6 +192,15 @@ class MirrorWindow(tk.Toplevel):
         self._thumbnail.show(layout.region, thumbnail_area)
         self.deiconify()
         self.attributes("-topmost", True)  # above other windows, also above the game
+        self._show_timer_badge(picture_area, border)
+
+    def _show_timer_badge(self, picture_area: Rect, border: int) -> None:
+        """Show the badge under the picture while the timer is on, or hide it."""
+        if not self._mirror_settings.timer.is_on:
+            self._timer_badge.withdraw()
+            return
+
+        self._timer_badge.show(picture_area, border)
 
     def _get_picture_area(self, layout: Layout) -> Rect:
         """Where the picture of the game goes on the screen."""
