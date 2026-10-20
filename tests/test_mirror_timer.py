@@ -1,4 +1,4 @@
-"""The timer of a mirror: reading it from a profile file and writing it back."""
+"""The timer of a mirror: reading it from a profile file, writing it back, and its start time."""
 
 import pytest
 
@@ -65,3 +65,19 @@ def test_the_old_timer_class_reads_and_writes_the_same_file():
     del old_file_content["button"]
 
     assert old_file_content == file_content
+
+
+@pytest.mark.parametrize(
+    ("alert_seconds", "text"),
+    [(1, "00:01"), (90, "01:30"), (59 * 60 + 59, "59:59")],
+)
+def test_a_timer_counting_down_starts_at_its_alert_time(alert_seconds, text):
+    timer = MirrorTimer(alert_seconds=alert_seconds, direction="down")
+
+    assert timer.get_start_text() == text
+
+
+def test_a_timer_counting_up_starts_at_zero():
+    timer = MirrorTimer(alert_seconds=90, direction="up")
+
+    assert timer.get_start_text() == "00:00"
