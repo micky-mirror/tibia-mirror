@@ -1,4 +1,4 @@
-"""The timer of a mirror: reading it from a profile file, writing it back, and its start time."""
+"""The timer of a mirror: reading it from a profile file, writing it back, and its time."""
 
 import pytest
 
@@ -81,3 +81,23 @@ def test_a_timer_counting_up_starts_at_zero():
     timer = MirrorTimer(alert_seconds=90, direction="up")
 
     assert timer.get_start_text() == "00:00"
+
+
+@pytest.mark.parametrize(
+    ("elapsed", "text"),
+    [(0.4, "01:00"), (1, "00:59"), (59.6, "00:01"), (60, "00:00"), (75, "00:00")],
+)
+def test_a_timer_counting_down_rounds_up_and_stops_at_zero(elapsed, text):
+    timer = MirrorTimer(alert_seconds=60, direction="down")
+
+    assert timer.get_text(elapsed) == text
+
+
+@pytest.mark.parametrize(
+    ("elapsed", "text"),
+    [(0.6, "00:00"), (59.9, "00:59"), (60, "01:00"), (75, "01:00")],
+)
+def test_a_timer_counting_up_rounds_down_and_stops_at_its_alert_time(elapsed, text):
+    timer = MirrorTimer(alert_seconds=60, direction="up")
+
+    assert timer.get_text(elapsed) == text
