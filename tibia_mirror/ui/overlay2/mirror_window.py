@@ -24,7 +24,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.ui.overlay2.mirror_frame import MirrorFrame
 from tibia_mirror.ui.overlay2.timer_badge import DONE_TEXT, IDLE_TEXT, RUNNING_TEXT, TimerBadge
-from tibia_mirror.winapi import dwm, win32
+from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
 
@@ -103,9 +103,16 @@ class MirrorWindow(tk.Toplevel):
         self._show_at_saved_place()
 
     def set_timer_elapsed(self, elapsed: float | None) -> None:
-        """Show the time of the timer this many seconds after its start. None: not started."""
+        """Show the time of the timer this many seconds after its start. None: not started.
+
+        When the timer ends, its sound plays, but not for a hidden mirror.
+        """
+        is_alert_pending = self._timer_elapsed is not None and not self._is_timer_done()
         self._timer_elapsed = elapsed
         self._update_timer_text()
+
+        if is_alert_pending and self._is_timer_done() and not self._mirror_settings.is_hidden:
+            sounds.play(self._mirror_settings.timer.sound)
 
     def _bind_events(self) -> None:
         # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
@@ -221,6 +228,12 @@ class MirrorWindow(tk.Toplevel):
             self._timer_badge.set_text(timer.get_text(elapsed), DONE_TEXT)
         else:
             self._timer_badge.set_text(timer.get_text(elapsed), RUNNING_TEXT)
+
+    def _is_timer_done(self) -> bool:
+        """Whether the timer has started and reached its alert time."""
+        elapsed = self._timer_elapsed
+
+        return elapsed is not None and self._mirror_settings.timer.is_done(elapsed)
 
     def _get_picture_area(self, layout: Layout) -> Rect:
         """Where the picture of the game goes on the screen."""
