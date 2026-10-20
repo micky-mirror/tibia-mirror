@@ -1224,6 +1224,16 @@ class App2:
 
     def _on_click(self, button: str, position_x: int, position_y: int, pressed_at: float) -> None:
         """Start the timers of the mirrors whose area was clicked in Tibia."""
+        game_window = self.connection.game_window
+
+        if button != "left" or game_window is None:
+            return
+
+        # only clicks that Tibia gets count, not clicks on a window above it
+        if win32.toplevel_at(position_x, position_y) != game_window.handle:
+            return
+
+        self.timer_manager.start_by_click(game_window, position_x, position_y, pressed_at)
 
     def _on_key(self, key_code: int, modifiers: tuple[str, ...]) -> None:
         """Act on a key pressed in Tibia: the hide-all key, or the key of a timer."""
