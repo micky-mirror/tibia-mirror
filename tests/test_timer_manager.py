@@ -15,6 +15,7 @@ F1 = (112, ())  # a hotkey as the app keeps it: (key code, modifiers held with i
 F2 = (113, ())
 # a timer that its key F1 starts, also while nobody is logged in
 ON_WITH_F1 = MirrorTimer(is_on=True, key=F1, is_paused_offline=False)
+PAUSING_WITH_F1 = replace(ON_WITH_F1, is_paused_offline=True)  # counts only while logged in
 GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)
 AREA = Layout(Rect(5, 5, 320, 64), (0, 0))  # the area of the mirror, inside the game
 
@@ -131,5 +132,33 @@ def test_a_mirror_without_an_area_for_this_size_of_the_game_starts_nothing():
     manager = make_manager([other_size])
 
     manager.start_by_click(GAME_WINDOW, 20, 30, now=10.0)
+
+    assert manager.get_elapsed("Minimap", now=15.0) is None
+
+
+def test_a_pausing_timer_does_not_start_while_nobody_is_logged_in():
+    manager = make_manager([make_shown_mirror("Minimap", PAUSING_WITH_F1)])
+
+    manager.start_by_key(*F1, now=10.0)
+    manager.start_by_click(GAME_WINDOW, 20, 30, now=10.0)
+
+    assert manager.get_elapsed("Minimap", now=15.0) is None
+
+
+def test_a_pausing_timer_starts_while_a_character_is_logged_in():
+    manager = make_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager.set_character("Knight")
+
+    manager.start_by_key(*F1, now=10.0)
+
+    assert manager.get_elapsed("Minimap", now=15.0) == 5.0
+
+
+def test_a_pausing_timer_does_not_start_after_a_logout():
+    manager = make_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager.set_character("Knight")
+    manager.set_character(None)
+
+    manager.start_by_key(*F1, now=10.0)
 
     assert manager.get_elapsed("Minimap", now=15.0) is None
