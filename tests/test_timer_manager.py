@@ -30,11 +30,12 @@ def make_shown_mirror(name, timer):
     return replace(make_mirror(name, timer), layouts={"800x600": AREA})
 
 
-def make_manager(mirrors):
-    """A timer manager whose open profile has these mirrors."""
+def make_manager(mirrors, character=None):
+    """A timer manager whose open profile has these mirrors, while this character is logged in."""
     profile_manager = SimpleNamespace(current=Profile(mirrors=tuple(mirrors)))
     settings_store = SimpleNamespace(current=AppSettings())
-    return TimerManager(settings_store, profile_manager)
+    connection = SimpleNamespace(character=character)
+    return TimerManager(settings_store, profile_manager, connection)
 
 
 def test_a_timer_that_has_not_started_has_no_time():
@@ -148,19 +149,8 @@ def test_a_pausing_timer_does_not_start_while_nobody_is_logged_in():
 
 
 def test_a_pausing_timer_starts_while_a_character_is_logged_in():
-    manager = make_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
-    manager.set_character("Knight")
+    manager = make_manager([make_mirror("Minimap", PAUSING_WITH_F1)], character="Knight")
 
     manager.start_by_key(*F1, now=10.0)
 
     assert manager.get_elapsed("Minimap", now=15.0) == 5.0
-
-
-def test_a_pausing_timer_does_not_start_after_a_logout():
-    manager = make_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
-    manager.set_character("Knight")
-    manager.set_character(None)
-
-    manager.start_by_key(*F1, now=10.0)
-
-    assert manager.get_elapsed("Minimap", now=15.0) is None

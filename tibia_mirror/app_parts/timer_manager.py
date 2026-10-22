@@ -1,6 +1,7 @@
 """The timers that count."""
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
+from tibia_mirror.app_parts.tibia_connection import TibiaConnection
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import size_key
@@ -11,15 +12,16 @@ from tibia_mirror.settings.app_settings_store import AppSettingsStore
 class TimerManager:
     """Keeps when each timer started, by the id of its mirror."""
 
-    def __init__(self, settings: AppSettingsStore, profile_manager: ProfileManager) -> None:
+    def __init__(
+        self,
+        settings: AppSettingsStore,
+        profile_manager: ProfileManager,
+        connection: TibiaConnection,
+    ) -> None:
         self._settings = settings
         self._profile_manager = profile_manager
+        self._connection = connection
         self._start_times: dict[str, float] = {}  # mirror id -> when its timer started
-        self._character: str | None = None  # the character logged in to Tibia, None if nobody
-
-    def set_character(self, character: str | None) -> None:
-        """Keep who is logged in to Tibia now. None on the login screen and without Tibia."""
-        self._character = character
 
     def start_by_key(self, key_code: int, modifiers: tuple[str, ...], now: float) -> None:
         """Start the timers of the open profile that this key starts, or start them again."""
@@ -64,4 +66,6 @@ class TimerManager:
 
     def _can_start(self, timer: MirrorTimer) -> bool:
         """Whether this timer can start now. A timer that pauses while logged out needs a login."""
-        return timer.is_on and (self._character is not None or not timer.is_paused_offline)
+        is_logged_in = self._connection.character is not None
+
+        return timer.is_on and (is_logged_in or not timer.is_paused_offline)

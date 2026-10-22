@@ -56,7 +56,8 @@ class FakeProfileManager:
 
 def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
     settings_store = SimpleNamespace(current=app_settings)
-    timer_manager = TimerManager(settings_store, profile_manager)
+    connection = SimpleNamespace(character=None)
+    timer_manager = TimerManager(settings_store, profile_manager, connection)
     return MirrorManager(None, settings_store, profile_manager, timer_manager)
 
 
