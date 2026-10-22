@@ -1293,8 +1293,9 @@ class App2:
         self.panel.set_mirrors(self._get_mirror_infos())
 
     def _on_profile_selected(self, name: str) -> None:
-        """Open another profile, and show its mirrors."""
+        """Open another profile, and show its mirrors. Every timer stops."""
         self.profile_manager.open(name)
+        self.timer_manager.stop_all()
         self.panel.set_profile_info(self._get_profile_info())
 
         if self._load_profile():

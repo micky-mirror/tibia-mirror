@@ -41,6 +41,10 @@ class TimerManager:
         """Stop the timer of this mirror, so it shows its start time again."""
         self._start_times.pop(mirror_id, None)
 
+    def stop_all(self) -> None:
+        """Stop every timer, so each one shows its start time again."""
+        self._start_times.clear()
+
     def get_elapsed(self, mirror_id: str, now: float) -> float | None:
         """Seconds since the timer of this mirror started. None if it has not started."""
         start_time = self._start_times.get(mirror_id)
