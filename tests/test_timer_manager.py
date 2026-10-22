@@ -10,6 +10,7 @@ from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.profile import Profile
 from tibia_mirror.core.regions import Layout
+from tibia_mirror.settings.app_settings import AppSettings
 
 F1 = (112, ())  # a hotkey as the app keeps it: (key code, modifiers held with it)
 F2 = (113, ())
@@ -32,7 +33,8 @@ def make_shown_mirror(name, timer):
 def make_manager(mirrors):
     """A timer manager whose open profile has these mirrors."""
     profile_manager = SimpleNamespace(current=Profile(mirrors=tuple(mirrors)))
-    return TimerManager(profile_manager)
+    settings_store = SimpleNamespace(current=AppSettings())
+    return TimerManager(settings_store, profile_manager)
 
 
 def test_a_timer_that_has_not_started_has_no_time():

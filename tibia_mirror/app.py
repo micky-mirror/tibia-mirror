@@ -1143,7 +1143,7 @@ class App2:
             self._on_character_changed,
         )
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings, self._on_profile_changed)
-        self.timer_manager = TimerManager(self.profile_manager)
+        self.timer_manager = TimerManager(self.settings, self.profile_manager)
         self.mirror_manager = MirrorManager(
             self.window, self.settings, self.profile_manager, self.timer_manager
         )

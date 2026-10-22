@@ -5,12 +5,14 @@ from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import size_key
 from tibia_mirror.core.timers import combo_matches
+from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 
 class TimerManager:
     """Keeps when each timer started, by the id of its mirror."""
 
-    def __init__(self, profile_manager: ProfileManager) -> None:
+    def __init__(self, settings: AppSettingsStore, profile_manager: ProfileManager) -> None:
+        self._settings = settings
         self._profile_manager = profile_manager
         self._start_times: dict[str, float] = {}  # mirror id -> when its timer started
         self._character: str | None = None  # the character logged in to Tibia, None if nobody
