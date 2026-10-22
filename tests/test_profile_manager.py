@@ -163,6 +163,32 @@ def test_a_renamed_profile_is_opened_again_at_the_next_start(tmp_path, folder):
     assert next_start.active_name == "Team hunt"
 
 
+def test_a_duplicated_profile_has_the_same_mirrors_with_new_ids(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    manager = make_manager(folder, make_settings(tmp_path, "Knight"))
+    manager.load()
+
+    manager.duplicate("Elite Knight")
+    manager.open("Elite Knight")
+    manager.load()
+
+    original = MirrorSettings.from_json(MIRROR_JSON)
+    copy = manager.current.mirrors[0]
+    assert copy.mirror_id != original.mirror_id
+    assert replace(copy, mirror_id=original.mirror_id) == original
+
+
+def test_a_duplicate_does_not_change_the_open_profile(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    manager = make_manager(folder, make_settings(tmp_path, "Knight"))
+    manager.load()
+
+    manager.duplicate("Elite Knight")
+
+    assert manager.active_name == "Knight"
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
+
+
 def test_a_deleted_profile_is_gone_and_the_first_profile_left_is_opened(tmp_path, folder):
     add_profile(folder, "Druid")
     add_profile(folder, "Knight")
