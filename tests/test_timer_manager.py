@@ -244,3 +244,19 @@ def test_a_login_does_not_continue_the_spot_of_another_character():
     change_character(manager, connection, "Knight", now=100.0)
 
     assert manager.get_elapsed("Minimap", now=103.0) is None
+
+
+def test_a_stopped_timer_loses_its_saved_spots_of_every_character():
+    timer_pauses = (
+        ("Druid", "Minimap", 9.0),
+        ("Knight", "Health", 7.0),
+        ("Knight", "Minimap", 15.0),
+    )
+    settings_store = FakeSettingsStore(last_character="Knight", timer_pauses=timer_pauses)
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(settings_store, profile_manager, SimpleNamespace(character=None))
+
+    manager.stop("Minimap")
+
+    assert settings_store.current.timer_pauses == (("Knight", "Health", 7.0),)
+    assert manager.get_elapsed("Minimap", now=100.0) is None
