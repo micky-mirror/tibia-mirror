@@ -2,6 +2,7 @@
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.core.game_window import GameWindow
+from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import size_key
 from tibia_mirror.core.timers import combo_matches
 
@@ -12,13 +13,18 @@ class TimerManager:
     def __init__(self, profile_manager: ProfileManager) -> None:
         self._profile_manager = profile_manager
         self._start_times: dict[str, float] = {}  # mirror id -> when its timer started
+        self._character: str | None = None  # the character logged in to Tibia, None if nobody
+
+    def set_character(self, character: str | None) -> None:
+        """Keep who is logged in to Tibia now. None on the login screen and without Tibia."""
+        self._character = character
 
     def start_by_key(self, key_code: int, modifiers: tuple[str, ...], now: float) -> None:
         """Start the timers of the open profile that this key starts, or start them again."""
         for mirror_settings in self._profile_manager.current.mirrors:
             timer = mirror_settings.timer
 
-            if timer.is_on and combo_matches(timer.key, key_code, modifiers):
+            if self._can_start(timer) and combo_matches(timer.key, key_code, modifiers):
                 self._start_times[mirror_settings.mirror_id] = now
 
     def start_by_click(
@@ -34,7 +40,7 @@ class TimerManager:
             layout = mirror_settings.layouts.get(game_size_key)
             is_clicked = layout is not None and layout.region.contains(point_x, point_y)
 
-            if mirror_settings.timer.is_on and is_clicked:
+            if self._can_start(mirror_settings.timer) and is_clicked:
                 self._start_times[mirror_settings.mirror_id] = now
 
     def stop(self, mirror_id: str) -> None:
@@ -53,3 +59,7 @@ class TimerManager:
             return None
 
         return now - start_time
+
+    def _can_start(self, timer: MirrorTimer) -> bool:
+        """Whether this timer can start now. A timer that pauses while logged out needs a login."""
+        return timer.is_on and (self._character is not None or not timer.is_paused_offline)

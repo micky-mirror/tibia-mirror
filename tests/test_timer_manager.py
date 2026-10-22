@@ -13,7 +13,8 @@ from tibia_mirror.core.regions import Layout
 
 F1 = (112, ())  # a hotkey as the app keeps it: (key code, modifiers held with it)
 F2 = (113, ())
-ON_WITH_F1 = MirrorTimer(is_on=True, key=F1)  # a timer that its key F1 starts
+# a timer that its key F1 starts, also while nobody is logged in
+ON_WITH_F1 = MirrorTimer(is_on=True, key=F1, is_paused_offline=False)
 GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)
 AREA = Layout(Rect(5, 5, 320, 64), (0, 0))  # the area of the mirror, inside the game
 
