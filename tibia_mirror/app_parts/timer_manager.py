@@ -5,7 +5,7 @@ from tibia_mirror.app_parts.tibia_connection import TibiaConnection
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import size_key
-from tibia_mirror.core.timers import combo_matches
+from tibia_mirror.core.timers import combo_matches, pauses_of
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 
@@ -46,6 +46,26 @@ class TimerManager:
 
             if self._can_start(mirror_settings.timer) and is_clicked:
                 self._start_times[mirror_settings.mirror_id] = now
+
+    def continue_timers(self, now: float) -> None:
+        """Start the timers of the character who logged in from their saved spots, if any.
+
+        Without a login, nothing happens.
+        """
+        character = self._connection.character
+
+        if character is None:
+            return
+
+        saved_times = pauses_of(self._settings.current.timer_pauses, character)
+
+        for mirror_settings in self._profile_manager.current.mirrors:
+            seconds = saved_times.get(mirror_settings.mirror_id)
+
+            if seconds is not None:
+                self._start_times[mirror_settings.mirror_id] = now - seconds
+
+        self._settings.update(last_character=character)
 
     def stop(self, mirror_id: str) -> None:
         """Stop the timer of this mirror, so it shows its start time again."""

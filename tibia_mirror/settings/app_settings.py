@@ -33,7 +33,7 @@ class AppSettings:
     is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
     is_rounded_corners_on: bool = False
     last_profile: str = DEFAULT_PROFILE  # the profile that was open, opened again at the start
-    # Who logged out last. Their paused timers are shown until somebody logs in.
+    # Who logged in last. Their paused timers are shown while nobody is logged in.
     last_character: str = ""
     # The key combination that hides every mirror and brings them back. None: no key is set.
     hide_all_key: KeyCombo | None = None

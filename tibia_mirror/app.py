@@ -1209,9 +1209,14 @@ class App2:
         self.panel.set_mirrors(self._get_mirror_infos())
 
     def _on_character_changed(self, character: str | None) -> None:
-        """Open the profile of the character that logged in, when Profile per character is on."""
+        """Open the profile of a character who logged in, and continue their paused timers.
+
+        The profile opens only when Profile per character is on.
+        """
         if character is not None and self.settings.current.is_profile_per_character_on:
             self._open_character_profile(character)
+
+        self.timer_manager.continue_timers(time.monotonic())
 
     def _open_character_profile(self, character: str) -> None:
         """Open the profile with the character's name, or make one from the open profile."""
