@@ -1,5 +1,6 @@
 """The mirrors on the screen."""
 
+import time
 import tkinter as tk
 from dataclasses import replace
 
@@ -131,6 +132,7 @@ class MirrorManager:
         """Put a change from the Mirrors page into the open profile.
 
         A hotkey that is new for the timer is first cleared from every place that has it.
+        New timer settings stop the timer, so it starts over.
         """
         mirror_settings = self._get_mirror(mirror_info.mirror_id)
 
@@ -150,7 +152,18 @@ class MirrorManager:
         if hotkey is not None and hotkey != mirror_settings.timer.key:
             self._profile_manager.clear_hotkey(hotkey)
 
+        self._stop_changed_timer(mirror_settings, new_settings)
         self._profile_manager.update_mirror(new_settings)
+
+    def _stop_changed_timer(
+        self, mirror_settings: MirrorSettings, new_settings: MirrorSettings
+    ) -> None:
+        """Stop the timer of this mirror when its timer settings change."""
+        if new_settings.timer == mirror_settings.timer:
+            return
+
+        self._timer_manager.stop(mirror_settings.mirror_id)
+        self.update_timer_badges(time.monotonic())
 
     def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:
         """The kept mirror with this id. None if there is none."""

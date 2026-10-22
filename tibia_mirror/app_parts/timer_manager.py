@@ -37,6 +37,10 @@ class TimerManager:
             if mirror_settings.timer.is_on and is_clicked:
                 self._start_times[mirror_settings.mirror_id] = now
 
+    def stop(self, mirror_id: str) -> None:
+        """Stop the timer of this mirror, so it shows its start time again."""
+        self._start_times.pop(mirror_id, None)
+
     def get_elapsed(self, mirror_id: str, now: float) -> float | None:
         """Seconds since the timer of this mirror started. None if it has not started."""
         start_time = self._start_times.get(mirror_id)

@@ -7,6 +7,7 @@ import pytest
 
 from tibia_mirror.app_parts import mirror_manager as mirror_manager_module
 from tibia_mirror.app_parts.mirror_manager import MirrorManager
+from tibia_mirror.app_parts.timer_manager import TimerManager
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_look import MirrorLook
@@ -55,7 +56,7 @@ class FakeProfileManager:
 
 def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
     settings_store = SimpleNamespace(current=app_settings)
-    return MirrorManager(None, settings_store, profile_manager, None)
+    return MirrorManager(None, settings_store, profile_manager, TimerManager(profile_manager))
 
 
 def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
