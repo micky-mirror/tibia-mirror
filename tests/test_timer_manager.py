@@ -21,6 +21,16 @@ GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_
 AREA = Layout(Rect(5, 5, 320, 64), (0, 0))  # the area of the mirror, inside the game
 
 
+class FakeSettingsStore:
+    """Stands in for the settings store. It keeps the settings in memory only."""
+
+    def __init__(self, **values):
+        self.current = AppSettings(**values)
+
+    def update(self, **new_values):
+        self.current = replace(self.current, **new_values)
+
+
 def make_mirror(name, timer):
     return MirrorSettings(mirror_id=name, name=name, layouts={}, timer=timer)
 
@@ -30,12 +40,23 @@ def make_shown_mirror(name, timer):
     return replace(make_mirror(name, timer), layouts={"800x600": AREA})
 
 
+def make_profile_manager(mirrors):
+    """Stands in for the profile manager. The open profile has these mirrors."""
+    return SimpleNamespace(current=Profile(mirrors=tuple(mirrors)))
+
+
 def make_manager(mirrors, character=None):
     """A timer manager whose open profile has these mirrors, while this character is logged in."""
-    profile_manager = SimpleNamespace(current=Profile(mirrors=tuple(mirrors)))
     settings_store = SimpleNamespace(current=AppSettings())
     connection = SimpleNamespace(character=character)
-    return TimerManager(settings_store, profile_manager, connection)
+    return TimerManager(settings_store, make_profile_manager(mirrors), connection)
+
+
+def change_character(manager, connection, character, now):
+    """Log in or out the way the app does: pause the timers first, then continue them."""
+    connection.character = character
+    manager.pause_timers(now)
+    manager.continue_timers(now)
 
 
 def test_a_timer_that_has_not_started_has_no_time():
@@ -154,3 +175,73 @@ def test_a_pausing_timer_starts_while_a_character_is_logged_in():
     manager.start_by_key(*F1, now=10.0)
 
     assert manager.get_elapsed("Minimap", now=15.0) == 5.0
+
+
+def test_a_logout_stops_a_pausing_timer_at_its_spot():
+    connection = SimpleNamespace(character=None)
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(FakeSettingsStore(), profile_manager, connection)
+    change_character(manager, connection, "Knight", now=0.0)
+    manager.start_by_key(*F1, now=10.0)
+
+    change_character(manager, connection, None, now=25.0)
+
+    assert manager.get_elapsed("Minimap", now=100.0) == 15.0
+
+
+def test_a_logout_does_not_stop_a_timer_that_does_not_pause():
+    connection = SimpleNamespace(character=None)
+    profile_manager = make_profile_manager([make_mirror("Minimap", ON_WITH_F1)])
+    manager = TimerManager(FakeSettingsStore(), profile_manager, connection)
+    change_character(manager, connection, "Knight", now=0.0)
+    manager.start_by_key(*F1, now=10.0)
+
+    change_character(manager, connection, None, now=25.0)
+
+    assert manager.get_elapsed("Minimap", now=100.0) == 90.0
+
+
+def test_a_logout_saves_the_spot_beside_the_other_spots_of_the_character():
+    settings_store = FakeSettingsStore(timer_pauses=(("Knight", "Health", 7.0),))
+    connection = SimpleNamespace(character=None)
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(settings_store, profile_manager, connection)
+    change_character(manager, connection, "Knight", now=0.0)
+    manager.start_by_key(*F1, now=10.0)
+
+    change_character(manager, connection, None, now=25.0)
+
+    expected_pauses = (("Knight", "Health", 7.0), ("Knight", "Minimap", 15.0))
+    assert settings_store.current.timer_pauses == expected_pauses
+
+
+def test_the_saved_spot_shows_when_the_app_starts_on_the_login_screen():
+    settings_store = FakeSettingsStore(
+        last_character="Knight", timer_pauses=(("Knight", "Minimap", 15.0),)
+    )
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(settings_store, profile_manager, SimpleNamespace(character=None))
+
+    assert manager.get_elapsed("Minimap", now=100.0) == 15.0
+
+
+def test_a_login_continues_a_timer_from_its_saved_spot():
+    settings_store = FakeSettingsStore(timer_pauses=(("Knight", "Minimap", 15.0),))
+    connection = SimpleNamespace(character=None)
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(settings_store, profile_manager, connection)
+
+    change_character(manager, connection, "Knight", now=100.0)
+
+    assert manager.get_elapsed("Minimap", now=103.0) == 18.0
+
+
+def test_a_login_does_not_continue_the_spot_of_another_character():
+    settings_store = FakeSettingsStore(timer_pauses=(("Druid", "Minimap", 15.0),))
+    connection = SimpleNamespace(character=None)
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(settings_store, profile_manager, connection)
+
+    change_character(manager, connection, "Knight", now=100.0)
+
+    assert manager.get_elapsed("Minimap", now=103.0) is None
