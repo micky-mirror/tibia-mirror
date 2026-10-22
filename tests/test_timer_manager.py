@@ -47,9 +47,8 @@ def make_profile_manager(mirrors):
 
 def make_manager(mirrors, character=None):
     """A timer manager whose open profile has these mirrors, while this character is logged in."""
-    settings_store = SimpleNamespace(current=AppSettings())
     connection = SimpleNamespace(character=character)
-    return TimerManager(settings_store, make_profile_manager(mirrors), connection)
+    return TimerManager(FakeSettingsStore(), make_profile_manager(mirrors), connection)
 
 
 def change_character(manager, connection, character, now):

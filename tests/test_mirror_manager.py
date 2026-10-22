@@ -23,6 +23,16 @@ DEFAULT_SETTINGS = AppSettings()
 F1 = (112, ())  # a hotkey as the app keeps it: (key code, modifiers held with it)
 
 
+class FakeSettingsStore:
+    """Stands in for the settings store. It keeps the settings in memory only."""
+
+    def __init__(self, app_settings):
+        self.current = app_settings
+
+    def update(self, **new_values):
+        self.current = replace(self.current, **new_values)
+
+
 def make_mirror(name):
     return MirrorSettings(mirror_id=name, name=name, layouts={})
 
@@ -55,7 +65,7 @@ class FakeProfileManager:
 
 
 def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
-    settings_store = SimpleNamespace(current=app_settings)
+    settings_store = FakeSettingsStore(app_settings)
     connection = SimpleNamespace(character=None)
     timer_manager = TimerManager(settings_store, profile_manager, connection)
     return MirrorManager(None, settings_store, profile_manager, timer_manager)

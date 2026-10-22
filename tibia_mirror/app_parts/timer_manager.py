@@ -5,7 +5,7 @@ from tibia_mirror.app_parts.tibia_connection import TibiaConnection
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import size_key
-from tibia_mirror.core.timers import combo_matches, pauses_of, with_pauses
+from tibia_mirror.core.timers import combo_matches, pauses_of, with_pauses, without_mirrors
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 
@@ -83,8 +83,14 @@ class TimerManager:
         self._settings.update(last_character=character)
 
     def stop(self, mirror_id: str) -> None:
-        """Stop the timer of this mirror, so it shows its start time again."""
+        """Stop the timer of this mirror, so it shows its start time again.
+
+        Its saved spots are dropped for every character.
+        """
         self._start_times.pop(mirror_id, None)
+        timer_pauses = without_mirrors(self._settings.current.timer_pauses, {mirror_id})
+
+        self._settings.update(timer_pauses=timer_pauses)
 
     def stop_all(self) -> None:
         """Stop every timer, so each one shows its start time again."""
