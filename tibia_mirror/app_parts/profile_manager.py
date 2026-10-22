@@ -9,6 +9,7 @@ from typing import Any
 from tibia_mirror.config import DEFAULT_PROFILE
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.profile import Profile
+from tibia_mirror.core.regions import new_id
 from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
@@ -123,6 +124,17 @@ class ProfileManager:
         If the file cannot be written, this raises OSError.
         """
         self._write(name, Profile(mirrors=tuple(mirrors)))
+
+    def duplicate(self, name: str) -> None:
+        """Write a copy of the open profile as the profile `name`. Its mirrors get new ids.
+
+        If the file cannot be written, this raises OSError.
+        """
+        mirrors = [
+            replace(mirror_settings, mirror_id=new_id()) for mirror_settings in self.current.mirrors
+        ]
+
+        self.write_mirrors(name, mirrors)
 
     def _get_start_name(self) -> str:
         """The profile to open at the start: the one that was open the last time.

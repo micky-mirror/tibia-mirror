@@ -1325,7 +1325,7 @@ class App2:
     def _on_duplicate_profile(self, name: str) -> None:
         """Copy the open profile under a new name, and open the copy."""
         try:
-            self.profile_manager.write_mirrors(name, self.profile_manager.current.mirrors)
+            self.profile_manager.duplicate(name)
         except OSError:
             self.panel.set_message(tr("Could not duplicate profile"), "error")
         else:
