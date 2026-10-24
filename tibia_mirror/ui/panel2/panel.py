@@ -17,7 +17,7 @@ from tibia_mirror.ui.panel2.footer import Footer
 from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.mirrors_page import MirrorsPage
 from tibia_mirror.ui.panel2.nav import NavRail
-from tibia_mirror.ui.panel2.profile_info import ProfileInfo
+from tibia_mirror.ui.panel2.profiles.profile_info import ProfileInfo
 from tibia_mirror.ui.panel2.settings_page import SettingsPage
 from tibia_mirror.ui.panel2.shortcuts_page import ShortcutsPage
 

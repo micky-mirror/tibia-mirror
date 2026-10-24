@@ -10,7 +10,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.panel2.profile_menu import ProfileMenu
+from tibia_mirror.ui.panel2.profiles.profile_menu import ProfileMenu
 
 ICON = "\ue77b"  # a person, from the Segoe MDL2 Assets icon font
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the same icon font
