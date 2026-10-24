@@ -28,6 +28,7 @@ class MirrorCard(tk.Canvas):
         mirror: MirrorInfo,
         on_changed: Callable[[MirrorInfo], None],
         on_removed: Callable[[str], None],
+        on_select_area: Callable[[str], None],
     ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
@@ -43,7 +44,9 @@ class MirrorCard(tk.Canvas):
         self._on_changed = on_changed  # gets the new info after a change made on the card
         self._draw_background()
 
-        self._title = MirrorCardTitle(self, self._width, self._mirror, self._on_mirror_changed)
+        self._title = MirrorCardTitle(
+            self, self._width, self._mirror, self._on_mirror_changed, on_select_area
+        )
         self._button_bar = MirrorCardButtonBar(
             self, self._width, self._mirror, self._on_mirror_changed, on_removed
         )

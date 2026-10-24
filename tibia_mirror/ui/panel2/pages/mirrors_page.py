@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from collections.abc import Callable, Sequence
+from functools import partial
 
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
@@ -40,7 +41,7 @@ class MirrorsPage(tk.Frame):
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
-        on_add_region: Callable[[], None],
+        on_select_area: Callable[[str | None], None],
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
@@ -54,7 +55,8 @@ class MirrorsPage(tk.Frame):
         self._mirrors = mirrors  # None while Tibia is not connected
         self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
-        self._on_add_region = on_add_region  # called when the user clicks Add region
+        # gets the id of the mirror whose area is selected again, None for a new mirror
+        self._on_select_area = on_select_area
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
@@ -103,7 +105,7 @@ class MirrorsPage(tk.Frame):
         button = RaisedButton(
             self,
             "+  " + tr("Add region"),
-            self._on_add_region,
+            partial(self._on_select_area, None),
             width=self._width,
             height=px(ADD_BUTTON_HEIGHT),
             style=theme.PRIMARY_BUTTON,
@@ -177,6 +179,7 @@ class MirrorsPage(tk.Frame):
                 mirror,
                 self._on_card_changed,
                 self._on_card_removed,
+                self._on_select_area,
             )
             card.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
 

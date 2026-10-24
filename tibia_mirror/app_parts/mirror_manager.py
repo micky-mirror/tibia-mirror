@@ -145,6 +145,22 @@ class MirrorManager:
 
         self._profile_manager.add_mirror(mirror_settings)
 
+    def set_area(self, mirror_id: str, area: Rect, game_window: GameWindow) -> None:
+        """Let the mirror show this part of the game, for the size the game has now."""
+        mirror_settings = self._get_mirror(mirror_id)
+
+        if mirror_settings is None:
+            return
+
+        client_area = game_window.client_area
+        game_size_key = size_key(client_area.w, client_area.h)
+        layout = mirror_settings.layouts.get(game_size_key)
+        # the mirror stays where it is; without a place for this size it goes beside the area
+        offset = self._get_new_mirror_offset(area, client_area) if layout is None else layout.offset
+        layouts = {**mirror_settings.layouts, game_size_key: Layout(area, offset)}
+
+        self._profile_manager.update_mirror(replace(mirror_settings, layouts=layouts))
+
     def update_mirror(self, mirror_info: MirrorInfo) -> None:
         """Put a change from the Mirrors page into the open profile.
 

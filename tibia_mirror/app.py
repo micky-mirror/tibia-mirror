@@ -7,6 +7,7 @@ import sys
 import time
 import tkinter as tk
 from collections.abc import Callable
+from functools import partial
 from pathlib import Path
 from tkinter import filedialog
 from types import TracebackType
@@ -74,7 +75,7 @@ from tibia_mirror.ui.controls.dialogs import (
 )
 from tibia_mirror.ui.overlay.mirror import MirrorLook, MirrorWindow
 from tibia_mirror.ui.overlay.selector import RegionSelector
-from tibia_mirror.ui.overlay2.selection_overlay import NewRegionOverlay
+from tibia_mirror.ui.overlay2.selection_overlay import NewRegionOverlay, SelectionOverlay
 from tibia_mirror.ui.panel.mirrors_page import (
     MirrorsActions,
     ProfileActions,
@@ -1351,7 +1352,7 @@ class App2:
         else:
             self._on_profile_selected(self.profile_manager.active_name)
 
-    def _on_add_region(self) -> None:
+    def _on_select_area(self, mirror_id: str | None) -> None:
         game_window = self.connection.game_window
 
         if game_window is None:
@@ -1360,19 +1361,25 @@ class App2:
             self.panel.set_message(message, "error")
             return
 
-        names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
-        suggested_name = regions.next_default_name(names, stem=tr("Region"))
         # the mirrors would cover the game while the user selects a part of it
         self.mirror_manager.close()
+        on_selected = partial(self._on_region_selected, mirror_id)
+
+        if mirror_id is not None:
+            SelectionOverlay(self.window, game_window, on_selected, self._show_mirrors)
+            return
+
+        names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
+        suggested_name = regions.next_default_name(names, stem=tr("Region"))
         NewRegionOverlay(
             self.window,
             game_window,
             suggested_name,
-            self._on_region_selected,
+            on_selected,
             self._show_mirrors,
         )
 
-    def _on_region_selected(self, area: Rect, name: str) -> None:
+    def _on_region_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
         game_window = self.connection.game_window
 
         if game_window is None:
@@ -1380,7 +1387,11 @@ class App2:
             self.panel.set_message(tr("Could not mirror"), "error")
             return
 
-        self.mirror_manager.add_mirror(name, area, game_window)
+        if mirror_id is None:
+            self.mirror_manager.add_mirror(name, area, game_window)
+        else:
+            self.mirror_manager.set_area(mirror_id, area, game_window)
+
         self._show_mirrors()
 
     def _rebuild_panel(self) -> None:
@@ -1456,7 +1467,7 @@ class App2:
             mirror_infos,
             self.mirror_manager.update_mirror,
             self.profile_manager.remove_mirror,
-            self._on_add_region,
+            self._on_select_area,
             start_page,
         )
         self.panel.pack(fill="both", expand=True)

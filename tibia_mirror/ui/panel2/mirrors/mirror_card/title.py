@@ -36,11 +36,13 @@ class MirrorCardTitle:
         width: int,
         mirror: MirrorInfo,
         on_changed: Callable[[MirrorInfo], None],
+        on_select_area: Callable[[str], None],
     ) -> None:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
         self._on_changed = on_changed  # gets the new info after the colour was changed
+        self._on_select_area = on_select_area  # gets the mirror id after the size was clicked
         # the dot or the link that the mouse button went down on
         self._pressed_piece: ColourDot | TextLink | None = None
 
@@ -70,7 +72,7 @@ class MirrorCardTitle:
         self._pressed_piece = self._get_piece_at(position_x, position_y)
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
-        """Open the choice of colours, or the settings of the area.
+        """Open the choice of colours, or let the user select the area again.
 
         Only if the mouse button went down and up on the dot, or on the size link.
         """
@@ -131,11 +133,11 @@ class MirrorCardTitle:
     def _draw_size(self) -> None:
         """The size of the mirrored area, such as "320×64", in grey after the name.
 
-        It works like a link: a click on it opens the settings of the area.
+        It works like a link: a click on it lets the user select the area again.
         """
         position_x = self._name_end_x + px(TEXT_GAP)
         text = self._get_size_text()
-        tip = Tip(tr("Edit region"), tr("Position, size and zoom."))
+        tip = Tip(tr("Select area again"))
 
         self._size_link = TextLink(
             self._canvas,
@@ -143,7 +145,7 @@ class MirrorCardTitle:
             px(TOP_ROW_Y),
             text,
             tip,
-            self._edit_area,
+            self._select_area_again,
         )
 
     def _get_size_text(self) -> str:
@@ -181,5 +183,5 @@ class MirrorCardTitle:
 
         self._on_changed(replace(self._mirror, colour=colour))
 
-    def _edit_area(self) -> None:
-        """Open the settings of the mirrored area: its position, size and zoom."""
+    def _select_area_again(self) -> None:
+        self._on_select_area(self._mirror.mirror_id)
