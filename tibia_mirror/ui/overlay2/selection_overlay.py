@@ -50,6 +50,7 @@ class SelectionOverlay(tk.Toplevel):
         self.protocol("WM_DELETE_WINDOW", self.destroy)  # Alt+F4
         self.bind("<ButtonPress-1>", self._on_mouse_down)
         self.bind("<B1-Motion>", self._on_mouse_drag)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
         self.destroy()
@@ -68,3 +69,9 @@ class SelectionOverlay(tk.Toplevel):
             return  # the drag started before the cover opened
 
         self._canvas.coords(self._box, *self._start_point, event.x, event.y)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
+        if self._box is None:
+            return  # the press was before the cover opened
+
+        self.destroy()
