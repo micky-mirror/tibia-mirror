@@ -40,6 +40,7 @@ from tibia_mirror.config import (
 )
 from tibia_mirror.core import characters, regions
 from tibia_mirror.core.characters import Links
+from tibia_mirror.core.connection import MINIMIZED
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Point, Rect, fit_panel_size, panel_geometry, place_beside
 from tibia_mirror.core.handles import Hwnd
@@ -1354,6 +1355,9 @@ class App2:
         game_window = self.connection.game_window
 
         if game_window is None:
+            is_minimized = self.connection.state == MINIMIZED
+            message = tr("Restore Tibia first") if is_minimized else tr("Start Tibia first")
+            self.panel.set_message(message, "error")
             return
 
         names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
@@ -1372,7 +1376,9 @@ class App2:
         game_window = self.connection.game_window
 
         if game_window is None:
-            return  # Tibia closed while the user was selecting or naming
+            # Tibia closed while the user was selecting or naming
+            self.panel.set_message(tr("Could not mirror"), "error")
+            return
 
         self.mirror_manager.add_mirror(name, area, game_window)
         self._show_mirrors()
