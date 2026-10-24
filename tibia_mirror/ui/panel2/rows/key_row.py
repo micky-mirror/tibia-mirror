@@ -9,7 +9,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.dialogs import key_combo_name
 from tibia_mirror.ui.controls.widgets import KeyField
-from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
+from tibia_mirror.ui.panel2.rows.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
 from tibia_mirror.winapi import win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.

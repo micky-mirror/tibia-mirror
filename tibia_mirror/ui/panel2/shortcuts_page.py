@@ -7,8 +7,8 @@ from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.panel2.key_row import KeyRow
-from tibia_mirror.ui.panel2.scroll_cards import ScrollCards
+from tibia_mirror.ui.panel2.rows.key_row import KeyRow
+from tibia_mirror.ui.panel2.rows.scroll_cards import ScrollCards
 
 
 class ShortcutsPage(tk.Frame):

@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.row import SIDE_PAD, Row
+from tibia_mirror.ui.panel2.rows.row import SIDE_PAD, Row
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 RADIUS = 8  # of the rounded corners

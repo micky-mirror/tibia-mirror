@@ -6,8 +6,8 @@ from collections.abc import Sequence
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import ScrollList
-from tibia_mirror.ui.panel2.row import Row
-from tibia_mirror.ui.panel2.row_card import RowCard
+from tibia_mirror.ui.panel2.rows.row import Row
+from tibia_mirror.ui.panel2.rows.row_card import RowCard
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 8  # above the first caption

@@ -8,7 +8,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import TextField
-from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
+from tibia_mirror.ui.panel2.rows.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 FIELDS_TOP_PAD = 8  # between the help text and the fields

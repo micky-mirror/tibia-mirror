@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.controls.switch import Switch
-from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
+from tibia_mirror.ui.panel2.rows.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 SWITCH_GAP = 20  # between the texts and the switch

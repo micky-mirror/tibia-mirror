@@ -7,10 +7,10 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.text import percent
-from tibia_mirror.ui.panel2.choice_row import ChoiceRow
-from tibia_mirror.ui.panel2.scroll_cards import ScrollCards
-from tibia_mirror.ui.panel2.slider_row import SliderRow
-from tibia_mirror.ui.panel2.toggle_row import ToggleRow
+from tibia_mirror.ui.panel2.rows.choice_row import ChoiceRow
+from tibia_mirror.ui.panel2.rows.scroll_cards import ScrollCards
+from tibia_mirror.ui.panel2.rows.slider_row import SliderRow
+from tibia_mirror.ui.panel2.rows.toggle_row import ToggleRow
 
 
 class SettingsPage(tk.Frame):
