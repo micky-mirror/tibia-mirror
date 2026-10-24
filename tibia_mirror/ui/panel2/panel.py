@@ -14,7 +14,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel2.about_page import AboutPage
 from tibia_mirror.ui.panel2.footer import Footer
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.mirrors_page import MirrorsPage
 from tibia_mirror.ui.panel2.nav import NavRail
 from tibia_mirror.ui.panel2.profiles.profile_info import ProfileInfo

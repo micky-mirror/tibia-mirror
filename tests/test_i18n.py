@@ -93,7 +93,7 @@ def test_sound_names_are_translated():
 
 
 def test_every_sound_of_the_timer_dialog_has_a_translated_label():
-    from tibia_mirror.ui.panel2.timer_dialog import SOUND_LABELS
+    from tibia_mirror.ui.panel2.mirrors.timer_dialog import SOUND_LABELS
 
     assert set(SOUND_LABELS) == set(SOUNDS)
     assert all(label in POLISH for label in SOUND_LABELS.values())

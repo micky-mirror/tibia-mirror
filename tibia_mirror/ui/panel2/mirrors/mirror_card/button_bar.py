@@ -9,11 +9,11 @@ from tibia_mirror.core.timers import clock
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.mirror_card.icon_button import IconButton
-from tibia_mirror.ui.panel2.mirror_card.layout import TOP_ROW_Y
-from tibia_mirror.ui.panel2.mirror_card.tip import Tip
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
-from tibia_mirror.ui.panel2.timer_dialog import TimerDialog
+from tibia_mirror.ui.panel2.mirrors.mirror_card.icon_button import IconButton
+from tibia_mirror.ui.panel2.mirrors.mirror_card.layout import TOP_ROW_Y
+from tibia_mirror.ui.panel2.mirrors.mirror_card.tip import Tip
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.timer_dialog import TimerDialog
 
 REMOVE_ICON = "✕"
 LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font

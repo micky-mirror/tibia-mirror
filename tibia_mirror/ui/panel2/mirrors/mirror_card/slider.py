@@ -9,7 +9,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import percent
 from tibia_mirror.ui.controls.slider import SliderDrawing
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 SLIDER_Y = 44  # from the top of the card to the middle line of the slider

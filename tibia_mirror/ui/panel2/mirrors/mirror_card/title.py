@@ -11,11 +11,11 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.controls.menu import SwatchPicker
-from tibia_mirror.ui.panel2.mirror_card.colour_dot import ColourDot
-from tibia_mirror.ui.panel2.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
-from tibia_mirror.ui.panel2.mirror_card.text_link import TextLink
-from tibia_mirror.ui.panel2.mirror_card.tip import Tip
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.mirror_card.colour_dot import ColourDot
+from tibia_mirror.ui.panel2.mirrors.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
+from tibia_mirror.ui.panel2.mirrors.mirror_card.text_link import TextLink
+from tibia_mirror.ui.panel2.mirrors.mirror_card.tip import Tip
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 DOT_X = 18  # from the left side of the card to the middle of the colour dot

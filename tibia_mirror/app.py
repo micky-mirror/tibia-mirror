@@ -81,7 +81,7 @@ from tibia_mirror.ui.panel.mirrors_page import (
 )
 from tibia_mirror.ui.panel.panel import ControlPanel
 from tibia_mirror.ui.panel.settings_page import SettingValue
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.panel import START_PAGE, Panel
 from tibia_mirror.ui.panel2.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import dwm, sounds, win32

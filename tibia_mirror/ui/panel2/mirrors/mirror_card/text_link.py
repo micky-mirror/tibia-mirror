@@ -7,7 +7,7 @@ from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.tooltip import Tooltip
-from tibia_mirror.ui.panel2.mirror_card.tip import Tip
+from tibia_mirror.ui.panel2.mirrors.mirror_card.tip import Tip
 
 
 class TextLink:

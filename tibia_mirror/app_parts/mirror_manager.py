@@ -12,7 +12,7 @@ from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.regions import size_key
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.overlay2.mirror_window import MirrorWindow
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 
 
 class MirrorManager:

@@ -8,10 +8,10 @@ from collections.abc import Callable
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.mirror_card.button_bar import MirrorCardButtonBar
-from tibia_mirror.ui.panel2.mirror_card.slider import MirrorCardSlider
-from tibia_mirror.ui.panel2.mirror_card.title import MirrorCardTitle
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.mirror_card.button_bar import MirrorCardButtonBar
+from tibia_mirror.ui.panel2.mirrors.mirror_card.slider import MirrorCardSlider
+from tibia_mirror.ui.panel2.mirrors.mirror_card.title import MirrorCardTitle
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 62

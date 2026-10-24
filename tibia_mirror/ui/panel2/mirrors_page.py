@@ -7,8 +7,8 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.controls.widgets import RaisedButton, ScrollList
-from tibia_mirror.ui.panel2.mirror_card.card import MirrorCard
-from tibia_mirror.ui.panel2.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel2.mirrors.mirror_card.card import MirrorCard
+from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.profiles.profile_info import ProfileInfo
 from tibia_mirror.ui.panel2.profiles.profile_picker import ProfilePicker
 
