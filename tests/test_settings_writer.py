@@ -80,3 +80,16 @@ def test_a_new_write_can_be_planned_after_a_write(tmp_path):
     window.run_planned()
 
     assert file.exists()
+
+
+def test_a_write_that_fails_is_reported(tmp_path):
+    window = FakeWindow()
+    failures = []
+    # a folder in place of the file, so the file cannot be written
+    settings = AppSettingsStore(tmp_path, do_nothing)
+    writer = SettingsWriter(window, settings, lambda: failures.append("failed"))
+
+    writer.write_on_delay()
+    window.run_planned()
+
+    assert failures == ["failed"]
