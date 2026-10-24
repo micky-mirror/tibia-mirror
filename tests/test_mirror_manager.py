@@ -8,7 +8,7 @@ import pytest
 from tibia_mirror.app_parts import mirror_manager as mirror_manager_module
 from tibia_mirror.app_parts.mirror_manager import MirrorManager
 from tibia_mirror.app_parts.timer_manager import TimerManager
-from tibia_mirror.config import NEW_MIRROR_GAP
+from tibia_mirror.config import FRAME_COLORS, NEW_MIRROR_GAP
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_look import MirrorLook
@@ -482,3 +482,56 @@ def test_every_added_mirror_gets_its_own_id(monkeypatch):
 
     first, second = profile_manager.current.mirrors
     assert first.mirror_id != second.mirror_id
+
+
+def test_an_area_selected_again_replaces_the_area_and_keeps_the_place():
+    mirror = replace(
+        make_shown_mirror("Minimap"),
+        colour=FRAME_COLORS[2],
+        layouts={"800x600": Layout(Rect(5, 5, 320, 64), (7, 8))},
+    )
+    profile_manager = FakeProfileManager([mirror])
+    manager = make_manager(profile_manager)
+
+    manager.set_area("Minimap", Rect(10, 20, 100, 50), GAME_WINDOW)
+
+    (changed,) = profile_manager.current.mirrors
+    assert changed.layouts == {"800x600": Layout(Rect(10, 20, 100, 50), (7, 8))}
+    assert changed.colour == FRAME_COLORS[2]
+
+
+def test_an_area_selected_again_keeps_the_areas_for_other_game_sizes():
+    big_game_layout = Layout(Rect(50, 50, 640, 128), (0, 0))
+    mirror = replace(
+        make_shown_mirror("Minimap"),
+        layouts={"800x600": Layout(Rect(5, 5, 320, 64), (7, 8)), "1920x1080": big_game_layout},
+    )
+    profile_manager = FakeProfileManager([mirror])
+    manager = make_manager(profile_manager)
+
+    manager.set_area("Minimap", Rect(10, 20, 100, 50), GAME_WINDOW)
+
+    (changed,) = profile_manager.current.mirrors
+    assert changed.layouts["1920x1080"] == big_game_layout
+
+
+def test_a_mirror_without_a_place_for_this_game_size_goes_beside_its_new_area(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1920, 1040))
+    profile_manager = FakeProfileManager([make_mirror("Minimap")])
+    manager = make_manager(profile_manager)
+
+    manager.set_area("Minimap", Rect(30, 40, 200, 100), GAME_WINDOW)
+
+    (changed,) = profile_manager.current.mirrors
+    gap = px(NEW_MIRROR_GAP)
+    assert changed.layouts["800x600"] == Layout(Rect(30, 40, 200, 100), (30 + 200 + gap, 40))
+
+
+def test_an_area_for_an_unknown_mirror_changes_nothing():
+    mirror = make_shown_mirror("Minimap")
+    profile_manager = FakeProfileManager([mirror])
+    manager = make_manager(profile_manager)
+
+    manager.set_area("Health", Rect(10, 20, 100, 50), GAME_WINDOW)
+
+    assert profile_manager.current.mirrors == (mirror,)
