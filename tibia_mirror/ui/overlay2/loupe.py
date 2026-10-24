@@ -8,6 +8,7 @@ from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
+from tibia_mirror.ui.overlay2.pixel_marker import PixelMarker
 from tibia_mirror.winapi import win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
@@ -43,6 +44,8 @@ class Loupe(tk.Toplevel):
         win32.set_click_through(self._window_handle, True)
         # initialize thumbnail connection
         self._thumbnail = Thumbnail(self._window_handle, game_window.handle)
+        # the frame around the pixel of the point, over the picture
+        self._pixel_marker = PixelMarker(self, picture_size, px(self.ZOOM))
 
     def destroy(self) -> None:
         """Stop the thumbnail and close the window."""
@@ -57,11 +60,16 @@ class Loupe(tk.Toplevel):
         source = magnifier_source(game_x, game_y, self.SPAN, client_area.w, client_area.h)
         zoom = px(self.ZOOM)
         position_x, position_y = self._get_position(point)
+        # the pixel of the point in the picture; outside the game, the nearest one
+        column = min(max(game_x - source.x, 0), source.w - 1)
+        row = min(max(game_y - source.y, 0), source.h - 1)
 
         self._thumbnail.show(source, Rect(0, 0, source.w * zoom, source.h * zoom))
         self.geometry(f"+{position_x}+{position_y}")
         self._size_label.configure(text="{} × {}".format(*box_size))
         self.deiconify()
+        # after the loupe, so the frame stays above its picture
+        self._pixel_marker.show_at((position_x, position_y), (column * zoom, row * zoom))
 
     def _add_size_label(self, picture_size: int) -> tk.Label:
         size_label = tk.Label(self, bg=theme.BG, fg=theme.TEXT, font=theme.FONT_SMALL)
