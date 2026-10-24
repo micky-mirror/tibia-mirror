@@ -36,7 +36,7 @@ def do_nothing(previous, current):
 def test_nothing_is_written_before_the_wait_is_over(tmp_path):
     file = tmp_path / "settings.json"
     window = FakeWindow()
-    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing))
+    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing), lambda: None)
 
     writer.write_on_delay()
 
@@ -47,7 +47,7 @@ def test_the_settings_are_written_when_the_wait_is_over(tmp_path):
     file = tmp_path / "settings.json"
     window = FakeWindow()
     settings = AppSettingsStore(file, do_nothing)
-    writer = SettingsWriter(window, settings)
+    writer = SettingsWriter(window, settings, lambda: None)
     settings.update(theme="light")
 
     writer.write_on_delay()
@@ -59,7 +59,7 @@ def test_the_settings_are_written_when_the_wait_is_over(tmp_path):
 def test_many_quick_changes_give_one_write(tmp_path):
     file = tmp_path / "settings.json"
     window = FakeWindow()
-    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing))
+    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing), lambda: None)
 
     writer.write_on_delay()
     writer.write_on_delay()
@@ -71,7 +71,7 @@ def test_many_quick_changes_give_one_write(tmp_path):
 def test_a_new_write_can_be_planned_after_a_write(tmp_path):
     file = tmp_path / "settings.json"
     window = FakeWindow()
-    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing))
+    writer = SettingsWriter(window, AppSettingsStore(file, do_nothing), lambda: None)
     writer.write_on_delay()
     window.run_planned()
     file.unlink()

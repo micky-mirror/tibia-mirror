@@ -1136,7 +1136,12 @@ class App2:
         # Read settings.json. A missing or broken file gives the default settings.
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
         self.window = AppWindow(self.settings, instance)
-        self.settings_writer = SettingsWriter(self.window, self.settings)
+        # the panel that shows the message is built later, so it is looked up on a failure
+        self.settings_writer = SettingsWriter(
+            self.window,
+            self.settings,
+            on_failed=lambda: self.panel.set_message(tr("Save failed"), "error"),
+        )
         self.connection = TibiaConnection(
             self.window,
             self._on_connection_changed,
