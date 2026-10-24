@@ -5,6 +5,7 @@ import tkinter as tk
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Point, Rect, magnifier_source
 from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.winapi import win32
@@ -18,9 +19,10 @@ class Loupe(tk.Toplevel):
     # sizes at 100% display scaling
     ZOOM = 6  # screen pixels for each game pixel
     OFFSET = 28  # between the pointer and the loupe
+    TEXT_HEIGHT = 20  # the line under the picture with the size of the box
 
     def __init__(self, parent: tk.Misc, game_window: GameWindow) -> None:
-        super().__init__(parent)
+        super().__init__(parent, bg=theme.BG)
         self.withdraw()  # hidden until it has a place
         self._game_window = game_window
         # basic window configuration
@@ -28,8 +30,10 @@ class Loupe(tk.Toplevel):
         self.attributes("-topmost", True)  # above the game and the selection overlay
         # only the selection overlay closes it
         keep_open(self)
-        view_size = self.SPAN * px(self.ZOOM)
-        self.geometry(f"{view_size}x{view_size}")
+        picture_size = self.SPAN * px(self.ZOOM)
+        self.geometry(f"{picture_size}x{picture_size + px(self.TEXT_HEIGHT)}")
+        # the size of the box, under the picture
+        self._size_label = self._add_size_label(picture_size)
         # the number Windows knows this window by
         self._window_handle: Hwnd = win32.toplevel_hwnd(self)
         # window layer setup
@@ -43,7 +47,7 @@ class Loupe(tk.Toplevel):
         self._thumbnail.close()
         super().destroy()
 
-    def show_at(self, point: Point) -> None:
+    def show_at(self, point: Point, box_size: tuple[int, int] = (0, 0)) -> None:
         """Show the game around this point of the screen, below and right of it."""
         client_area = self._game_window.client_area
         point_x, point_y = point
@@ -54,4 +58,10 @@ class Loupe(tk.Toplevel):
 
         self._thumbnail.show(source, Rect(0, 0, source.w * zoom, source.h * zoom))
         self.geometry(f"+{point_x + offset}+{point_y + offset}")
+        self._size_label.configure(text="{} × {}".format(*box_size))
         self.deiconify()
+
+    def _add_size_label(self, picture_size: int) -> tk.Label:
+        size_label = tk.Label(self, bg=theme.BG, fg=theme.TEXT, font=theme.FONT_SMALL)
+        size_label.place(x=0, y=picture_size, width=picture_size, height=px(self.TEXT_HEIGHT))
+        return size_label

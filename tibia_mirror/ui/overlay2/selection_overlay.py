@@ -122,12 +122,15 @@ class SelectionOverlay(tk.Toplevel):
         """Show the point in the loupe, and stretch the box to it."""
         point_x, point_y = self._get_point()
         monitor = self._monitor_area
-        self._loupe.show_at((monitor.x + point_x, monitor.y + point_y))
+        point_on_screen = (monitor.x + point_x, monitor.y + point_y)
 
         if self._box is None:
+            self._loupe.show_at(point_on_screen)
             return  # no box until the mouse is pressed on the cover
 
+        selection = rect_from_drag(*self._start_point, point_x, point_y)
         self._canvas.coords(self._box, *self._start_point, point_x, point_y)
+        self._loupe.show_at(point_on_screen, (selection.w, selection.h))
 
     def _get_pointer_on_cover(self) -> Point:
         pointer_x, pointer_y = win32.cursor_pos()
