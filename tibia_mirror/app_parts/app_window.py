@@ -107,6 +107,7 @@ class AppWindow(tk.Tk):
 
     def _bind_events(self) -> None:
         self.bind("<Configure>", self._on_place_changed, add="+")
+        self.protocol("WM_DELETE_WINDOW", self._on_close)  # the X button and Alt+F4
 
     def _on_place_changed(self, event: tk.Event[tk.Misc]) -> None:
         # every widget inside the window sends its own <Configure> here too
@@ -119,3 +120,10 @@ class AppWindow(tk.Tk):
 
         panel_rect = (self.winfo_x(), self.winfo_y(), event.width, event.height)
         self._settings.update(panel_rect=panel_rect)
+
+    def _on_close(self) -> None:
+        # a settings change from the last moment may still wait to be written
+        try:
+            self._settings.save()
+        finally:
+            self.destroy()
