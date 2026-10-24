@@ -40,6 +40,7 @@ class MirrorsPage(tk.Frame):
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
+        on_add_region: Callable[[], None],
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
@@ -53,6 +54,7 @@ class MirrorsPage(tk.Frame):
         self._mirrors = mirrors  # None while Tibia is not connected
         self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
+        self._on_add_region = on_add_region  # called when the user clicks Add region
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
@@ -119,9 +121,6 @@ class MirrorsPage(tk.Frame):
             padx=(self._side_pad - shadow.left, 0),
             pady=(max(0, px(CAPTION_BOTTOM_PAD) - shadow.top), 0),
         )
-
-    def _on_add_region(self) -> None:
-        """Let the user drag a box over the part of the game that the new mirror will show."""
 
     def _add_mirror_list(self) -> None:
         """The list of the mirrors. It scrolls when they do not fit."""

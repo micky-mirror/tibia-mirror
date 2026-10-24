@@ -73,6 +73,7 @@ from tibia_mirror.ui.controls.dialogs import (
 )
 from tibia_mirror.ui.overlay.mirror import MirrorLook, MirrorWindow
 from tibia_mirror.ui.overlay.selector import RegionSelector
+from tibia_mirror.ui.overlay2.selection_overlay import SelectionOverlay
 from tibia_mirror.ui.panel.mirrors_page import (
     MirrorsActions,
     ProfileActions,
@@ -1349,6 +1350,14 @@ class App2:
         else:
             self._on_profile_selected(self.profile_manager.active_name)
 
+    def _on_add_region(self) -> None:
+        game_window = self.connection.game_window
+
+        if game_window is None:
+            return
+
+        SelectionOverlay(self.window, game_window)
+
     def _rebuild_panel(self) -> None:
         """Build the panel again in the saved theme and language, and redraw the mirrors."""
         open_page = self.panel.open_page
@@ -1422,6 +1431,7 @@ class App2:
             mirror_infos,
             self.mirror_manager.update_mirror,
             self.profile_manager.remove_mirror,
+            self._on_add_region,
             start_page,
         )
         self.panel.pack(fill="both", expand=True)
