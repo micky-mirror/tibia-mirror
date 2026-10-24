@@ -25,10 +25,12 @@ class SelectionOverlay(tk.Toplevel):
         parent: tk.Misc,
         game_window: GameWindow,
         on_selected: Callable[[Rect], None],
+        on_cancel: Callable[[], None],
     ) -> None:
         super().__init__(parent)
         self._game_window = game_window
         self._on_selected = on_selected  # gets the selected part, in game coordinates
+        self._on_cancel = on_cancel  # called when the cover closes without a selection
         self._monitor_area = win32.monitor_rect(game_window.handle)  # on the screen
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
@@ -56,13 +58,13 @@ class SelectionOverlay(tk.Toplevel):
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
-        self.protocol("WM_DELETE_WINDOW", self.destroy)  # Alt+F4
+        self.protocol("WM_DELETE_WINDOW", self._cancel)  # Alt+F4
         self.bind("<ButtonPress-1>", self._on_mouse_down)
         self.bind("<B1-Motion>", self._on_mouse_drag)
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
-        self.destroy()
+        self._cancel()
 
     def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
         self._start_point = (event.x, event.y)
@@ -83,14 +85,20 @@ class SelectionOverlay(tk.Toplevel):
         if self._box is None:
             return  # the press was before the cover opened
 
-        self.destroy()
         selection = rect_from_drag(*self._start_point, event.x, event.y)
         is_click = selection.w < MIN_SELECTION_SIDE or selection.h < MIN_SELECTION_SIDE
 
         if is_click:
+            self._cancel()
             return
 
+        self.destroy()
         self._on_selected(self._get_game_area(selection))
+
+    def _cancel(self) -> None:
+        """Close the cover without a selection."""
+        self.destroy()
+        self._on_cancel()
 
     def _get_game_area(self, selection: Rect) -> Rect:
         monitor_origin = self._monitor_area.x, self._monitor_area.y

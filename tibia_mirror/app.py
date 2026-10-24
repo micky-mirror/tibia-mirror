@@ -1356,7 +1356,9 @@ class App2:
         if game_window is None:
             return
 
-        SelectionOverlay(self.window, game_window, self._on_region_selected)
+        # the mirrors would cover the game while the user selects a part of it
+        self.mirror_manager.close()
+        SelectionOverlay(self.window, game_window, self._on_region_selected, self._show_mirrors)
 
     def _on_region_selected(self, area: Rect) -> None:
         game_window = self.connection.game_window
