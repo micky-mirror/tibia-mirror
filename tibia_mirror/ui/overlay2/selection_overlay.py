@@ -16,6 +16,7 @@ from tibia_mirror.core.geometry import (
 )
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.overlay2.loupe import Loupe
 from tibia_mirror.winapi import win32
 
 COVER_OPACITY = 0.3  # how much the cover darkens the screen under it
@@ -52,8 +53,11 @@ class SelectionOverlay(tk.Toplevel):
         self._add_canvas()
         self._box: int | None = None  # the box on the canvas, None until the mouse is pressed
         self._start_point: Point = (0, 0)  # where the drag started, on the cover
-        self._pointer: Point = (0, 0)  # where the pointer was at its last mouse event
+        self._pointer: Point = self._get_pointer_on_cover()  # updated by each mouse event
         self._nudge: Point = (0, 0)  # how far the arrow keys moved the point from the pointer
+        # the game under the point, bigger
+        self._loupe = Loupe(self, game_window)
+        self._show_point()
         # take the keys at once, so Escape works without a click first
         self.focus_force()
         self._bind_events()
@@ -70,7 +74,7 @@ class SelectionOverlay(tk.Toplevel):
         self.bind("<Escape>", self._on_escape)
         self.protocol("WM_DELETE_WINDOW", self._cancel)  # Alt+F4
         self.bind("<ButtonPress-1>", self._on_mouse_down)
-        self.bind("<B1-Motion>", self._on_mouse_drag)
+        self.bind("<Motion>", self._on_mouse_move)  # with the mouse button held down too
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
         for key in NUDGE_STEPS:
             self.bind(f"<KeyPress-{key}>", self._on_arrow_key)
@@ -88,9 +92,9 @@ class SelectionOverlay(tk.Toplevel):
             width=px(BOX_OUTLINE),
         )
 
-    def _on_mouse_drag(self, event: tk.Event[tk.Misc]) -> None:
+    def _on_mouse_move(self, event: tk.Event[tk.Misc]) -> None:
         self._pointer = (event.x, event.y)
-        self._update_box()
+        self._show_point()
 
     def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
         if self._box is None:
@@ -112,14 +116,22 @@ class SelectionOverlay(tk.Toplevel):
         nudge_x, nudge_y = self._nudge
 
         self._nudge = (nudge_x + step_x, nudge_y + step_y)
-        self._update_box()
+        self._show_point()
 
-    def _update_box(self) -> None:
-        """Stretch the box from where the drag started to the point."""
+    def _show_point(self) -> None:
+        """Show the point in the loupe, and stretch the box to it."""
+        point_x, point_y = self._get_point()
+        monitor = self._monitor_area
+        self._loupe.show_at((monitor.x + point_x, monitor.y + point_y))
+
         if self._box is None:
             return  # no box until the mouse is pressed on the cover
 
-        self._canvas.coords(self._box, *self._start_point, *self._get_point())
+        self._canvas.coords(self._box, *self._start_point, point_x, point_y)
+
+    def _get_pointer_on_cover(self) -> Point:
+        pointer_x, pointer_y = win32.cursor_pos()
+        return pointer_x - self._monitor_area.x, pointer_y - self._monitor_area.y
 
     def _get_point(self) -> Point:
         """The pointer, moved by the arrow keys, and kept on the cover."""

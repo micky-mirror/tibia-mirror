@@ -1,0 +1,57 @@
+"""The magnifier of the selection overlay."""
+
+import tkinter as tk
+
+from tibia_mirror.core.game_window import GameWindow
+from tibia_mirror.core.geometry import Point, Rect, magnifier_source
+from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.base.windows import keep_open
+from tibia_mirror.winapi import win32
+from tibia_mirror.winapi.dwm import Thumbnail
+
+
+class Loupe(tk.Toplevel):
+    """A small window beside the pointer that shows the game under it, bigger."""
+
+    SPAN = 11  # game pixels across; odd, so the pixel of the point is the middle one
+    # sizes at 100% display scaling
+    ZOOM = 6  # screen pixels for each game pixel
+    OFFSET = 28  # between the pointer and the loupe
+
+    def __init__(self, parent: tk.Misc, game_window: GameWindow) -> None:
+        super().__init__(parent)
+        self.withdraw()  # hidden until it has a place
+        self._game_window = game_window
+        # basic window configuration
+        self.overrideredirect(True)  # no title bar and no borders
+        self.attributes("-topmost", True)  # above the game and the selection overlay
+        # only the selection overlay closes it
+        keep_open(self)
+        view_size = self.SPAN * px(self.ZOOM)
+        self.geometry(f"{view_size}x{view_size}")
+        # the number Windows knows this window by
+        self._window_handle: Hwnd = win32.toplevel_hwnd(self)
+        # window layer setup
+        win32.set_alpha(self._window_handle, 1.0)
+        win32.set_click_through(self._window_handle, True)
+        # initialize thumbnail connection
+        self._thumbnail = Thumbnail(self._window_handle, game_window.handle)
+
+    def destroy(self) -> None:
+        """Stop the thumbnail and close the window."""
+        self._thumbnail.close()
+        super().destroy()
+
+    def show_at(self, point: Point) -> None:
+        """Show the game around this point of the screen, below and right of it."""
+        client_area = self._game_window.client_area
+        point_x, point_y = point
+        game_x, game_y = point_x - client_area.x, point_y - client_area.y
+        source = magnifier_source(game_x, game_y, self.SPAN, client_area.w, client_area.h)
+        zoom = px(self.ZOOM)
+        offset = px(self.OFFSET)
+
+        self._thumbnail.show(source, Rect(0, 0, source.w * zoom, source.h * zoom))
+        self.geometry(f"+{point_x + offset}+{point_y + offset}")
+        self.deiconify()
