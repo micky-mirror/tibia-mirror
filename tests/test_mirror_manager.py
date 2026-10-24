@@ -72,9 +72,9 @@ class FakeProfileManager:
 
 def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
     settings_store = FakeSettingsStore(app_settings)
-    connection = SimpleNamespace(character=None)
+    connection = SimpleNamespace(character=None, game_window=GAME_WINDOW)
     timer_manager = TimerManager(settings_store, profile_manager, connection)
-    return MirrorManager(None, settings_store, profile_manager, timer_manager)
+    return MirrorManager(None, settings_store, profile_manager, timer_manager, connection)
 
 
 def make_manager_with(names, app_settings=DEFAULT_SETTINGS):
@@ -134,7 +134,7 @@ def screen(monkeypatch):
 def test_shows_a_window_for_each_mirror(screen):
     manager = make_manager_with(["Minimap", "Health"])
 
-    failed = manager.show(GAME_WINDOW)
+    failed = manager.show()
 
     assert failed == 0
     assert [window.name for window in screen["created"]] == ["Minimap", "Health"]
@@ -144,7 +144,7 @@ def test_a_refused_mirror_is_left_out_and_counted(screen):
     screen["refused"].add("Health")
     manager = make_manager_with(["Minimap", "Health"])
 
-    failed = manager.show(GAME_WINDOW)
+    failed = manager.show()
 
     assert failed == 1
     assert [window.name for window in screen["created"]] == ["Minimap"]
@@ -153,27 +153,27 @@ def test_a_refused_mirror_is_left_out_and_counted(screen):
 def test_a_refused_mirror_is_still_kept(screen):
     screen["refused"].add("Health")
     manager = make_manager_with(["Minimap", "Health"])
-    manager.show(GAME_WINDOW)
+    manager.show()
     screen["refused"].clear()
 
-    manager.show(GAME_WINDOW)
+    manager.show()
 
     assert [window.name for window in screen["created"]][-2:] == ["Minimap", "Health"]
 
 
 def test_show_closes_the_windows_shown_before(screen):
     manager = make_manager_with(["Minimap"])
-    manager.show(GAME_WINDOW)
+    manager.show()
     old_window = screen["created"][0]
 
-    manager.show(GAME_WINDOW)
+    manager.show()
 
     assert old_window.is_destroyed
 
 
 def test_close_destroys_every_window(screen):
     manager = make_manager_with(["Minimap", "Health"])
-    manager.show(GAME_WINDOW)
+    manager.show()
 
     manager.close()
 
@@ -182,17 +182,17 @@ def test_close_destroys_every_window(screen):
 
 def test_close_keeps_the_mirrors_for_the_next_show(screen):
     manager = make_manager_with(["Minimap"])
-    manager.show(GAME_WINDOW)
+    manager.show()
     manager.close()
 
-    manager.show(GAME_WINDOW)
+    manager.show()
 
     assert [window.name for window in screen["created"]] == ["Minimap", "Minimap"]
 
 
 def test_set_game_window_moves_every_window(screen):
     manager = make_manager_with(["Minimap", "Health"])
-    manager.show(GAME_WINDOW)
+    manager.show()
     moved = GameWindow(100, Rect(50, 60, 800, 600), is_minimized=False, is_in_front=True)
 
     manager.set_game_window(moved)
@@ -208,7 +208,7 @@ def test_new_windows_get_the_look_from_the_settings(screen):
     )
     manager = make_manager_with(["Minimap"], app_settings)
 
-    manager.show(GAME_WINDOW)
+    manager.show()
 
     expected_look = MirrorLook(is_frame_on=False, is_rounded_on=True, is_tint_on=True)
     assert screen["created"][0].mirror_look == expected_look
@@ -217,8 +217,9 @@ def test_new_windows_get_the_look_from_the_settings(screen):
 def test_update_mirror_look_reaches_every_window(screen):
     settings_store = SimpleNamespace(current=DEFAULT_SETTINGS)
     profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
-    manager = MirrorManager(None, settings_store, profile_manager, None)
-    manager.show(GAME_WINDOW)
+    connection = SimpleNamespace(game_window=GAME_WINDOW)
+    manager = MirrorManager(None, settings_store, profile_manager, None, connection)
+    manager.show()
     frameless = MirrorLook(is_frame_on=False, is_rounded_on=False, is_tint_on=False)
 
     settings_store.current = AppSettings(is_mirror_frame_on=False)
@@ -230,7 +231,7 @@ def test_update_mirror_look_reaches_every_window(screen):
 def test_update_windows_gives_a_changed_mirror_its_new_settings(screen):
     profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
     manager = make_manager(profile_manager)
-    manager.show(GAME_WINDOW)
+    manager.show()
     changed = replace(make_mirror("Health"), opacity=0.3)
     profile_manager.update_mirror(changed)
 
@@ -245,7 +246,7 @@ def test_update_windows_gives_a_changed_mirror_its_new_settings(screen):
 def test_update_windows_closes_only_the_window_of_a_removed_mirror(screen):
     profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
     manager = make_manager(profile_manager)
-    manager.show(GAME_WINDOW)
+    manager.show()
     minimap_window, health_window = screen["created"]
     profile_manager.remove_mirror("Health")
 
@@ -258,7 +259,7 @@ def test_update_windows_closes_only_the_window_of_a_removed_mirror(screen):
 def test_the_closed_window_of_a_removed_mirror_is_forgotten(screen):
     profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
     manager = make_manager(profile_manager)
-    manager.show(GAME_WINDOW)
+    manager.show()
     health_window = screen["created"][1]
     profile_manager.remove_mirror("Health")
     manager.update_windows()
@@ -271,11 +272,11 @@ def test_the_closed_window_of_a_removed_mirror_is_forgotten(screen):
 
 def test_a_changed_mirror_is_kept_for_the_next_show(screen):
     manager = make_manager_with(["Minimap", "Health"])
-    manager.show(GAME_WINDOW)
+    manager.show()
     changed = replace(make_mirror("Health"), zoom=2.0)
 
     screen["created"][1].on_changed(changed)
-    manager.show(GAME_WINDOW)
+    manager.show()
 
     assert [window.mirror_settings for window in screen["created"][-2:]] == [
         make_mirror("Minimap"),
@@ -286,7 +287,7 @@ def test_a_changed_mirror_is_kept_for_the_next_show(screen):
 def test_a_changed_mirror_is_passed_on_with_all_mirrors(screen):
     profile_manager = FakeProfileManager([make_mirror("Minimap"), make_mirror("Health")])
     manager = make_manager(profile_manager)
-    manager.show(GAME_WINDOW)
+    manager.show()
     changed = replace(make_mirror("Health"), zoom=2.0)
 
     screen["created"][1].on_changed(changed)
@@ -306,7 +307,7 @@ def test_mirror_infos_have_the_region_for_the_size_of_the_game():
     )
     manager = make_manager(FakeProfileManager([mirror]))
 
-    assert manager.get_mirror_infos(GAME_WINDOW) == [
+    assert manager.get_mirror_infos() == [
         MirrorInfo(
             mirror_id="Cooldowns",
             name="Cooldowns",
@@ -326,14 +327,14 @@ def test_a_mirror_without_a_layout_for_the_size_of_the_game_gets_no_info():
     mirror = replace(make_mirror("Cooldowns"), layouts=other_size)
     manager = make_manager(FakeProfileManager([mirror]))
 
-    assert manager.get_mirror_infos(GAME_WINDOW) == []
+    assert manager.get_mirror_infos() == []
 
 
 def test_a_change_from_the_mirrors_page_is_kept_and_passed_on():
     minimap, health = make_shown_mirror("Minimap"), make_shown_mirror("Health")
     profile_manager = FakeProfileManager([minimap, health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
+    health_info = manager.get_mirror_infos()[1]
 
     manager.update_mirror(replace(health_info, is_hidden=True))
 
@@ -344,7 +345,7 @@ def test_a_lock_from_the_mirrors_page_is_kept_and_passed_on():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    health_info = manager.get_mirror_infos()[0]
 
     manager.update_mirror(replace(health_info, is_locked=True))
 
@@ -355,7 +356,7 @@ def test_a_colour_from_the_mirrors_page_is_kept_and_passed_on():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    health_info = manager.get_mirror_infos()[0]
 
     manager.update_mirror(replace(health_info, colour="red"))
 
@@ -366,7 +367,7 @@ def test_a_name_from_the_mirrors_page_is_kept_and_passed_on():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    health_info = manager.get_mirror_infos()[0]
 
     manager.update_mirror(replace(health_info, name="Life"))
 
@@ -377,7 +378,7 @@ def test_an_opacity_from_the_mirrors_page_is_kept_and_passed_on():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    health_info = manager.get_mirror_infos()[0]
 
     manager.update_mirror(replace(health_info, opacity=0.3))
 
@@ -388,7 +389,7 @@ def test_a_timer_from_the_mirrors_page_is_kept_and_passed_on():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    health_info = manager.get_mirror_infos()[0]
     timer = MirrorTimer(is_on=True, alert_seconds=90)
 
     manager.update_mirror(replace(health_info, timer=timer))
@@ -401,7 +402,7 @@ def test_a_new_timer_hotkey_is_first_cleared_from_every_place_that_has_it():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([minimap, health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[1]
+    health_info = manager.get_mirror_infos()[1]
     timer = MirrorTimer(is_on=True, key=F1)
 
     manager.update_mirror(replace(health_info, timer=timer))
@@ -414,7 +415,7 @@ def test_a_timer_that_keeps_its_hotkey_clears_nothing():
     health = replace(make_shown_mirror("Health"), timer=MirrorTimer(is_on=True, key=F1))
     profile_manager = FakeProfileManager([health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    health_info = manager.get_mirror_infos()[0]
 
     manager.update_mirror(replace(health_info, opacity=0.3))
 
@@ -426,7 +427,7 @@ def test_a_timer_whose_hotkey_is_taken_away_clears_nothing():
     health = replace(make_shown_mirror("Health"), timer=MirrorTimer(is_on=True, key=F1))
     profile_manager = FakeProfileManager([health])
     manager = make_manager(profile_manager)
-    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+    health_info = manager.get_mirror_infos()[0]
 
     manager.update_mirror(replace(health_info, timer=MirrorTimer(is_on=True)))
 
@@ -443,7 +444,7 @@ def add_mirror(area, app_settings=DEFAULT_SETTINGS):
     profile_manager = FakeProfileManager([])
     manager = make_manager(profile_manager, app_settings)
 
-    manager.add_mirror("Region 1", area, GAME_WINDOW)
+    manager.add_mirror("Region 1", area)
 
     (added,) = profile_manager.current.mirrors
     return added
@@ -488,8 +489,8 @@ def test_every_added_mirror_gets_its_own_id(monkeypatch):
     manager = make_manager(profile_manager)
     area = Rect(30, 40, 200, 100)
 
-    manager.add_mirror("Region 1", area, GAME_WINDOW)
-    manager.add_mirror("Region 2", area, GAME_WINDOW)
+    manager.add_mirror("Region 1", area)
+    manager.add_mirror("Region 2", area)
 
     first, second = profile_manager.current.mirrors
     assert first.mirror_id != second.mirror_id
@@ -504,7 +505,7 @@ def test_an_area_selected_again_replaces_the_area_and_keeps_the_place():
     profile_manager = FakeProfileManager([mirror])
     manager = make_manager(profile_manager)
 
-    manager.set_area("Minimap", Rect(10, 20, 100, 50), GAME_WINDOW)
+    manager.set_area("Minimap", Rect(10, 20, 100, 50))
 
     (changed,) = profile_manager.current.mirrors
     assert changed.layouts == {"800x600": Layout(Rect(10, 20, 100, 50), (7, 8))}
@@ -520,7 +521,7 @@ def test_an_area_selected_again_keeps_the_areas_for_other_game_sizes():
     profile_manager = FakeProfileManager([mirror])
     manager = make_manager(profile_manager)
 
-    manager.set_area("Minimap", Rect(10, 20, 100, 50), GAME_WINDOW)
+    manager.set_area("Minimap", Rect(10, 20, 100, 50))
 
     (changed,) = profile_manager.current.mirrors
     assert changed.layouts["1920x1080"] == big_game_layout
@@ -531,7 +532,7 @@ def test_a_mirror_without_a_place_for_this_game_size_goes_beside_its_new_area(mo
     profile_manager = FakeProfileManager([make_mirror("Minimap")])
     manager = make_manager(profile_manager)
 
-    manager.set_area("Minimap", Rect(30, 40, 200, 100), GAME_WINDOW)
+    manager.set_area("Minimap", Rect(30, 40, 200, 100))
 
     (changed,) = profile_manager.current.mirrors
     gap = px(NEW_MIRROR_GAP)
@@ -543,6 +544,6 @@ def test_an_area_for_an_unknown_mirror_changes_nothing():
     profile_manager = FakeProfileManager([mirror])
     manager = make_manager(profile_manager)
 
-    manager.set_area("Health", Rect(10, 20, 100, 50), GAME_WINDOW)
+    manager.set_area("Health", Rect(10, 20, 100, 50))
 
     assert profile_manager.current.mirrors == (mirror,)

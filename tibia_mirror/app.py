@@ -84,7 +84,6 @@ from tibia_mirror.ui.panel.mirrors_page import (
 )
 from tibia_mirror.ui.panel.panel import ControlPanel
 from tibia_mirror.ui.panel.settings_page import SettingValue
-from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel2.panel import START_PAGE, Panel
 from tibia_mirror.ui.panel2.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import dwm, sounds, win32
@@ -1147,7 +1146,7 @@ class App2:
         self.profile_manager = ProfileManager(PROFILES_DIR, self.settings, self._on_profile_changed)
         self.timer_manager = TimerManager(self.settings, self.profile_manager, self.connection)
         self.mirror_manager = MirrorManager(
-            self.window, self.settings, self.profile_manager, self.timer_manager
+            self.window, self.settings, self.profile_manager, self.timer_manager, self.connection
         )
         self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
@@ -1208,7 +1207,7 @@ class App2:
     def _on_game_window_changed(self, game_window: GameWindow) -> None:
         """Make the mirrors follow the window of Tibia after it changed."""
         self.mirror_manager.set_game_window(game_window)
-        self.panel.set_mirrors(self._get_mirror_infos())
+        self.panel.set_mirrors(self.mirror_manager.get_mirror_infos())
 
     def _on_character_changed(self, character: str | None) -> None:
         """Pause the timers at a logout, and continue them from their saved spots at a login.
@@ -1300,7 +1299,7 @@ class App2:
             self.panel.set_message(tr("Save failed"), "error")
 
         self.mirror_manager.update_windows()
-        self.panel.set_mirrors(self._get_mirror_infos())
+        self.panel.set_mirrors(self.mirror_manager.get_mirror_infos())
 
     def _on_profile_selected(self, name: str) -> None:
         """Open another profile, and show its mirrors. Every timer stops."""
@@ -1379,17 +1378,15 @@ class App2:
         )
 
     def _on_region_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
-        game_window = self.connection.game_window
-
-        if game_window is None:
+        if self.connection.game_window is None:
             # Tibia closed while the user was selecting or naming
             self.panel.set_message(tr("Could not mirror"), "error")
             return
 
         if mirror_id is None:
-            self.mirror_manager.add_mirror(name, area, game_window)
+            self.mirror_manager.add_mirror(name, area)
         else:
-            self.mirror_manager.set_area(mirror_id, area, game_window)
+            self.mirror_manager.set_area(mirror_id, area)
 
         self._show_mirrors()
 
@@ -1417,14 +1414,13 @@ class App2:
 
         The windows close without a window of Tibia, and while the hide-all key hides them.
         """
-        self.panel.set_mirrors(self._get_mirror_infos())
-        game_window = self.connection.game_window
+        self.panel.set_mirrors(self.mirror_manager.get_mirror_infos())
 
-        if game_window is None or self._is_all_hidden:
+        if self._is_all_hidden:
             self.mirror_manager.close()
             return
 
-        failed = self.mirror_manager.show(game_window)
+        failed = self.mirror_manager.show()
         # new windows show the time of a counting timer at once, not on the next tick
         self.mirror_manager.update_timer_badges(time.monotonic())
 
@@ -1439,18 +1435,9 @@ class App2:
             names=tuple(self.profile_manager.get_names()),
         )
 
-    def _get_mirror_infos(self) -> list[MirrorInfo] | None:
-        """What the Mirrors page shows. None while Tibia is not connected."""
-        game_window = self.connection.game_window
-
-        if game_window is None:
-            return None
-
-        return self.mirror_manager.get_mirror_infos(game_window)
-
     def _show_panel(self, start_page: str = START_PAGE) -> None:
         profile_info = self._get_profile_info()
-        mirror_infos: list[MirrorInfo] | None = self._get_mirror_infos()
+        mirror_infos = self.mirror_manager.get_mirror_infos()
 
         self.panel = Panel(
             self.window,

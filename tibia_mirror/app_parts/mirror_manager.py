@@ -5,6 +5,7 @@ import tkinter as tk
 from dataclasses import replace
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
+from tibia_mirror.app_parts.tibia_connection import TibiaConnection
 from tibia_mirror.app_parts.timer_manager import TimerManager
 from tibia_mirror.config import NEW_MIRROR_GAP
 from tibia_mirror.core.game_window import GameWindow
@@ -28,20 +29,27 @@ class MirrorManager:
         settings: AppSettingsStore,
         profile_manager: ProfileManager,
         timer_manager: TimerManager,
+        connection: TibiaConnection,
     ) -> None:
         self._window = window
         self._settings = settings
         self._profile_manager = profile_manager
         self._timer_manager = timer_manager
+        self._connection = connection
         self._mirror_windows: list[MirrorWindow] = []
 
-    def show(self, game_window: GameWindow) -> int:
-        """Show a window for each kept mirror, on the given window of Tibia.
+    def show(self) -> int:
+        """Show a window for each kept mirror, on the window of Tibia if there is one.
 
         They replace the mirror windows shown before. A mirror that Windows refuses
         to draw gets no window, but it is still kept. Returns how many got no window.
         """
         self.close()
+        game_window = self._connection.game_window
+
+        if game_window is None:
+            return 0
+
         mirror_look = self._get_mirror_look()
         failed = 0
 
@@ -104,8 +112,13 @@ class MirrorManager:
 
         self._mirror_windows.clear()
 
-    def get_mirror_infos(self, game_window: GameWindow) -> list[MirrorInfo]:
-        """What the Mirrors page shows about each kept mirror, for this size of the game."""
+    def get_mirror_infos(self) -> list[MirrorInfo] | None:
+        """What the Mirrors page shows about each kept mirror. None without a window of Tibia."""
+        game_window = self._connection.game_window
+
+        if game_window is None:
+            return None
+
         client_area = game_window.client_area
         game_size_key = size_key(client_area.w, client_area.h)
         mirror_infos: list[MirrorInfo] = []
@@ -132,8 +145,13 @@ class MirrorManager:
 
         return mirror_infos
 
-    def add_mirror(self, name: str, area: Rect, game_window: GameWindow) -> None:
+    def add_mirror(self, name: str, area: Rect) -> None:
         """Add a mirror of this part of the game to the open profile."""
+        game_window = self._connection.game_window
+
+        if game_window is None:
+            return
+
         client_area = game_window.client_area
         layout = Layout(area, self._get_new_mirror_offset(area, client_area))
         mirror_settings = MirrorSettings(
@@ -145,11 +163,12 @@ class MirrorManager:
 
         self._profile_manager.add_mirror(mirror_settings)
 
-    def set_area(self, mirror_id: str, area: Rect, game_window: GameWindow) -> None:
+    def set_area(self, mirror_id: str, area: Rect) -> None:
         """Let the mirror show this part of the game, for the size the game has now."""
         mirror_settings = self._get_mirror(mirror_id)
+        game_window = self._connection.game_window
 
-        if mirror_settings is None:
+        if mirror_settings is None or game_window is None:
             return
 
         client_area = game_window.client_area
