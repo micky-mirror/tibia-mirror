@@ -1356,18 +1356,24 @@ class App2:
         if game_window is None:
             return
 
+        names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
+        suggested_name = regions.next_default_name(names, stem=tr("Region"))
         # the mirrors would cover the game while the user selects a part of it
         self.mirror_manager.close()
-        SelectionOverlay(self.window, game_window, self._on_region_selected, self._show_mirrors)
+        SelectionOverlay(
+            self.window,
+            game_window,
+            suggested_name,
+            self._on_region_selected,
+            self._show_mirrors,
+        )
 
-    def _on_region_selected(self, area: Rect) -> None:
+    def _on_region_selected(self, area: Rect, name: str) -> None:
         game_window = self.connection.game_window
 
         if game_window is None:
-            return  # Tibia closed while the user was selecting
+            return  # Tibia closed while the user was selecting or naming
 
-        names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
-        name = regions.next_default_name(names, stem=tr("Region"))
         self.mirror_manager.add_mirror(name, area, game_window)
         self._show_mirrors()
 
