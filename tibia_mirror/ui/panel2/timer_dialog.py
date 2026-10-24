@@ -8,9 +8,9 @@ from tibia_mirror.core.mirror_timer import SOUNDS, MirrorTimer
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.choice_row import ChoiceRow
+from tibia_mirror.ui.panel2.controls.popup import PAD, Popup
 from tibia_mirror.ui.panel2.dropdown_row import DropdownRow
 from tibia_mirror.ui.panel2.key_row import KeyRow
-from tibia_mirror.ui.panel2.popup import PAD, Popup
 from tibia_mirror.ui.panel2.row_card import RowCard
 from tibia_mirror.ui.panel2.time_row import TimeRow
 from tibia_mirror.ui.panel2.toggle_row import ToggleRow

@@ -4,7 +4,7 @@ import tkinter as tk
 from collections.abc import Callable, Sequence
 
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.dropdown_picker import DropdownPicker
+from tibia_mirror.ui.panel2.controls.dropdown_picker import DropdownPicker
 from tibia_mirror.ui.panel2.row import ROW_PAD, SIDE_PAD, draw_label
 
 

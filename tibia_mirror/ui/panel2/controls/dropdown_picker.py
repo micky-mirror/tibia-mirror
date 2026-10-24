@@ -9,7 +9,7 @@ from collections.abc import Callable, Sequence
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import outlined_image, rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.dropdown_menu import DropdownMenu, get_menu_width
+from tibia_mirror.ui.panel2.controls.dropdown_menu import DropdownMenu, get_menu_width
 
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
 ARROW_UP = "\ue70e"  # the same arrow, pointing up
