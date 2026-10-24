@@ -65,7 +65,7 @@ class Popup(tk.Toplevel, ABC):
             pady=(px(BUTTONS_TOP_PAD) - shadow.top, px(PAD) - shadow.bottom),
         )
 
-        self._add_button(row, tr("Cancel"), self.destroy, is_primary=False)
+        self._add_button(row, tr("Cancel"), self._cancel, is_primary=False)
         self._add_button(row, tr("OK"), self._confirm, is_primary=True)
 
     def _add_button(
@@ -116,13 +116,17 @@ class Popup(tk.Toplevel, ABC):
     def _confirm(self) -> None:
         """What OK and Enter do. Each dialog keeps its answer and closes itself."""
 
+    def _cancel(self) -> None:
+        """What Cancel and Escape do: close the popup without an answer."""
+        self.destroy()
+
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
         self.bind("<Return>", self._on_enter)
         self.bind("<KP_Enter>", self._on_enter)  # the Enter key of the number pad
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
-        self.destroy()
+        self._cancel()
 
     def _on_enter(self, event: tk.Event[tk.Misc]) -> None:
         self._confirm()
