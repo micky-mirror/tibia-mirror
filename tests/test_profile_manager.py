@@ -301,6 +301,29 @@ def test_an_updated_mirror_is_not_written_before_save(tmp_path, folder):
     assert next_start.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON),)
 
 
+def test_an_added_mirror_comes_after_the_others(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": [MIRROR_JSON]})
+    manager = make_manager(folder, make_settings(tmp_path, "Knight"))
+    manager.load()
+    new_mirror = MirrorSettings.from_json({**MIRROR_JSON, "id": "mirror-2", "name": "Health"})
+
+    manager.add_mirror(new_mirror)
+
+    assert manager.current.mirrors == (MirrorSettings.from_json(MIRROR_JSON), new_mirror)
+
+
+def test_an_added_mirror_is_reported_with_the_profile_before_and_after_it(tmp_path, folder):
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": []})
+    changes = []
+    manager = make_watched_manager(folder, make_settings(tmp_path, "Knight"), changes)
+    manager.load()
+    new_mirror = MirrorSettings.from_json(MIRROR_JSON)
+
+    manager.add_mirror(new_mirror)
+
+    assert changes == [(Profile(), Profile(mirrors=(new_mirror,)))]
+
+
 def test_a_removed_mirror_is_gone_and_the_others_keep_their_order(tmp_path, folder):
     health_json = {**MIRROR_JSON, "id": "mirror-2", "name": "Health"}
     mana_json = {**MIRROR_JSON, "id": "mirror-3", "name": "Mana"}

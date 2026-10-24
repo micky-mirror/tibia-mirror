@@ -8,6 +8,7 @@ import pytest
 from tibia_mirror.app_parts import mirror_manager as mirror_manager_module
 from tibia_mirror.app_parts.mirror_manager import MirrorManager
 from tibia_mirror.app_parts.timer_manager import TimerManager
+from tibia_mirror.config import NEW_MIRROR_GAP
 from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_look import MirrorLook
@@ -16,7 +17,9 @@ from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.profile import Profile
 from tibia_mirror.core.regions import Layout
 from tibia_mirror.settings.app_settings import AppSettings
+from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.winapi import win32
 
 GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)
 DEFAULT_SETTINGS = AppSettings()
@@ -50,6 +53,9 @@ class FakeProfileManager:
             for kept in self.current.mirrors
         ]
         self.current = Profile(mirrors=tuple(mirrors))
+
+    def add_mirror(self, mirror_settings):
+        self.current = Profile(mirrors=(*self.current.mirrors, mirror_settings))
 
     def remove_mirror(self, mirror_id):
         mirrors = [kept for kept in self.current.mirrors if kept.mirror_id != mirror_id]
@@ -414,3 +420,65 @@ def test_a_timer_whose_hotkey_is_taken_away_clears_nothing():
     manager.update_mirror(replace(health_info, timer=MirrorTimer(is_on=True)))
 
     assert profile_manager.cleared_hotkeys == []
+
+
+def use_work_area(monkeypatch, work_area):
+    """Make `work_area` the screen without the taskbar, wherever the mirror goes."""
+    monkeypatch.setattr(win32, "work_area_at", lambda point: work_area)
+
+
+def add_mirror(area, app_settings=DEFAULT_SETTINGS):
+    """Add one mirror of `area` on GAME_WINDOW, and return its settings."""
+    profile_manager = FakeProfileManager([])
+    manager = make_manager(profile_manager, app_settings)
+
+    manager.add_mirror("Region 1", area, GAME_WINDOW)
+
+    (added,) = profile_manager.current.mirrors
+    return added
+
+
+def test_an_added_mirror_shows_its_area_at_zoom_one_with_the_new_mirror_opacity(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1920, 1040))
+    area = Rect(30, 40, 200, 100)
+
+    added = add_mirror(area, replace(DEFAULT_SETTINGS, new_mirror_opacity=0.5))
+
+    assert added.name == "Region 1"
+    assert added.layouts["800x600"].region == area
+    assert added.zoom == 1.0
+    assert added.opacity == 0.5
+
+
+def test_an_added_mirror_sits_right_of_its_area(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1920, 1040))
+
+    added = add_mirror(Rect(30, 40, 200, 100))
+
+    # On the screen the area starts at (40, 60), because the game starts at (10, 20).
+    # The offset is counted from the start of the game.
+    gap = px(NEW_MIRROR_GAP)
+    assert added.layouts["800x600"].offset == (30 + 200 + gap, 40)
+
+
+def test_an_added_mirror_sits_left_of_its_area_when_the_right_has_no_room(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1000, 1040))
+
+    added = add_mirror(Rect(600, 40, 190, 100))
+
+    # The area ends at 800 on the screen, so the mirror would end past 1000 on the right.
+    gap = px(NEW_MIRROR_GAP)
+    assert added.layouts["800x600"].offset == (600 - gap - 190, 40)
+
+
+def test_every_added_mirror_gets_its_own_id(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1920, 1040))
+    profile_manager = FakeProfileManager([])
+    manager = make_manager(profile_manager)
+    area = Rect(30, 40, 200, 100)
+
+    manager.add_mirror("Region 1", area, GAME_WINDOW)
+    manager.add_mirror("Region 2", area, GAME_WINDOW)
+
+    first, second = profile_manager.current.mirrors
+    assert first.mirror_id != second.mirror_id
