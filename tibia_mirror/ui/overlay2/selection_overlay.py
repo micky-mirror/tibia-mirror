@@ -7,7 +7,13 @@ from collections.abc import Callable
 
 from tibia_mirror.config import MIN_SELECTION_SIDE
 from tibia_mirror.core.game_window import GameWindow
-from tibia_mirror.core.geometry import Point, Rect, overlay_to_client, rect_from_drag
+from tibia_mirror.core.geometry import (
+    Point,
+    Rect,
+    nudged_point,
+    overlay_to_client,
+    rect_from_drag,
+)
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.winapi import win32
@@ -15,6 +21,8 @@ from tibia_mirror.winapi import win32
 COVER_OPACITY = 0.3  # how much the cover darkens the screen under it
 # Sizes at 100% display scaling; px() scales them where they are used.
 BOX_OUTLINE = 2  # the line around the selected box
+# How far each arrow key moves the point of the box, in pixels.
+NUDGE_STEPS = {"Left": (-1, 0), "Right": (1, 0), "Up": (0, -1), "Down": (0, 1)}
 
 
 class SelectionOverlay(tk.Toplevel):
@@ -44,6 +52,8 @@ class SelectionOverlay(tk.Toplevel):
         self._add_canvas()
         self._box: int | None = None  # the box on the canvas, None until the mouse is pressed
         self._start_point: Point = (0, 0)  # where the drag started, on the cover
+        self._pointer: Point = (0, 0)  # where the pointer was at its last mouse event
+        self._nudge: Point = (0, 0)  # how far the arrow keys moved the point from the pointer
         # take the keys at once, so Escape works without a click first
         self.focus_force()
         self._bind_events()
@@ -62,12 +72,15 @@ class SelectionOverlay(tk.Toplevel):
         self.bind("<ButtonPress-1>", self._on_mouse_down)
         self.bind("<B1-Motion>", self._on_mouse_drag)
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
+        for key in NUDGE_STEPS:
+            self.bind(f"<KeyPress-{key}>", self._on_arrow_key)
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
         self._cancel()
 
     def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
-        self._start_point = (event.x, event.y)
+        self._pointer = (event.x, event.y)
+        self._start_point = self._get_point()
         self._box = self._canvas.create_rectangle(
             *self._start_point,
             *self._start_point,
@@ -76,16 +89,15 @@ class SelectionOverlay(tk.Toplevel):
         )
 
     def _on_mouse_drag(self, event: tk.Event[tk.Misc]) -> None:
-        if self._box is None:
-            return  # the drag started before the cover opened
-
-        self._canvas.coords(self._box, *self._start_point, event.x, event.y)
+        self._pointer = (event.x, event.y)
+        self._update_box()
 
     def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
         if self._box is None:
             return  # the press was before the cover opened
 
-        selection = rect_from_drag(*self._start_point, event.x, event.y)
+        self._pointer = (event.x, event.y)
+        selection = rect_from_drag(*self._start_point, *self._get_point())
         is_click = selection.w < MIN_SELECTION_SIDE or selection.h < MIN_SELECTION_SIDE
 
         if is_click:
@@ -94,6 +106,25 @@ class SelectionOverlay(tk.Toplevel):
 
         self.destroy()
         self._on_selected(self._get_game_area(selection))
+
+    def _on_arrow_key(self, event: tk.Event[tk.Misc]) -> None:
+        step_x, step_y = NUDGE_STEPS[event.keysym]
+        nudge_x, nudge_y = self._nudge
+
+        self._nudge = (nudge_x + step_x, nudge_y + step_y)
+        self._update_box()
+
+    def _update_box(self) -> None:
+        """Stretch the box from where the drag started to the point."""
+        if self._box is None:
+            return  # no box until the mouse is pressed on the cover
+
+        self._canvas.coords(self._box, *self._start_point, *self._get_point())
+
+    def _get_point(self) -> Point:
+        """The pointer, moved by the arrow keys, and kept on the cover."""
+        monitor = self._monitor_area
+        return nudged_point(self._pointer, self._nudge, monitor.w, monitor.h)
 
     def _cancel(self) -> None:
         """Close the cover without a selection."""
