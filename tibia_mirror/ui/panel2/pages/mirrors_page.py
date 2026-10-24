@@ -180,6 +180,7 @@ class MirrorsPage(tk.Frame):
                 self._on_card_changed,
                 self._on_card_removed,
                 self._on_select_area,
+                self._on_card_renamed,
             )
             card.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
 
@@ -192,6 +193,12 @@ class MirrorsPage(tk.Frame):
             ]
 
         self._on_mirror_changed(changed_mirror)
+
+    def _on_card_renamed(self, renamed_mirror: MirrorInfo) -> None:
+        """Keep and pass on the new name, then draw the cards again: the size moves with it."""
+        self._on_card_changed(renamed_mirror)
+        # The card is still handling the click, so it cannot be destroyed yet.
+        self.after_idle(self._redraw_mirror_list)
 
     def _on_card_removed(self, mirror_id: str) -> None:
         """Take the mirror of a card out of the list of the page, and pass it on."""

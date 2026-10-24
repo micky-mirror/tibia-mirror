@@ -174,6 +174,7 @@ class MirrorManager:
 
         new_settings = replace(
             mirror_settings,
+            name=mirror_info.name,
             is_hidden=mirror_info.is_hidden,
             is_locked=mirror_info.is_locked,
             colour=mirror_info.colour,

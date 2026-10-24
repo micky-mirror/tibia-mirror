@@ -29,6 +29,7 @@ class MirrorCard(tk.Canvas):
         on_changed: Callable[[MirrorInfo], None],
         on_removed: Callable[[str], None],
         on_select_area: Callable[[str], None],
+        on_renamed: Callable[[MirrorInfo], None],
     ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(
@@ -45,7 +46,7 @@ class MirrorCard(tk.Canvas):
         self._draw_background()
 
         self._title = MirrorCardTitle(
-            self, self._width, self._mirror, self._on_mirror_changed, on_select_area
+            self, self._width, self._mirror, self._on_mirror_changed, on_select_area, on_renamed
         )
         self._button_bar = MirrorCardButtonBar(
             self, self._width, self._mirror, self._on_mirror_changed, on_removed
@@ -81,6 +82,7 @@ class MirrorCard(tk.Canvas):
         self.bind("<Leave>", self._on_mouse_leave)
         self.bind("<ButtonPress-1>", self._on_mouse_down)
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
+        self.bind("<Double-Button-1>", self._on_double_click)
 
     def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
         """Tell the parts where the pointer is. Show a hand over a place that can be clicked."""
@@ -104,6 +106,9 @@ class MirrorCard(tk.Canvas):
     def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
         for part in self._parts:
             part.pointer_pressed(event.x, event.y)
+
+    def _on_double_click(self, event: tk.Event[tk.Canvas]) -> None:
+        self._title.pointer_double_clicked(event.x, event.y)
 
     def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
         """Tell the parts, and look at the place under the pointer again."""

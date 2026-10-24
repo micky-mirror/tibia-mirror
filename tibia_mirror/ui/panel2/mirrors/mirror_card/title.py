@@ -11,6 +11,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.controls.menu import SwatchPicker
+from tibia_mirror.ui.panel2.controls.name_dialog import NameDialog
 from tibia_mirror.ui.panel2.mirrors.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel2.mirrors.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel2.mirrors.mirror_card.text_link import TextLink
@@ -37,12 +38,14 @@ class MirrorCardTitle:
         mirror: MirrorInfo,
         on_changed: Callable[[MirrorInfo], None],
         on_select_area: Callable[[str], None],
+        on_renamed: Callable[[MirrorInfo], None],
     ) -> None:
         self._canvas = canvas
         self._width = width  # of the card
         self._mirror = mirror
         self._on_changed = on_changed  # gets the new info after the colour was changed
         self._on_select_area = on_select_area  # gets the mirror id after the size was clicked
+        self._on_renamed = on_renamed  # gets the new info after the name was changed
         # the dot or the link that the mouse button went down on
         self._pressed_piece: ColourDot | TextLink | None = None
 
@@ -82,6 +85,14 @@ class MirrorCardTitle:
 
         if piece is not None and piece is pressed_piece:
             piece.click()
+
+    def pointer_double_clicked(self, position_x: int, position_y: int) -> None:
+        """Ask for a new name when the double click was on the name."""
+        left, top, right, bottom = self._canvas.bbox(self._name_item)
+        is_on_name: bool = left <= position_x < right and top <= position_y < bottom
+
+        if is_on_name:
+            self._ask_new_name()
 
     def set_mirror(self, mirror: MirrorInfo) -> None:
         """Show the dot and the name for the new state of the mirror."""
@@ -185,3 +196,18 @@ class MirrorCardTitle:
 
     def _select_area_again(self) -> None:
         self._on_select_area(self._mirror.mirror_id)
+
+    def _ask_new_name(self) -> None:
+        NameDialog(
+            self._canvas.winfo_toplevel(),
+            tr("Rename region"),
+            self._mirror.name,
+            on_ok=self._on_name_typed,
+            on_cancel=lambda: None,
+        )
+
+    def _on_name_typed(self, name: str) -> None:
+        if name == self._mirror.name:
+            return
+
+        self._on_renamed(replace(self._mirror, name=name))
