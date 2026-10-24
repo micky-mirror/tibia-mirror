@@ -1134,10 +1134,9 @@ class App2:
     """The new App, built step by step beside the old one. Start it with --new."""
 
     def __init__(self, instance: SingleInstance) -> None:
-        self._instance = instance
         # Read settings.json. A missing or broken file gives the default settings.
         self.settings = AppSettingsStore(SETTINGS_FILE, self._on_settings_changed)
-        self.window = AppWindow(self.settings)
+        self.window = AppWindow(self.settings, instance)
         self.settings_writer = SettingsWriter(self.window, self.settings)
         self.connection = TibiaConnection(
             self.window,

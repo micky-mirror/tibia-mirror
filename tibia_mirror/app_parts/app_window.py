@@ -6,19 +6,28 @@ import tkinter as tk
 from types import TracebackType
 
 from tibia_mirror import errors
-from tibia_mirror.config import APP_ID, ICON_FILE, PANEL_FRAME, PANEL_MIN_SIZE, PANEL_SIZE
+from tibia_mirror.config import (
+    APP_ID,
+    ICON_FILE,
+    PANEL_FRAME,
+    PANEL_MIN_SIZE,
+    PANEL_SIZE,
+    SHOW_REQUEST_POLL_MS,
+)
 from tibia_mirror.core.geometry import fit_panel_size, panel_geometry
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import scale, theme
 from tibia_mirror.winapi import dwm, win32
+from tibia_mirror.winapi.instance import SingleInstance
 
 
 class AppWindow(tk.Tk):
     """The main window of the app."""
 
-    def __init__(self, settings: AppSettingsStore) -> None:
+    def __init__(self, settings: AppSettingsStore, instance: SingleInstance) -> None:
         self._settings = settings
+        self._instance = instance  # tells when a second start of the app asks for this window
         self._prepare_windows()
         super().__init__()
         self.withdraw()  # hidden until show() is called
@@ -31,6 +40,7 @@ class AppWindow(tk.Tk):
         self._set_size_and_place()
         self.set_panel_on_top()
         self._bind_events()
+        self._check_show_request()
 
     def report_callback_exception(
         self,
@@ -98,6 +108,14 @@ class AppWindow(tk.Tk):
         screen = win32.work_area_at((position_x + width // 2, position_y + height // 2))
         width, height = fit_panel_size((width, height), min_size, title_bar, screen)
         self.geometry(f"{width}x{height}+{position_x}+{position_y}")
+
+    def _check_show_request(self) -> None:
+        """Come to the front when a second start of the app asked for it."""
+        # plan the next check first, so an error in this one cannot stop the checks
+        self.after(SHOW_REQUEST_POLL_MS, self._check_show_request)
+
+        if self._instance.show_requested():
+            win32.bring_to_front(self._window_handle)
 
     def _style_title_bar(self) -> None:
         """Make the title bar dark in the dark theme. Windows draws it, so we ask Windows."""

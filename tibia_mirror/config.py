@@ -79,6 +79,8 @@ SETTINGS_SAVE_DELAY_MS = 300
 VISIBILITY_POLL_MS = 200
 ATTACH_POLL_MS = 1000
 CONNECTION_POLL_MS = 200
+# How often the app checks if a second start asked for its window.
+SHOW_REQUEST_POLL_MS = 200
 # Clicks and key presses seen anywhere are passed on this often (see rawinput).
 INPUT_POLL_MS = 15
 
