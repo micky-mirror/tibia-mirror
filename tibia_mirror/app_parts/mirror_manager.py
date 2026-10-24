@@ -6,13 +6,17 @@ from dataclasses import replace
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.app_parts.timer_manager import TimerManager
+from tibia_mirror.config import NEW_MIRROR_GAP
 from tibia_mirror.core.game_window import GameWindow
+from tibia_mirror.core.geometry import Point, Rect, place_beside
 from tibia_mirror.core.mirror_look import MirrorLook
 from tibia_mirror.core.mirror_settings import MirrorSettings
-from tibia_mirror.core.regions import size_key
+from tibia_mirror.core.regions import Layout, new_id, size_key
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
+from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.overlay2.mirror_window import MirrorWindow
 from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.winapi import win32
 
 
 class MirrorManager:
@@ -128,6 +132,19 @@ class MirrorManager:
 
         return mirror_infos
 
+    def add_mirror(self, name: str, area: Rect, game_window: GameWindow) -> None:
+        """Add a mirror of this part of the game to the open profile."""
+        client_area = game_window.client_area
+        layout = Layout(area, self._get_new_mirror_offset(area, client_area))
+        mirror_settings = MirrorSettings(
+            mirror_id=new_id(),
+            name=name,
+            layouts={size_key(client_area.w, client_area.h): layout},
+            opacity=self._settings.current.new_mirror_opacity,
+        )
+
+        self._profile_manager.add_mirror(mirror_settings)
+
     def update_mirror(self, mirror_info: MirrorInfo) -> None:
         """Put a change from the Mirrors page into the open profile.
 
@@ -164,6 +181,16 @@ class MirrorManager:
 
         self._timer_manager.stop(mirror_settings.mirror_id)
         self.update_timer_badges(time.monotonic())
+
+    def _get_new_mirror_offset(self, area: Rect, client_area: Rect) -> Point:
+        """Where a new mirror sits: beside the part of the game it shows, on the same screen."""
+        area_on_screen = Rect(client_area.x + area.x, client_area.y + area.y, area.w, area.h)
+        center = (area_on_screen.x + area.w // 2, area_on_screen.y + area.h // 2)
+        work_area = win32.work_area_at(center)
+        gap = px(NEW_MIRROR_GAP)
+
+        mirror_x, mirror_y = place_beside(area_on_screen, area.w, area.h, work_area, gap)
+        return mirror_x - client_area.x, mirror_y - client_area.y
 
     def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:
         """The kept mirror with this id. None if there is none."""

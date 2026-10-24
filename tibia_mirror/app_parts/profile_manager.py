@@ -99,6 +99,12 @@ class ProfileManager:
 
         self._set_current(replace(self.current, mirrors=tuple(mirrors)))
 
+    def add_mirror(self, mirror_settings: MirrorSettings) -> None:
+        """Add a new mirror to the open profile."""
+        mirrors = [*self.current.mirrors, mirror_settings]
+
+        self._set_current(replace(self.current, mirrors=tuple(mirrors)))
+
     def remove_mirror(self, mirror_id: str) -> None:
         """Take the mirror with this id out of the open profile."""
         mirrors = [

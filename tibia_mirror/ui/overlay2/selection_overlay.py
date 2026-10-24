@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 
+from tibia_mirror.config import MIN_SELECTION_SIDE
 from tibia_mirror.core.game_window import GameWindow
-from tibia_mirror.core.geometry import Point
+from tibia_mirror.core.geometry import Point, Rect, overlay_to_client, rect_from_drag
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.winapi import win32
@@ -18,9 +20,16 @@ BOX_OUTLINE = 2  # the line around the selected box
 class SelectionOverlay(tk.Toplevel):
     """A dark cover over the monitor of the game, for selecting a part of the game."""
 
-    def __init__(self, parent: tk.Misc, game_window: GameWindow) -> None:
+    def __init__(
+        self,
+        parent: tk.Misc,
+        game_window: GameWindow,
+        on_selected: Callable[[Rect], None],
+    ) -> None:
         super().__init__(parent)
         self._game_window = game_window
+        self._on_selected = on_selected  # gets the selected part, in game coordinates
+        self._monitor_area = win32.monitor_rect(game_window.handle)  # on the screen
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
         self.attributes("-topmost", True)  # above other windows, also above the game
@@ -38,7 +47,7 @@ class SelectionOverlay(tk.Toplevel):
         self._bind_events()
 
     def _cover_monitor(self) -> None:
-        monitor = win32.monitor_rect(self._game_window.handle)
+        monitor = self._monitor_area
         self.geometry(f"{monitor.w}x{monitor.h}+{monitor.x}+{monitor.y}")
 
     def _add_canvas(self) -> None:
@@ -75,3 +84,15 @@ class SelectionOverlay(tk.Toplevel):
             return  # the press was before the cover opened
 
         self.destroy()
+        selection = rect_from_drag(*self._start_point, event.x, event.y)
+        is_click = selection.w < MIN_SELECTION_SIDE or selection.h < MIN_SELECTION_SIDE
+
+        if is_click:
+            return
+
+        self._on_selected(self._get_game_area(selection))
+
+    def _get_game_area(self, selection: Rect) -> Rect:
+        monitor_origin = self._monitor_area.x, self._monitor_area.y
+        client_origin = self._game_window.client_area.x, self._game_window.client_area.y
+        return overlay_to_client(selection, monitor_origin, client_origin)
