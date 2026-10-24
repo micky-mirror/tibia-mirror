@@ -74,7 +74,7 @@ from tibia_mirror.ui.controls.dialogs import (
 )
 from tibia_mirror.ui.overlay.mirror import MirrorLook, MirrorWindow
 from tibia_mirror.ui.overlay.selector import RegionSelector
-from tibia_mirror.ui.overlay2.selection_overlay import SelectionOverlay
+from tibia_mirror.ui.overlay2.selection_overlay import NewRegionOverlay
 from tibia_mirror.ui.panel.mirrors_page import (
     MirrorsActions,
     ProfileActions,
@@ -1364,7 +1364,7 @@ class App2:
         suggested_name = regions.next_default_name(names, stem=tr("Region"))
         # the mirrors would cover the game while the user selects a part of it
         self.mirror_manager.close()
-        SelectionOverlay(
+        NewRegionOverlay(
             self.window,
             game_window,
             suggested_name,

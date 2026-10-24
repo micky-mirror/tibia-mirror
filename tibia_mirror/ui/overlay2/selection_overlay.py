@@ -30,22 +30,19 @@ NUDGE_STEPS = {"Left": (-1, 0), "Right": (1, 0), "Up": (0, -1), "Down": (0, 1)}
 
 
 class SelectionOverlay(tk.Toplevel):
-    """A dark cover over the monitor of the game, for selecting a part of the game and naming it."""
+    """A dark cover over the monitor of the game, for selecting a part of the game."""
 
     def __init__(
         self,
         parent: tk.Misc,
         game_window: GameWindow,
-        suggested_name: str,
-        on_selected: Callable[[Rect, str], None],
+        on_selected: Callable[[Rect], None],
         on_cancel: Callable[[], None],
     ) -> None:
         super().__init__(parent)
-        self._parent = parent
         self._game_window = game_window
-        self._suggested_name = suggested_name  # what the name field starts with
-        self._on_selected = on_selected  # gets the selected part, in game coordinates, and its name
-        self._on_cancel = on_cancel  # called when the user cancels, on the cover or the name
+        self._on_selected = on_selected  # gets the selected part, in game coordinates
+        self._on_cancel = on_cancel  # called when the cover closes without a selection
         self._monitor_area = win32.monitor_rect(game_window.handle)  # on the screen
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
@@ -115,7 +112,7 @@ class SelectionOverlay(tk.Toplevel):
             return
 
         self.destroy()
-        self._ask_name(selection)
+        self._on_selected(self._get_game_area(selection))
 
     def _on_arrow_key(self, event: tk.Event[tk.Misc]) -> None:
         step_x, step_y = NUDGE_STEPS[event.keysym]
@@ -147,15 +144,6 @@ class SelectionOverlay(tk.Toplevel):
         monitor = self._monitor_area
         return nudged_point(self._pointer, self._nudge, monitor.w, monitor.h)
 
-    def _ask_name(self, selection: Rect) -> None:
-        NameDialog(
-            self._parent,
-            tr("Name this region"),
-            self._suggested_name,
-            on_ok=partial(self._on_selected, self._get_game_area(selection)),
-            on_cancel=self._on_cancel,
-        )
-
     def _cancel(self) -> None:
         """Close the cover without a selection."""
         self.destroy()
@@ -165,3 +153,29 @@ class SelectionOverlay(tk.Toplevel):
         monitor_origin = self._monitor_area.x, self._monitor_area.y
         client_origin = self._game_window.client_area.x, self._game_window.client_area.y
         return overlay_to_client(selection, monitor_origin, client_origin)
+
+
+class NewRegionOverlay(SelectionOverlay):
+    """The cover for a new mirror: it also asks for the name of the selected part."""
+
+    def __init__(
+        self,
+        parent: tk.Misc,
+        game_window: GameWindow,
+        suggested_name: str,
+        on_named: Callable[[Rect, str], None],
+        on_cancel: Callable[[], None],
+    ) -> None:
+        super().__init__(parent, game_window, self._ask_name, on_cancel)
+        self._parent = parent
+        self._suggested_name = suggested_name  # what the name field starts with
+        self._on_named = on_named  # gets the selected part, in game coordinates, and its name
+
+    def _ask_name(self, area: Rect) -> None:
+        NameDialog(
+            self._parent,
+            tr("Name this region"),
+            self._suggested_name,
+            on_ok=partial(self._on_named, area),
+            on_cancel=self._on_cancel,
+        )
