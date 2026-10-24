@@ -362,6 +362,17 @@ def test_a_colour_from_the_mirrors_page_is_kept_and_passed_on():
     assert profile_manager.current.mirrors == (replace(health, colour="red"),)
 
 
+def test_a_name_from_the_mirrors_page_is_kept_and_passed_on():
+    health = make_shown_mirror("Health")
+    profile_manager = FakeProfileManager([health])
+    manager = make_manager(profile_manager)
+    health_info = manager.get_mirror_infos(GAME_WINDOW)[0]
+
+    manager.update_mirror(replace(health_info, name="Life"))
+
+    assert profile_manager.current.mirrors == (replace(health, name="Life"),)
+
+
 def test_an_opacity_from_the_mirrors_page_is_kept_and_passed_on():
     health = make_shown_mirror("Health")
     profile_manager = FakeProfileManager([health])
