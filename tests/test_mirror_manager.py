@@ -70,9 +70,10 @@ class FakeProfileManager:
         self.current = Profile(mirrors=tuple(mirrors))
 
 
-def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS):
+def make_manager(profile_manager, app_settings=DEFAULT_SETTINGS, game_window=GAME_WINDOW):
+    """A mirror manager for this window of Tibia. None: Tibia is not connected."""
     settings_store = FakeSettingsStore(app_settings)
-    connection = SimpleNamespace(character=None, game_window=GAME_WINDOW)
+    connection = SimpleNamespace(character=None, game_window=game_window)
     timer_manager = TimerManager(settings_store, profile_manager, connection)
     return MirrorManager(None, settings_store, profile_manager, timer_manager, connection)
 
@@ -545,5 +546,41 @@ def test_an_area_for_an_unknown_mirror_changes_nothing():
     manager = make_manager(profile_manager)
 
     manager.set_area("Health", Rect(10, 20, 100, 50))
+
+    assert profile_manager.current.mirrors == (mirror,)
+
+
+def test_no_window_shows_without_tibia(screen):
+    profile_manager = FakeProfileManager([make_shown_mirror("Minimap")])
+    manager = make_manager(profile_manager, game_window=None)
+
+    failed = manager.show()
+
+    assert failed == 0
+    assert screen["created"] == []
+
+
+def test_the_mirrors_page_gets_no_infos_without_tibia():
+    profile_manager = FakeProfileManager([make_shown_mirror("Minimap")])
+    manager = make_manager(profile_manager, game_window=None)
+
+    assert manager.get_mirror_infos() is None
+
+
+def test_no_mirror_is_added_without_tibia():
+    profile_manager = FakeProfileManager([])
+    manager = make_manager(profile_manager, game_window=None)
+
+    manager.add_mirror("Region 1", Rect(30, 40, 200, 100))
+
+    assert profile_manager.current.mirrors == ()
+
+
+def test_no_area_is_selected_again_without_tibia():
+    mirror = make_shown_mirror("Minimap")
+    profile_manager = FakeProfileManager([mirror])
+    manager = make_manager(profile_manager, game_window=None)
+
+    manager.set_area("Minimap", Rect(10, 20, 100, 50))
 
     assert profile_manager.current.mirrors == (mirror,)
