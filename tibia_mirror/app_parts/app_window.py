@@ -1,11 +1,13 @@
 """The main window of the app."""
 
+from __future__ import annotations
+
 import tkinter as tk
 from types import TracebackType
 
 from tibia_mirror import errors
 from tibia_mirror.config import APP_ID, ICON_FILE, PANEL_FRAME, PANEL_MIN_SIZE, PANEL_SIZE
-from tibia_mirror.core.geometry import panel_geometry
+from tibia_mirror.core.geometry import fit_panel_size, panel_geometry
 from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import scale, theme
@@ -28,6 +30,7 @@ class AppWindow(tk.Tk):
         self._set_icon()
         self._set_size_and_place()
         self.set_panel_on_top()
+        self._bind_events()
 
     def report_callback_exception(
         self,
@@ -75,20 +78,44 @@ class AppWindow(tk.Tk):
         self.tk.call("wm", "iconbitmap", str(self), "-default", str(ICON_FILE))
 
     def _set_size_and_place(self) -> None:
-        """Open at the normal size, in the middle of the main screen.
+        """Open where the window was the last time, or in the middle of the main screen.
 
         Sizes in config.py are for 100% scaling, so they are scaled here.
-        On a short screen the window is made shorter to fit.
+        On a smaller screen the window is made smaller to fit.
         """
-        width, height = scale.px(PANEL_SIZE[0]), scale.px(PANEL_SIZE[1])
-        min_width, min_height = scale.px(PANEL_MIN_SIZE[0]), scale.px(PANEL_MIN_SIZE[1])
+        min_size = scale.px(PANEL_MIN_SIZE[0]), scale.px(PANEL_MIN_SIZE[1])
         title_bar = scale.px(PANEL_FRAME)
-        screen = win32.work_area_at((0, 0))
-        self.minsize(min_width, min_height)
-        self.geometry(panel_geometry((width, height), min_height, title_bar, screen))
+        saved_rect = self._settings.current.panel_rect
+        self.minsize(*min_size)
+
+        if saved_rect is None:
+            size = scale.px(PANEL_SIZE[0]), scale.px(PANEL_SIZE[1])
+            screen = win32.work_area_at((0, 0))
+            self.geometry(panel_geometry(size, min_size[1], title_bar, screen))
+            return
+
+        position_x, position_y, width, height = saved_rect
+        screen = win32.work_area_at((position_x + width // 2, position_y + height // 2))
+        width, height = fit_panel_size((width, height), min_size, title_bar, screen)
+        self.geometry(f"{width}x{height}+{position_x}+{position_y}")
 
     def _style_title_bar(self) -> None:
         """Make the title bar dark in the dark theme. Windows draws it, so we ask Windows."""
         is_dark: bool = theme.current == "dark"
 
         dwm.set_dark_title_bar(self._window_handle, is_dark)
+
+    def _bind_events(self) -> None:
+        self.bind("<Configure>", self._on_place_changed, add="+")
+
+    def _on_place_changed(self, event: tk.Event[tk.Misc]) -> None:
+        # every widget inside the window sends its own <Configure> here too
+        is_window_event = event.widget is self
+        # minimized or maximized, the window opens at its normal place the next time
+        is_normal = self.state() == "normal"
+
+        if not is_window_event or not is_normal:
+            return
+
+        panel_rect = (self.winfo_x(), self.winfo_y(), event.width, event.height)
+        self._settings.update(panel_rect=panel_rect)
