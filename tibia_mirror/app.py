@@ -31,8 +31,8 @@ from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.controls.dialogs import key_combo_name
 from tibia_mirror.ui.overlay2.selection_overlay import NewRegionOverlay, SelectionOverlay
-from tibia_mirror.ui.panel2.panel import Panel
-from tibia_mirror.ui.panel2.profiles.profile_info import ProfileInfo
+from tibia_mirror.ui.panel.panel import Panel
+from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import win32
 from tibia_mirror.winapi.instance import SingleInstance
 from tibia_mirror.winapi.rawinput import InputWatcher

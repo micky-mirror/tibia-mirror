@@ -18,7 +18,7 @@ from tibia_mirror.core.profile import Profile
 from tibia_mirror.core.regions import Layout
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.winapi import win32
 
 GAME_WINDOW = GameWindow(100, Rect(10, 20, 800, 600), is_minimized=False, is_in_front=True)

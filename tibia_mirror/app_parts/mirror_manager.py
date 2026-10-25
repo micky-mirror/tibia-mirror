@@ -16,7 +16,7 @@ from tibia_mirror.core.regions import Layout, new_id, size_key
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.overlay2.mirror_window import MirrorWindow
-from tibia_mirror.ui.panel2.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.winapi import win32
 
 
