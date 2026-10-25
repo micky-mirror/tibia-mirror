@@ -5,7 +5,6 @@ never copy them at import time. The App rebuilds the panel after a switch.
 Button styles are in pixels at the current display scaling: call use() after scale.init().
 """
 
-from dataclasses import replace
 from typing import TypedDict
 
 from tibia_mirror.ui.base.render import ButtonStyle
@@ -28,7 +27,6 @@ class Palette(TypedDict):
     ACCENT_TINT: str
     ON_ACCENT: str
     GREEN: str
-    GREEN_HI: str
     RED: str
     RED_HI: str
     YELLOW: str
@@ -55,10 +53,9 @@ PALETTES: dict[str, Palette] = {
         "ACCENT_TINT": "#2f3750",  # ACCENT at 20% over MANTLE: the selected navigation item
         "ON_ACCENT": "#11111b",  # text and knobs on accent-coloured fills
         "GREEN": "#a6e3a1",
-        "GREEN_HI": "#bff0bb",
         "RED": "#f38ba8",
         "RED_HI": "#f7a8be",
-        "YELLOW": "#f9e2af",  # the unsaved-changes line
+        "YELLOW": "#f9e2af",  # the note that the mirrors are hidden
         "GOLD": "#f2b84b",  # Tibia Coins in the tip lines; kept apart from YELLOW's warning
         "BLURPLE": "#8c94f7",  # Discord's blurple, lightened to read on BG
         "KNOB": "#cdd6f4",
@@ -80,7 +77,6 @@ PALETTES: dict[str, Palette] = {
         "ACCENT_TINT": "#becff0",  # ACCENT at 20% over MANTLE
         "ON_ACCENT": "#ffffff",
         "GREEN": "#40a02b",
-        "GREEN_HI": "#57b541",
         "RED": "#d20f39",
         "RED_HI": "#e0365a",
         "YELLOW": "#b86e00",  # Latte's yellow is too faint for text on a light background
@@ -107,7 +103,6 @@ ACCENT_HI: str
 ACCENT_TINT: str
 ON_ACCENT: str
 GREEN: str
-GREEN_HI: str
 RED: str
 RED_HI: str
 YELLOW: str
@@ -119,7 +114,6 @@ MIRROR_FRAME: str
 SHADOW: float
 PRIMARY_BUTTON: ButtonStyle
 SECONDARY_BUTTON: ButtonStyle
-SAVE_BUTTON: ButtonStyle
 
 # A Tk font as (family, size) or (family, size, style), e.g. ("Segoe UI", 11, "bold").
 FontSpec = tuple[str, int] | tuple[str, int, str]
@@ -184,7 +178,6 @@ def use(name: str) -> None:
             shadow_blur=px(10),
         ),
         SECONDARY_BUTTON=secondary,
-        SAVE_BUTTON=replace(secondary, fill=palette["GREEN"]),
     )
     current = name
 

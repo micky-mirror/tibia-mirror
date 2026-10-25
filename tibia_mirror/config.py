@@ -55,12 +55,8 @@ TIMER_TICK_MS = 200
 THEMES = ("dark", "light")
 LANGUAGES = ("en", "pl")
 
-# Mirrors fade in and out over this long.
-FADE_MS = 200
-
-# Grey mirror frame, and the wider accent frame while its card is hovered.
+# Width of the grey mirror frame.
 MIRROR_BORDER = 1
-HIGHLIGHT_BORDER = 3
 
 # Longest region or profile name accepted by the name dialog.
 MAX_NAME_LENGTH = 40
@@ -69,11 +65,8 @@ MAX_NAME_LENGTH = 40
 MIN_SELECTION_SIDE = 5
 
 # Saves wait for edits to settle, so a dragged slider doesn't write every step.
-AUTOSAVE_DELAY_MS = 500
 SETTINGS_SAVE_DELAY_MS = 300
 
-VISIBILITY_POLL_MS = 200
-ATTACH_POLL_MS = 1000
 CONNECTION_POLL_MS = 200
 # How often the app checks if a second start asked for its window.
 SHOW_REQUEST_POLL_MS = 200

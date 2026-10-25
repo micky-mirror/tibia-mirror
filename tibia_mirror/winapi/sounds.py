@@ -2,10 +2,8 @@
 
 import winsound
 
-# config.TIMER_SOUNDS names -> the Windows sound played for them.
+# mirror_timer.SOUNDS names -> the Windows sound played for them.
 ALIASES = {
-    "asterisk": "SystemAsterisk",
-    "exclamation": "SystemExclamation",
     "notification": "Notification.Default",
     "critical": "SystemHand",
 }
@@ -13,7 +11,7 @@ SIMPLE_BEEP = -1  # MessageBeep(0xFFFFFFFF), the plain beep, as winsound's signe
 
 
 def play(name: str) -> None:
-    """Play the sound named in config.TIMER_SOUNDS ("none" plays nothing).
+    """Play the sound named in mirror_timer.SOUNDS ("none" plays nothing).
 
     A sound Windows refuses (e.g. while audio devices switch) is skipped: the
     caller is the timer loop, which must keep running.
