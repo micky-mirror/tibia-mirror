@@ -86,11 +86,13 @@ A mirror without a layout for the current size is not shown, and the Mirrors pag
 The title alone isn't enough: other windows (an editor, the app's own panel) can contain "Tibia" too.
 Reading the program's path uses the lowest access level Windows offers (`PROCESS_QUERY_LIMITED_INFORMATION`), which gives no access to the game's memory.
 
-- Until Tibia is found, the panel shows "Waiting for Tibia..." and the App retries every second.
+- `TibiaConnection` (`app_parts/tibia_connection.py`) looks again every 200 ms (`CONNECTION_POLL_MS`).
+  Until Tibia is found, the panel shows "Waiting for Tibia...".
 - When Tibia closes, the mirrors keep their settings and reconnect to the new window once Tibia starts again.
-- A minimized Tibia has no client area, so mirrors wait until it's restored.
+- A minimized Tibia has no client area, so mirrors hide until it's restored.
 - `Game` (`services/game.py`) remembers the window and its client area.
-  The App asks it what changed and decides what to do.
+  At each check, `TibiaConnection` also reads who is logged in, from the window title.
+  It tells the App when the state, the game window or the character changed, and the App decides what to do.
 
 ## When mirrors show
 
