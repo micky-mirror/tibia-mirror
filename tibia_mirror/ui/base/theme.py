@@ -1,7 +1,7 @@
 """Colours, fonts and button styles, in a dark and a light theme (Catppuccin Mocha and Latte).
 
 use(name) swaps the module attributes, so read them as `theme.BG` when drawing,
-never copy them at import time. The App rebuilds the panel after a switch.
+never copy them at import time. A new theme is used after a restart.
 Button styles are in pixels at the current display scaling: call use() after scale.init().
 """
 
