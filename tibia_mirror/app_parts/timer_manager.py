@@ -111,6 +111,10 @@ class TimerManager:
 
         return None
 
+    def is_counting(self, mirror_id: str) -> bool:
+        """Whether the timer of this mirror counts now. A paused one does not."""
+        return mirror_id in self._start_times
+
     def _save_spots(self, paused_times: dict[str, float]) -> None:
         """Save these spots for the character who logged in last, beside their other spots."""
         current = self._settings.current

@@ -84,8 +84,11 @@ class MirrorManager:
     def update_timer_badges(self, now: float) -> None:
         """Show on every mirror window how long its timer has counted."""
         for mirror_window in self._mirror_windows:
-            elapsed = self._timer_manager.get_elapsed(mirror_window.mirror_id, now)
-            mirror_window.set_timer_elapsed(elapsed)
+            mirror_id = mirror_window.mirror_id
+            elapsed = self._timer_manager.get_elapsed(mirror_id, now)
+            is_counting = self._timer_manager.is_counting(mirror_id)
+
+            mirror_window.set_timer_elapsed(elapsed, is_counting=is_counting)
 
     def update_windows(self) -> None:
         """Make every mirror window follow the open profile after it changed.

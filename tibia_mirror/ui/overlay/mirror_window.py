@@ -59,6 +59,7 @@ class MirrorWindow(tk.Toplevel):
         # the time of the timer, under the picture
         self._timer_badge = TimerBadge(self)
         self._timer_elapsed: float | None = None  # seconds since the timer started, None before
+        self._is_timer_counting = False  # False before the start and while the timer is paused
         self._update_timer_text()
         # initialize thumbnail connection
         self._thumbnail = self._create_thumbnail()
@@ -102,13 +103,14 @@ class MirrorWindow(tk.Toplevel):
         self._mirror_look = mirror_look
         self._show_at_saved_place()
 
-    def set_timer_elapsed(self, elapsed: float | None) -> None:
+    def set_timer_elapsed(self, elapsed: float | None, *, is_counting: bool) -> None:
         """Show the time of the timer this many seconds after its start. None: not started.
 
         When the timer ends, its sound plays, but not for a hidden mirror.
         """
         is_alert_pending = self._timer_elapsed is not None and not self._is_timer_done()
         self._timer_elapsed = elapsed
+        self._is_timer_counting = is_counting
         self._update_timer_text()
 
         if is_alert_pending and self._is_timer_done() and not self._mirror_settings.is_hidden:
@@ -218,7 +220,7 @@ class MirrorWindow(tk.Toplevel):
         self._timer_badge.show(picture_area, border)
 
     def _update_timer_text(self) -> None:
-        """Show the start time in a dim colour, the counting time in white, and the end in red."""
+        """Show the start and a paused time dimmed, the counting time in white, the end in red."""
         timer = self._mirror_settings.timer
         elapsed = self._timer_elapsed
 
@@ -226,6 +228,9 @@ class MirrorWindow(tk.Toplevel):
             self._timer_badge.set_text(timer.get_start_text(), IDLE_TEXT)
         elif timer.is_done(elapsed):
             self._timer_badge.set_text(timer.get_text(elapsed), DONE_TEXT)
+        elif not self._is_timer_counting:
+            # a paused timer waits for its character to log in
+            self._timer_badge.set_text(timer.get_text(elapsed), IDLE_TEXT)
         else:
             self._timer_badge.set_text(timer.get_text(elapsed), RUNNING_TEXT)
 

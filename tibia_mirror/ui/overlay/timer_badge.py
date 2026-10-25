@@ -11,7 +11,7 @@ from tibia_mirror.winapi import dwm, win32
 
 # It sits over the game, not the panel, so its colours are the same in both themes.
 BADGE_BG = "#11111b"
-IDLE_TEXT = "#a6adc8"  # before the timer starts
+IDLE_TEXT = "#a6adc8"  # before the timer starts, and while it is paused
 RUNNING_TEXT = "#ffffff"
 DONE_TEXT = "#f38ba8"  # from the alert time on
 FONT = ("Segoe UI Semibold", 9)  # all digits of Segoe UI have the same width
