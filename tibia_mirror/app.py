@@ -1361,7 +1361,7 @@ class App2:
 
         # the mirrors would cover the game while the user selects a part of it
         self.mirror_manager.close()
-        on_selected = partial(self._on_region_selected, mirror_id)
+        on_selected = partial(self._on_area_selected, mirror_id)
 
         if mirror_id is not None:
             SelectionOverlay(self.window, game_window, on_selected, self._show_mirrors)
@@ -1377,7 +1377,7 @@ class App2:
             self._show_mirrors,
         )
 
-    def _on_region_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
+    def _on_area_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
         if self.connection.game_window is None:
             # Tibia closed while the user was selecting or naming
             self.panel.set_message(tr("Could not mirror"), "error")
