@@ -8,7 +8,6 @@ import pytest
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.profile import Profile
-from tibia_mirror.core.profiles import ProfileStore
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 
@@ -16,10 +15,6 @@ from tibia_mirror.settings.app_settings_store import AppSettingsStore
 def folder(tmp_path):
     """The folder of the profile files. It does not exist until a profile is saved."""
     return tmp_path / "profiles"
-
-
-def add_profile(folder, name):
-    ProfileStore(folder).save(name, [])
 
 
 def make_settings(tmp_path, last_profile):
@@ -54,6 +49,11 @@ def write_profile_file(folder, name, data):
     folder.mkdir(parents=True, exist_ok=True)
     file = folder / f"{name}.json"
     file.write_text(json.dumps(data), encoding="utf-8")
+
+
+def add_profile(folder, name):
+    """Write the file of the profile `name`, without mirrors."""
+    write_profile_file(folder, name, {"version": 2, "mirrors": []})
 
 
 # Hotkeys as the app keeps them: (key code, modifiers held with it).

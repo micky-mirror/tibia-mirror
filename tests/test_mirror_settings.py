@@ -90,6 +90,14 @@ def test_a_layout_for_a_window_size_of_zero_is_left_out() -> None:
     assert mirror.layouts == LAYOUTS
 
 
+def test_a_layout_whose_key_is_not_a_window_size_is_left_out() -> None:
+    layouts = LAYOUTS_JSON | {"big": {"region": [0, 0, 1, 1]}}
+
+    mirror = MirrorSettings.from_json({"name": "Minimap", "layouts": layouts})
+
+    assert mirror.layouts == LAYOUTS
+
+
 def test_content_that_is_not_an_object_is_refused() -> None:
     with pytest.raises(ValueError):
         MirrorSettings.from_json([1, 2])
