@@ -90,7 +90,7 @@ Hover any icon on it for a short explanation.
 |---|---|
 | Colour dot | Pick the frame colour, to tell similar mirrors apart |
 | Name | Double-click to rename |
-| Size, e.g. `77×83` | Select the area again (see below) |
+| Size, e.g. `77×83` | Select its area again (see below) |
 | Stopwatch | Set up a timer (blue while on) |
 | Eye | Show or hide this mirror (a hidden one stays in the list, with its name in grey) |
 | Padlock | Lock it: it can't be moved and clicks go through it to the game |
@@ -103,7 +103,7 @@ Hover any icon on it for a short explanation.
 |---|---|
 | Move it | Left-drag it |
 | Resize it | Drag its bottom-right corner (the cursor changes there); proportions are kept |
-| Remove it | Right-click it (when unlocked) and choose **Remove**, or click ✕ on its card |
+| Remove it | Click ✕ on its card |
 
 New mirrors start at actual size and 50% opacity, with a thin grey frame.
 Zoom goes from 25% to 400%.
@@ -112,15 +112,11 @@ Zoom goes from 25% to 400%.
 Coloured frames are a bit thicker and always show.
 Only the frame is coloured, unless **Tint with frame colour** is on in Settings.
 
-### Editing a region exactly
+### Selecting the area again
 
-Click the size on a card to open the Region dialog:
-
-- Set X, Y, width and height in game pixels, and the zoom.
-  The mirror shows each change live; **Cancel** puts everything back.
-- <kbd>↑</kbd> / <kbd>↓</kbd> in a field changes it by 1 (<kbd>Shift</kbd>: 10).
-- **Apply size and zoom to all mirrors** gives every mirror the same shape (each keeps its centre).
-- **Select area again** lets you drag out a new area, keeping the mirror's name, opacity and position.
+Click the size on a card to select that mirror's area again.
+It works like adding a region: drag a box over the game, with the same magnifier and keys.
+The mirror keeps its name, opacity, timer and place; only the part of the game it shows changes.
 
 ## Timers
 
