@@ -63,19 +63,22 @@ It asks the Windows compositor (DWM) to draw a live copy of part of Tibia's wind
 - The app never receives the game's image.
 - It works with Tibia in real fullscreen, where screen capture shows a black image.
 
-Each mirror (`ui/overlay/mirror.py`) is a borderless, always-on-top window:
+Each mirror (`ui/overlay/mirror_window.py`) is a borderless, always-on-top window:
 
 - **Opacity** is the window's alpha, which also applies to the copied image.
 - **Locked** mirrors are click-through, so clicks reach the game.
+- **The frame** is the window's own background, around the copied image.
 - **Rounded corners** use Windows 11's own rounding, the only kind that also clips the image.
-  The frame is then a second window behind the image.
-- **Timer badges** are small windows of their own just below the mirror, since nothing can be drawn over the copied image.
+  The frame is then a second window behind the image (`ui/overlay/mirror_frame.py`), cut into a rounded ring.
+- **A tint** uses that second window too: it stays solid in the frame colour, so the colour shows through the see-through image.
+- **Timer badges** (`ui/overlay/timer_badge.py`) are small windows of their own just below the mirror, since nothing can be drawn over the copied image.
 
 ### Layouts per window size
 
 Tibia's panels don't scale with its window, so a mirror keeps one **layout per client size** (e.g. windowed and fullscreen).
-A layout is the region shown plus the mirror's position relative to the game window, so mirrors follow Tibia when it moves.
-For a new size, `regions.guess_layout` makes a proportional first guess; adjusting it makes it the layout for that size.
+A layout (`core/regions.py`) is the region shown plus the mirror's position relative to the game window, so mirrors follow Tibia when it moves.
+Adding a region makes a layout for the size Tibia has at that moment.
+A mirror without a layout for the current size is not shown, and the Mirrors page leaves out its card.
 
 ## Finding Tibia
 
