@@ -111,44 +111,50 @@ Clicks and key presses come from Windows **Raw Input** (`winapi/rawinput.py`), w
 > [!WARNING]
 > Raw Input messages arrive inside Tk's event loop, and calling Tk from there crashes Python.
 > So the watcher only queues each event, and a short Tk timer hands the queue to the App.
+> Python's garbage collector can also run there, and if it frees Tk images then, Python crashes too.
+> That is why a new theme or language is used after a restart, instead of building the panel again while the app runs.
 
-- A click starts the timers whose region it hits, but only if it landed on Tibia.
+- A left click starts the timers whose region it hits, but only if it landed on Tibia.
 - A key starts the timers bound to exactly that combination, but only while Tibia is in front.
-- A key combination does one thing only: the hide-all key and timer keys can't clash.
-- The pure timer logic (what the badge shows, key matching, paused progress) is in `core/timers.py`.
-- `RunningTimers` (`services/running_timers.py`) uses that logic on the mirrors.
-  The App tells it about clicks, keys, logins and logouts, and plays the sounds it returns.
+- A key combination does one thing only.
+  Setting a key in one place clears it everywhere else (`ProfileManager.clear_hotkey`), and a profile that is opened loses the hide-all key from its timers.
+- The timer logic is pure: `core/mirror_timer.py` has a timer's settings and what its badge shows, and `core/timers.py` has key combinations and paused progress.
+- `TimerManager` (`app_parts/timer_manager.py`) keeps when each timer started.
+  The App passes it the clicks and keys, and `MirrorManager.update_timer_badges` shows the times on the badges every 200 ms (`TIMER_TICK_MS`).
+- A mirror window plays the timer's sound when its time is up, but not while the mirror is hidden.
 
-**Pause while logged out**: the App reads the logged-in character from Tibia's window title ("Tibia - Name").
-Running timers' start times are kept in memory; at logout they become paused progress in `settings.json`, per character and per mirror id, and continue at the next login.
+**Pause while logged out**: `TibiaConnection` reads the logged-in character from Tibia's window title ("Tibia - Name").
+The start times of running timers are kept in memory.
+At a logout they become paused progress in `settings.json`, per character and per mirror id, and they continue at the next login.
+While nobody is logged in, a paused timer shows its time dimmed.
 
 ## Profiles and settings
 
-- **Profiles** (`core/profiles.py`, `core/regions.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
+- **Profiles** (`core/profile.py`, `core/mirror_settings.py`, `core/mirror_timer.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
   Each mirror has a permanent hidden `id`, a name, opacity, zoom, colour, timer and its layouts.
-  Older file formats still load.
-- **Unsaved changes** are found by comparing what Save would write with the file as loaded, so undoing a change by hand clears the flag.
-- **The active profile** (`services/active_profile.py`) keeps that copy of the file as loaded.
-  The App asks it to save, load, rename, duplicate or delete, and shows the result in the panel.
-- **Settings** (`settings/settings.py`) are saved to `settings.json` shortly after each change.
+  Files of v1.0.0 load as they are, and tests pin that format.
+- **The open profile** is kept by `ProfileManager` (`app_parts/profile_manager.py`), which also does new, duplicate, rename and delete.
+  Every change is written to the file at once.
+  A duplicate gives its mirrors new ids, so paused timers never mix between profiles.
+  A file that can't be read opens as an empty profile, and the panel says so.
+- **Profile names** are file names, so they follow Windows' rules and compare ignoring case (`core/profiles.py`).
+- **Settings** (`settings/app_settings.py`) are saved to `settings.json`.
   Bad or unknown values fall back to defaults, so a hand-edited file never stops the app from starting.
-  `SettingsStore` (`settings/settings_store.py`) holds them while the app runs, and tells the App after each change, so the App can save the file.
-- **Profile per character** (`core/characters.py`) links character names to profiles in `settings.json`.
-  A login switches profiles through the same "save changes first?" flow as switching by hand, and waits while a dialog is open.
+  `AppSettingsStore` (`settings/app_settings_store.py`) holds them while the app runs, and tells the App and the pages that listen after each change.
+  `SettingsWriter` writes the file shortly after a change, and once more when the window closes.
+- **Profile per character**: at a login, the App opens the profile with the character's name, or makes one as a copy of the open profile.
 
 ## The control panel
 
 The panel is plain Tk, made to look modern without third-party packages:
 
 - **Rounded, anti-aliased shapes and shadows** (buttons, cards, fields) are drawn in code in `ui/base/render.py` and cached.
-- **Cards, the menu rail and settings groups** are drawn on one canvas each and hit-tested by position, for clean hover handling.
+- **Mirror cards, the menu rail and the cards of settings rows** are drawn on one canvas each and hit-tested by position, for clean hover handling.
 - **Themes** (`ui/base/theme.py`): colours are read when a widget is drawn, never copied at import time.
-  Switching theme or language rebuilds the panel on the same page.
+  A new theme or language is used after a restart: the Settings page asks first, and nothing is built again while the app runs (see "Input and timers").
 - **Languages** (`i18n.py`): every user-facing text goes through `tr()`; a test fails if any has no Polish translation.
 - **Size and place**: the first time, the panel opens centred, tall enough for the whole Settings page, and shorter on small screens (pages scroll).
-  After that it opens where it was last, its size shrunk to fit if needed (`panel_rect` in `settings.json`).
-  If what it shows (title bar and inside) wouldn't be fully on a screen, for example after a monitor was unplugged, it opens centred instead.
-  The check leaves out Windows' invisible resize borders, so a panel dragged against a screen edge stays there.
+  After that it opens where it was last, its size shrunk to fit the screen if needed (`panel_rect` in `settings.json`).
 - **Display scaling** (`ui/base/scale.py`): Tk scales fonts with Windows' display scaling, but not pixel sizes.
   So every size is written as its value at 100% and goes through `px()` where it is used, so boxes grow with their text.
   The scale is read once at startup from Tk, and the theme's button styles are built after it.
@@ -159,7 +165,9 @@ The panel is plain Tk, made to look modern without third-party packages:
 
 1. **One copy at a time** (`winapi/instance.py`): a named mutex marks the running copy.
    A second copy signals it to show its panel, and quits before touching any data.
-2. **Error log** (`errors.py`): the `.exe` has no console, so errors and crashes go to `error.log`, which is trimmed once it's large.
+2. **Error log** (`errors.py`): the `.exe` has no console, so errors go to `error.log` through Python's `logging`.
+   At 1 MB the log moves to `error.log.1` and a new one starts.
+   Errors in Tk callbacks come in through `AppWindow.report_callback_exception`.
    If the app can't even open its panel, a message box names the log.
 3. **Data** lives in `%APPDATA%\Tibia Mirror`, shared by the `.exe` and a run from source.
 
@@ -181,25 +189,12 @@ These are deliberate and must stay true:
 | Area | Files |
 |---|---|
 | App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
-| Services | `services/active_profile.py`, `services/game.py`, `services/mirrors.py`, `services/running_timers.py` |
-| Settings | `settings/settings.py`, `settings/settings_store.py` |
+| App parts | `app_parts/app_window.py`, `app_parts/tibia_connection.py`, `app_parts/front_window_tracker.py`, `app_parts/profile_manager.py`, `app_parts/mirror_manager.py`, `app_parts/timer_manager.py`, `app_parts/settings_writer.py`, `services/game.py` |
+| Settings | `settings/app_settings.py`, `settings/app_settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
-| Pure logic | `core/geometry.py`, `core/regions.py`, `core/profiles.py`, `core/characters.py`, `core/timers.py`, `core/visibility.py`, `core/handles.py`, `core/connection.py`, `core/game_window.py` |
+| Pure logic | `core/geometry.py`, `core/game_window.py`, `core/connection.py`, `core/profile.py`, `core/mirror_settings.py`, `core/mirror_timer.py`, `core/mirror_look.py`, `core/regions.py`, `core/profiles.py`, `core/timers.py`, `core/characters.py`, `core/handles.py` |
 | Text | `i18n.py`, `about.py` |
-| Mirrors | `ui/overlay/mirror.py`, `ui/overlay/badge.py`, `ui/overlay/selector.py`, `ui/overlay/loupe.py` |
-| Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, and the pages: `ui/panel/mirrors_page.py`, `ui/panel/settings_page.py`, `ui/panel/shortcuts_page.py`, `ui/panel/about_page.py` |
-| Widgets | `ui/controls/widgets.py`, `ui/controls/menu.py`, `ui/controls/dialogs.py`, `ui/controls/tooltip.py`, `ui/controls/slider.py` |
-| Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/animation.py`, `ui/base/images.py`, `ui/base/text.py`, `ui/base/windows.py` |
-
-## Conventions
-
-- State lives on `App` and its services; UI classes get callbacks, never globals.
-- Imports point one way: `app.py` -> `app_parts/` -> `services/` -> `ui/` and `winapi/` -> `settings/` -> `core/`.
-  Inside `ui/`, `panel/` and `overlay/` may use `controls/` and `base/`, and `base/` uses none of them.
-- Every Win32 function is declared once, with its argument and return types, in `winapi/win32.py` or `winapi/dwm.py`.
-- Pure modules stay free of Win32 and Tk, so they stay testable.
-- Every extra window says what a close request (Alt+F4) means: dialogs cancel, menus close, mirrors and badges ignore it (`ui/base/windows.py`); a test checks each one.
-- Everything is type-annotated and `mypy --strict` passes.
-- Names are spelled out (`mirror`, `profile`, `middle_y`).
-  Short names are kept only where they're the usual convention: `e` for a Tk event, `x, y, w, h`, `x0, y0, x1, y1`, `i`, `lo, hi`, and the Windows terms `hwnd` and `vk`.
-- Screen rectangles are `geometry.Rect`, never bare tuples.
+| Mirrors | `ui/overlay/mirror_window.py`, `ui/overlay/mirror_frame.py`, `ui/overlay/timer_badge.py`, `ui/overlay/selection_overlay.py`, `ui/overlay/loupe.py`, `ui/overlay/pixel_marker.py` |
+| Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, `ui/panel/footer.py`, the pages in `ui/panel/pages/`, the mirror cards and the timer dialog in `ui/panel/mirrors/`, the profile picker and menu in `ui/panel/profiles/`, the rows of the cards in `ui/panel/rows/` |
+| Widgets | `ui/panel/controls/` |
+| Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/images.py`, `ui/base/text.py`, `ui/base/windows.py` |
