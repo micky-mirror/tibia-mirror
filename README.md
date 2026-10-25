@@ -281,44 +281,55 @@ The version comes from `tibia_mirror/__init__.py`; keep `pyproject.toml` in step
 ### Project layout
 
 ```
-main.py                 entry point
-Tibia Mirror.spec       the .exe build (PyInstaller)
+main.py                      entry point
+Tibia Mirror.spec            the .exe build (PyInstaller)
 tibia_mirror/
-  app.py                App: owns runtime state, wires windows together
-  config.py             paths, sizes, poll intervals
-  i18n.py               English and Polish text
-  about.py              author, contact, tip character, copyright years
-  errors.py             the error log
-  core/                 pure logic: no Windows or Tk code
-    geometry.py         pure coordinate math
-    regions.py          saved regions and JSON persistence
-    profiles.py         profiles: one saved set of regions per file
-    settings.py         app settings and settings.json
-    characters.py       linking characters to profiles
-    timers.py           timer settings and what the badge shows
-    visibility.py       when mirrors are shown
-    handles.py          the Hwnd name for window handles
-  winapi/               everything that calls Windows
-    win32.py            ctypes bindings and window helpers
-    dwm.py              DWM thumbnail wrapper (the core mechanism)
-    tibia.py            finding the Tibia client window
-    rawinput.py         being told of clicks and key presses (Raw Input)
-    instance.py         one copy at a time
-    sounds.py           timer alert sounds
-  services/             the pieces of the running app that App wires together
-    active_profile.py   the profile that is open now
-    game.py             the Tibia window and its client area
-    mirrors.py          the mirror windows on screen
-    running_timers.py   the timers that are running, and who is logged in
-    settings_store.py   the settings of the app and their file
-  assets/icon.ico       the app icon
-  ui/                   everything drawn with Tk
-    base/               themes, display scaling, shape rendering, helpers
-    controls/           custom widgets, menus, slider, tooltips, dialogs
-    overlay/            mirror window, timer badge, selection overlay, magnifier
-    panel/              control panel, its menu rail and pages
-tests/                  unit tests for the non-GUI modules
-docs/                   architecture, images
+  app.py                     App: starts its parts and connects them
+  config.py                  paths, sizes, poll intervals
+  i18n.py                    English and Polish text
+  about.py                   author, contact, tip character, copyright years
+  errors.py                  the error log
+  app_parts/                 the parts App is built from
+    app_window.py            the main window
+    tibia_connection.py      finding Tibia, its window and who is logged in
+    front_window_tracker.py  the window the user works in
+    profile_manager.py       the profiles, and the one that is open
+    mirror_manager.py        the mirror windows on screen
+    timer_manager.py         the timers that count, and their paused progress
+    settings_writer.py       writing settings.json
+  core/                      pure logic: no Windows or Tk code
+    geometry.py              pure coordinate math
+    game_window.py           the Tibia window as the app sees it
+    connection.py            the states of the connection to Tibia
+    profile.py               one profile, as it is saved in its file
+    mirror_settings.py       the settings of one mirror
+    mirror_timer.py          the timer of one mirror and what its badge shows
+    mirror_look.py           how every mirror is drawn
+    regions.py               layouts, window sizes, ids and default names
+    profiles.py              the rules for profile names
+    timers.py                key combinations and paused progress per character
+    characters.py            the character in Tibia's window title
+    handles.py               the Hwnd name for window handles
+  settings/                  the settings of the app
+    app_settings.py          the settings, as they are saved in settings.json
+    app_settings_store.py    the settings while the app runs
+  services/
+    game.py                  the Tibia window and its client area
+  winapi/                    everything that calls Windows
+    win32.py                 ctypes bindings and window helpers
+    dwm.py                   DWM thumbnail wrapper (the core mechanism)
+    tibia.py                 finding the Tibia client window
+    rawinput.py              being told of clicks and key presses (Raw Input)
+    instance.py              one copy at a time
+    sounds.py                timer alert sounds
+  assets/icon.ico            the app icon
+  ui/                        everything drawn with Tk
+    base/                    themes, display scaling, shape rendering, helpers
+    overlay/                 mirror window and frame, timer badge, selection overlay, magnifier
+    panel/                   the panel: menu rail, pages, mirror cards, profile menu, card rows
+      controls/              popups, dropdowns, slider, tooltips and other widgets
+tests/                       unit tests for the non-GUI modules
+docs/                        architecture, images
 ```
 
 ### Documentation
