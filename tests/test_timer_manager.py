@@ -260,3 +260,40 @@ def test_a_stopped_timer_loses_its_saved_spots_of_every_character():
 
     assert settings_store.current.timer_pauses == (("Knight", "Health", 7.0),)
     assert manager.get_elapsed("Minimap", now=100.0) is None
+
+
+def test_a_timer_that_has_not_started_is_not_counting():
+    manager = make_manager([make_mirror("Minimap", ON_WITH_F1)])
+
+    assert not manager.is_counting("Minimap")
+
+
+def test_a_started_timer_is_counting():
+    manager = make_manager([make_mirror("Minimap", ON_WITH_F1)])
+
+    manager.start_by_key(*F1, now=10.0)
+
+    assert manager.is_counting("Minimap")
+
+
+def test_a_timer_paused_at_a_logout_is_not_counting():
+    connection = SimpleNamespace(character=None)
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(FakeSettingsStore(), profile_manager, connection)
+    change_character(manager, connection, "Knight", now=0.0)
+    manager.start_by_key(*F1, now=10.0)
+
+    change_character(manager, connection, None, now=25.0)
+
+    assert not manager.is_counting("Minimap")
+
+
+def test_a_timer_continued_at_a_login_is_counting():
+    settings_store = FakeSettingsStore(timer_pauses=(("Knight", "Minimap", 15.0),))
+    connection = SimpleNamespace(character=None)
+    profile_manager = make_profile_manager([make_mirror("Minimap", PAUSING_WITH_F1)])
+    manager = TimerManager(settings_store, profile_manager, connection)
+
+    change_character(manager, connection, "Knight", now=100.0)
+
+    assert manager.is_counting("Minimap")
