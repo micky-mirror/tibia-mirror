@@ -8,7 +8,7 @@ from tibia_mirror.config import ZOOM_RANGE
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.mirror_timer import MirrorTimer
-from tibia_mirror.core.regions import Layout, SavedRegion
+from tibia_mirror.core.regions import Layout
 
 # One layout as a profile file holds it, and the same layout as the class holds it.
 LAYOUTS_JSON = {"1920x1080": {"region": [10, 20, 300, 40], "offset": [5, 6]}}
@@ -29,6 +29,27 @@ CHANGED_MIRROR = MirrorSettings(
     is_locked=True,
     timer=MirrorTimer(is_on=True, alert_seconds=30),
 )
+# One mirror as v1.0.0 writes CHANGED_MIRROR.
+V1_MIRROR_CONTENT = {
+    "id": "mirror-1",
+    "name": "Minimap",
+    "opacity": 0.8,
+    "zoom": 2.0,
+    "color": "blue",
+    "timer": {
+        "enabled": True,
+        "alert": 30,
+        "direction": "down",
+        "button": "both",
+        "key": None,
+        "modifiers": [],
+        "sound": "notification",
+        "offline_pause": True,
+    },
+    "hidden": True,
+    "locked": True,
+    "layouts": LAYOUTS_JSON,
+}
 
 
 def test_id_name_and_layouts_are_read() -> None:
@@ -121,11 +142,14 @@ def test_written_settings_are_read_back_the_same() -> None:
     assert MirrorSettings.from_json(file_content) == CHANGED_MIRROR
 
 
-def test_the_old_class_reads_and_writes_the_same_file() -> None:
-    file_content = CHANGED_MIRROR.to_json()
+def test_a_mirror_of_v1_0_0_is_read() -> None:
+    assert MirrorSettings.from_json(V1_MIRROR_CONTENT) == CHANGED_MIRROR
 
-    old_file_content = SavedRegion.from_json(file_content, default_name="").to_json()
-    # only the old app still lets other mouse buttons than the left one start a timer
-    del old_file_content["timer"]["button"]
 
-    assert old_file_content == file_content
+def test_a_written_mirror_keeps_the_format_of_v1_0_0() -> None:
+    written_content = CHANGED_MIRROR.to_json()
+    # the timer has its own format test, in test_mirror_timer.py
+    written_mirror = {key: value for key, value in written_content.items() if key != "timer"}
+    v1_mirror = {key: value for key, value in V1_MIRROR_CONTENT.items() if key != "timer"}
+
+    assert written_mirror == v1_mirror

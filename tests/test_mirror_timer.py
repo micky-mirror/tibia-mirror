@@ -3,7 +3,6 @@
 import pytest
 
 from tibia_mirror.core.mirror_timer import MirrorTimer
-from tibia_mirror.core.timers import TimerSettings
 
 # A timer where every value is different from its default.
 CHANGED_TIMER = MirrorTimer(
@@ -14,6 +13,19 @@ CHANGED_TIMER = MirrorTimer(
     sound="beep",
     is_paused_offline=False,
 )
+# The timer as v1.0.0 writes CHANGED_TIMER.
+V1_TIMER_CONTENT = {
+    "enabled": True,
+    "alert": 90,
+    "direction": "up",
+    "button": "both",
+    "key": 120,
+    "modifiers": ["shift"],
+    "sound": "beep",
+    "offline_pause": False,
+}
+# only v1.0.0 lets other mouse buttons than the left one start a timer
+V1_ONLY_KEYS = ("button",)
 
 
 def test_a_missing_timer_gives_the_defaults():
@@ -57,14 +69,16 @@ def test_a_written_timer_is_read_back_the_same():
     assert MirrorTimer.from_json(CHANGED_TIMER.to_json()) == CHANGED_TIMER
 
 
-def test_the_old_timer_class_reads_and_writes_the_same_file():
-    file_content = CHANGED_TIMER.to_json()
+def test_a_timer_of_v1_0_0_is_read():
+    assert MirrorTimer.from_json(V1_TIMER_CONTENT) == CHANGED_TIMER
 
-    old_file_content = TimerSettings.from_json(file_content).to_json()
-    # only the old app still lets other mouse buttons than the left one start a timer
-    del old_file_content["button"]
 
-    assert old_file_content == file_content
+def test_a_written_timer_keeps_the_format_of_v1_0_0():
+    shared_content = {
+        key: value for key, value in V1_TIMER_CONTENT.items() if key not in V1_ONLY_KEYS
+    }
+
+    assert CHANGED_TIMER.to_json() == shared_content
 
 
 @pytest.mark.parametrize(
