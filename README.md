@@ -23,16 +23,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/in_game.jpg" width="820" alt="Tibia with Tibia Mirror running: a copy of the minimap in the top-right corner and small framed copies of the amulet, ring, potions and spells below the character">
-  <br>
-  <sub>Mirrors in the game: the minimap and a few basic spell icons, each in a framed window you can place anywhere and tailor to your needs: size, opacity, frame colour, timer and more.<br>
-  Photo taken with a phone: on your own screen, the mirrors look as sharp and smooth as the game itself.</sub>
-</p>
-
-<p align="center">
-  <img src="docs/images/mirror_1.jpg" height="640" alt="The Mirrors page: a profile with five regions, each with its colour, size, timer, visibility, lock and opacity">
+  <img src="docs/images/mirror_1.jpg" height="640" alt="The Mirrors page: a profile with its regions, each with its colour, size, timer, visibility, lock and opacity">
   &nbsp;
-  <img src="docs/images/mirror_2.jpg" height="640" alt="The Settings page: language, theme, profiles, saving and mirror options">
+  <img src="docs/images/mirror_2.jpg" height="640" alt="The Settings page: language, theme, keeping the panel on top, profile per character and mirror options">
 </p>
 
 ---
@@ -123,7 +116,7 @@ The mirror keeps its name, opacity, timer and place; only the part of the game i
 Click the stopwatch on a card to give that mirror a timer.
 
 <p align="center">
-  <img src="docs/images/mirror_3.jpg" height="315" alt="The Timer dialog: alert time, count direction, mouse button, key, sound and pause while logged out">
+  <img src="docs/images/mirror_3.jpg" height="315" alt="The Timer dialog: timer on, pause while logged out, alert time, sound, count direction and key">
 </p>
 
 | | How it works |
