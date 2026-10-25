@@ -44,7 +44,7 @@
 > - It never clicks, types or moves the mouse for you, and never changes Tibia's window.
 > - Nothing is sent anywhere.
 
-## 🚀 Quick start
+## Quick start
 
 Tibia Mirror runs on **Windows 11**, where it is tested.
 
@@ -53,7 +53,6 @@ Tibia Mirror runs on **Windows 11**, where it is tested.
 3. Double-click `Tibia Mirror.exe`.
 4. Click **Add region**, drag a box over the part of the game you want, and name it.
 5. Drag the new mirror wherever you like.
-6. Press **Save**, or turn on **Save automatically** in Settings.
 
 > [!TIP]
 > The first time, Windows may say "Windows protected your PC", because the file isn't signed.
@@ -61,9 +60,10 @@ Tibia Mirror runs on **Windows 11**, where it is tested.
 
 The app finds Tibia by itself: the panel shows "Waiting for Tibia..." until it's running, and reconnects if Tibia restarts.
 Only one copy of the app runs at a time: starting it again brings the open panel to the front.
-The panel opens where you left it, at the same size (centred if that spot is no longer on a screen).
+The panel opens where you left it, at the same size (smaller if it no longer fits the screen).
+Every change is saved right away.
 
-## 🪟 Mirrors
+## Mirrors
 
 ### Adding a region
 
@@ -74,8 +74,8 @@ The panel opens where you left it, at the same size (centred if that spot is no 
 A mirror of that region appears right next to it, ready to be dragged into place.
 
 > [!TIP]
-> While you select, a magnifier beside the pointer shows the game enlarged, with the exact pixel framed.
-> The arrow keys <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> shift the selected point by 1 pixel (<kbd>Shift</kbd>: 10), even while the mouse button is held.
+> While you select, a magnifier beside the pointer shows the game enlarged, with the exact pixel framed and the size of your box below it.
+> The arrow keys <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> shift the selected point by 1 pixel, even while the mouse button is held.
 > The mouse pointer itself never moves.
 > <kbd>Esc</kbd> cancels.
 
@@ -88,16 +88,14 @@ Hover any icon on it for a short explanation.
 
 | On the card | What it does |
 |---|---|
-| 🎨 Colour dot | Pick the frame colour, to tell similar mirrors apart |
+| Colour dot | Pick the frame colour, to tell similar mirrors apart |
 | Name | Double-click to rename |
-| Size, e.g. `77×83` | Edit position, size and zoom exactly (see below) |
-| ⏱️ Stopwatch | Set up a timer (blue while on) |
-| 👁️ Eye | Show or hide this mirror (a hidden one stays in the list, dimmed) |
-| 🔒 Padlock | Lock it: it can't be moved and clicks go through it to the game |
+| Size, e.g. `77×83` | Select the area again (see below) |
+| Stopwatch | Set up a timer (blue while on) |
+| Eye | Show or hide this mirror (a hidden one stays in the list, with its name in grey) |
+| Padlock | Lock it: it can't be moved and clicks go through it to the game |
 | ✕ | Remove it |
 | Slider | Opacity, from 10% to 100% |
-
-Hovering a card also shows its mirror at full opacity with a wider frame, so you can find it, even while mirrors are hidden.
 
 ### Working with a mirror
 
@@ -124,7 +122,7 @@ Click the size on a card to open the Region dialog:
 - **Apply size and zoom to all mirrors** gives every mirror the same shape (each keeps its centre).
 - **Select area again** lets you drag out a new area, keeping the mirror's name, opacity and position.
 
-## ⏱️ Timers
+## Timers
 
 Click the stopwatch on a card to give that mirror a timer.
 
@@ -173,7 +171,7 @@ While they're hidden, the top of the panel says so, e.g. "Mirrors hidden (Ctrl+H
 - Each game window size (e.g. windowed and fullscreen) has its own layout.
   The first time at a new size, the app makes a proportional guess; adjust it once and it's remembered.
 
-## 📁 Profiles
+## Profiles
 
 A profile is a named set of mirrors: one per character, or one for hunting and one for PvP.
 Click the box at the top of the Mirrors page to switch profiles or manage them.
@@ -200,7 +198,7 @@ The app only reads the character's name from Tibia's window title ("Tibia - Knig
 - With unsaved changes you're asked first; **Cancel** keeps the current profile.
 - Logging out leaves the current profile open.
 
-## 💾 Saving
+## Saving
 
 Changes to mirrors are kept in the active profile when you press **Save**; **Revert** throws them away.
 The line under the buttons says whether anything is unsaved.
@@ -208,7 +206,7 @@ Switching profiles or closing the app asks first if there are unsaved changes.
 
 With **Save automatically** on, every change is saved right away and the buttons disappear.
 
-## ⚙️ Settings
+## Settings
 
 Settings apply immediately.
 
@@ -225,7 +223,7 @@ Settings apply immediately.
 | Rounded corners | Windows 11's rounded corners (clips a few pixels, adds a faint shadow) | Off |
 | Fade animations | Mirrors fade in and out instead of appearing instantly | On |
 
-## ⌨️ Shortcuts
+## Shortcuts
 
 | Shortcut | What it does | Default |
 |---|---|---|
@@ -237,7 +235,7 @@ A key already used by a timer can't be chosen.
 > [!TIP]
 > Tibia receives the key too, so pick one it doesn't use.
 
-## 🗂️ Your data
+## Your data
 
 Profiles, settings and the error log are in `%APPDATA%\Tibia Mirror`.
 Updating the `.exe` keeps them.
@@ -246,7 +244,7 @@ Each profile is a plain JSON file, safe to edit or share.
 If something goes wrong, the details are in `error.log` there: errors only, never what you click or type.
 If the app can't start at all, a message says so and names this file.
 
-## 📜 License
+## License
 
 Tibia Mirror is free to use, and its code is public to read, under the [PolyForm Strict License 1.0.0](LICENSE.md).
 
@@ -261,7 +259,7 @@ The streaming permission, and the licenses of the open-source software inside th
 ---
 
 <details>
-<summary><b>🛠️ For developers</b></summary>
+<summary><b>For developers</b></summary>
 
 ### Running from source
 
