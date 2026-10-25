@@ -67,6 +67,7 @@ MIN_SELECTION_SIDE = 5
 # Saves wait for edits to settle, so a dragged slider doesn't write every step.
 SETTINGS_SAVE_DELAY_MS = 300
 
+# How often the app looks for Tibia and reads its window.
 CONNECTION_POLL_MS = 200
 # How often the app checks if a second start asked for its window.
 SHOW_REQUEST_POLL_MS = 200
