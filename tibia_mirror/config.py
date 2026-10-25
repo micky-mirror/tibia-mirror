@@ -25,8 +25,6 @@ DEFAULT_PROFILE = "Default"
 ZOOM_RANGE = (0.25, 4.0)
 # How close to a mirror's bottom-right corner the pointer must be to resize it.
 RESIZE_GRIP = 14
-# Position for very old saved regions without one.
-DEFAULT_MIRROR_POS = (40, 40)
 # A new mirror is placed this far from the area it mirrors.
 NEW_MIRROR_GAP = 12
 
