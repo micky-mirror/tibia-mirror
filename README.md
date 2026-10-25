@@ -121,13 +121,14 @@ Click the stopwatch on a card to give that mirror a timer.
 
 | | How it works |
 |---|---|
-| **Start** | Click the region in the game (left, right or either button, as you choose), or press the mirror's key. The next click or key press restarts it. |
+| **Start** | Left-click the region in the game, or press the mirror's key. The next click or key press restarts it. |
 | **Time** | Counts down (or up) to an alert time from 0:01 to 59:59, on a small badge just below the mirror. |
-| **Time's up** | Plays the sound you picked (or none) and stays on its final value in red. |
-| **Key** | Can include <kbd>Ctrl</kbd>, <kbd>Shift</kbd> and <kbd>Alt</kbd>, like <kbd>Shift</kbd>+<kbd>F9</kbd>. It must match exactly, so <kbd>F9</kbd> alone doesn't start a <kbd>Shift</kbd>+<kbd>F9</kbd> timer. |
+| **Time's up** | Plays the sound you picked (or none) and stays on its final value in red. A hidden mirror makes no sound. |
+| **Key** | Can include <kbd>Ctrl</kbd>, <kbd>Shift</kbd> and <kbd>Alt</kbd>, like <kbd>Shift</kbd>+<kbd>F9</kbd>. It must match exactly, so <kbd>F9</kbd> alone doesn't start a <kbd>Shift</kbd>+<kbd>F9</kbd> timer. If another timer or the hide-all key has it, it moves to this timer. |
 
 Clicks only count when they land on Tibia, and keys only while Tibia is the active window.
 Timers keep running while a mirror is hidden, and start fresh when the app restarts.
+Changing a timer's settings stops it, so it starts over.
 
 > [!IMPORTANT]
 > The app only reminds you: it never presses a key or clicks for you when a timer ends.
