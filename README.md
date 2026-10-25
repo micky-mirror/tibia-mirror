@@ -190,15 +190,11 @@ The app only reads the character's name from Tibia's window title ("Tibia - Knig
 
 ## Saving
 
-Changes to mirrors are kept in the active profile when you press **Save**; **Revert** throws them away.
-The line under the buttons says whether anything is unsaved.
-Switching profiles or closing the app asks first if there are unsaved changes.
-
-With **Save automatically** on, every change is saved right away and the buttons disappear.
+Every change is saved right away, to the active profile or to the settings.
 
 ## Settings
 
-Settings apply immediately.
+Settings apply immediately, except **Language** and **Theme**: they are used after a restart, and the app asks before saving them.
 
 | Setting | What it does | Default |
 |---|---|---|
@@ -206,12 +202,10 @@ Settings apply immediately.
 | Theme | Dark or light | Dark |
 | Keep this panel on top | The panel stays above other windows | Off |
 | Profile per character | Logging in opens the character's profile | Off |
-| Save automatically | Saves every change as you make it | Off |
 | Opacity of new mirrors | Starting opacity of new mirrors | 50% |
 | Mirror frame | Thin grey outline around mirrors without a colour | On |
 | Tint with frame colour | Coloured mirrors are also shaded with their colour | Off |
 | Rounded corners | Windows 11's rounded corners (clips a few pixels, adds a faint shadow) | Off |
-| Fade animations | Mirrors fade in and out instead of appearing instantly | On |
 
 ## Shortcuts
 
@@ -220,7 +214,7 @@ Settings apply immediately.
 | Hide all mirrors | Hides every mirror, and brings them back | None |
 
 Click the field and press the keys together; ✕ clears it.
-A key already used by a timer can't be chosen.
+If a timer has that key, it moves here and the timer loses it.
 
 > [!TIP]
 > Tibia receives the key too, so pick one it doesn't use.
