@@ -78,8 +78,6 @@ UNSCALED = {
     ("menu.py", "row_height - 2"): "the hover chip leaves 1px above and below",
     ("menu.py", "row[0] + 1"): "the hover chip leaves 1px above and below",
     ("widgets.py", "y + (1 if down else 0)"): "a pressed button sinks 1px, like its image",
-    ("about_page.py", "height=1"): "a placeholder: the box is sized once its text is laid out",
-    ("settings_page.py", "height=1"): "a placeholder: the card is sized once its rows are drawn",
     ("widgets.py", "height=1"): "a placeholder: the check box is sized to its label",
     ("rich_paragraph.py", "height=1"): "a placeholder: the frame is sized to its text",
 }
