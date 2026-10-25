@@ -72,7 +72,6 @@ UNSCALED = {
     ("menu.py", "row_height - 2"): "the hover chip leaves 1px above and below",
     ("menu.py", "row[0] + 1"): "the hover chip leaves 1px above and below",
     ("widgets.py", "y + (1 if down else 0)"): "a pressed button sinks 1px, like its image",
-    ("widgets.py", "height=1"): "a placeholder: the check box is sized to its label",
     ("rich_paragraph.py", "height=1"): "a placeholder: the frame is sized to its text",
 }
 # Constants that are never scaled, on purpose: name -> why. They need no px() anywhere.

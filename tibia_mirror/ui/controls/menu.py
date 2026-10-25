@@ -1,4 +1,4 @@
-"""Dropdowns: the profile picker and its menu, the colour picker, and option fields."""
+"""Dropdowns: the menu and the colour picker."""
 
 from __future__ import annotations
 
@@ -11,16 +11,13 @@ from functools import partial
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
-from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, outlined_pixels
+from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.winapi import dwm, win32
 
 # Segoe MDL2 Assets code points (FONT_ICON).
 GLYPH_CHECK = "\ue73e"
-GLYPH_PROFILE = "\ue77b"
-GLYPH_CHEVRON_DOWN = "\ue70d"
-GLYPH_CHEVRON_UP = "\ue70e"
 
 
 @dataclass(frozen=True)
@@ -320,165 +317,3 @@ class SwatchPicker(_Dropdown):
             return
         self.close()
         self._on_pick(self._colors[index][0])
-
-
-class DropdownField(tk.Canvas):
-    """A box showing the chosen option; a click lists the `options` ((value, label), ...)."""
-
-    # Sizes at 100% display scaling, scaled with px() where used.
-    HEIGHT = 36
-    PAD_X = 10
-    RADIUS = 8
-    CHEVRON_X = 6  # the chevron's centre, before PAD_X from the right
-
-    def __init__(
-        self,
-        parent: tk.Misc,
-        options: Sequence[tuple[str, str]],
-        value: str,
-        *,
-        width: int,
-        background: str,
-        on_pick: Callable[[str], None],
-    ) -> None:
-        self._height = height = px(self.HEIGHT)
-        super().__init__(
-            parent,
-            width=width,
-            height=height,
-            bg=background,
-            highlightthickness=0,
-            bd=0,
-            cursor="hand2",
-        )
-        self._choices, self.value, self._on_pick = options, value, on_pick
-        self._width = width
-        box = outlined_pixels(
-            width, height, px(self.RADIUS), theme.SURFACE, theme.SURFACE_HI, background
-        )
-        self._img = photo(self, box)
-        self.create_image(0, 0, anchor="nw", image=self._img)
-        middle_y = height // 2
-        self._text = self.create_text(
-            px(self.PAD_X), middle_y, anchor="w", font=theme.FONT, fill=theme.TEXT
-        )
-        self._chevron = self.create_text(
-            width - px(self.PAD_X + self.CHEVRON_X),
-            middle_y,
-            text=GLYPH_CHEVRON_DOWN,
-            font=theme.FONT_ICON,
-            fill=theme.SUBTEXT,
-        )
-        self._draw()
-        self.bind("<ButtonRelease-1>", lambda e: self._open())
-
-    def _draw(self) -> None:
-        self.itemconfigure(self._text, text=dict(self._choices)[self.value])
-
-    def _open(self) -> None:
-        x, y = self.winfo_rootx(), self.winfo_rooty()
-        items = [
-            MenuItem(label, partial(self._pick, value), checked=value == self.value)
-            for value, label in self._choices
-        ]
-        self.itemconfigure(self._chevron, text=GLYPH_CHEVRON_UP)
-        PopupMenu(
-            self.winfo_toplevel(),
-            (x, y, x + self._width, y + self._height),
-            items,
-            on_close=self._closed,
-        )
-
-    def _closed(self) -> None:
-        self.itemconfigure(self._chevron, text=GLYPH_CHEVRON_DOWN)
-
-    def _pick(self, value: str) -> None:
-        self.value = value
-        self._draw()
-        self._on_pick(value)
-
-
-class ProfilePicker(tk.Canvas):
-    """Full-width box showing the active profile; a click calls on_open(box).
-
-    The owner opens a PopupMenu there and calls set_open(False) when it closes.
-    """
-
-    # Sizes at 100% display scaling, scaled with px() where used.
-    HEIGHT = 36
-    PAD = 12
-    ICON_X = 8  # the profile icon's centre, after PAD
-    NAME_X = 26  # where the name starts, after PAD
-    CHEVRON_X = 6  # the chevron's centre, before PAD from the right
-    CHEVRON_ROOM = 22  # kept free for the chevron, before PAD from the right
-    RADIUS = 8
-
-    def __init__(self, parent: tk.Misc, *, width: int, on_open: Callable[[Box], None]) -> None:
-        super().__init__(
-            parent,
-            width=width,
-            height=px(self.HEIGHT),
-            bg=theme.BG,
-            highlightthickness=0,
-            bd=0,
-            cursor="hand2",
-        )
-        self._width = width
-        self._on_open = on_open
-        self._hovered = self._open = False
-        height = px(self.HEIGHT)
-        radius = px(self.RADIUS)
-        self._imgs = {
-            fill: photo(self, button_pixels(width, height, ButtonStyle(fill, radius), theme.BG))
-            for fill in (theme.SURFACE, theme.SURFACE_HI)
-        }
-        middle_y = height // 2
-        self._box = self.create_image(0, 0, anchor="nw")
-        self.create_text(
-            px(self.PAD + self.ICON_X),
-            middle_y,
-            text=GLYPH_PROFILE,
-            font=theme.FONT_ICON,
-            fill=theme.SUBTEXT,
-        )
-        self._name_font = tkfont.Font(font=theme.FONT_BOLD)
-        self._name_item = self.create_text(
-            px(self.PAD + self.NAME_X), middle_y, anchor="w", font=self._name_font, fill=theme.TEXT
-        )
-        self._chevron = self.create_text(
-            width - px(self.PAD + self.CHEVRON_X),
-            middle_y,
-            font=theme.FONT_ICON,
-            fill=theme.SUBTEXT,
-        )
-        self._draw()
-
-        self.bind("<Enter>", lambda e: self._set_hovered(True))
-        self.bind("<Leave>", lambda e: self._set_hovered(False))
-        self.bind("<ButtonRelease-1>", self._click)
-
-    def set_name(self, name: str) -> None:
-        room = self._width - px(self.PAD + self.NAME_X) - px(self.PAD + self.CHEVRON_ROOM)
-        self.itemconfigure(self._name_item, text=elide(name, self._name_font, room))
-
-    def set_open(self, is_open: bool) -> None:
-        self._open = is_open
-        self._draw()
-
-    def _set_hovered(self, hovered: bool) -> None:
-        self._hovered = hovered
-        self._draw()
-
-    def _draw(self) -> None:
-        fill = theme.SURFACE_HI if self._hovered or self._open else theme.SURFACE
-        self.itemconfigure(self._box, image=self._imgs[fill])
-        glyph = GLYPH_CHEVRON_UP if self._open else GLYPH_CHEVRON_DOWN
-        self.itemconfigure(self._chevron, text=glyph)
-
-    def _click(self, e: tk.Event[tk.Canvas]) -> None:
-        height = px(self.HEIGHT)
-        if self._open or not (0 <= e.x < self._width and 0 <= e.y < height):
-            return
-        x, y = self.winfo_rootx(), self.winfo_rooty()
-        self.set_open(True)
-        self._on_open((x, y, x + self._width, y + height))
