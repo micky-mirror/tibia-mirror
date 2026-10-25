@@ -152,14 +152,16 @@ With it on:
 Press the hide-all key (set it on the **Shortcuts** page) while Tibia is active, and again to bring them back.
 Mirrors hidden with their eye stay hidden.
 While they're hidden, the top of the panel says so, e.g. "Mirrors hidden (Ctrl+H)".
+Clearing the key on the **Shortcuts** page brings them back.
 
 ### When mirrors show
 
-- Mirrors show while Tibia is in front, and fade out when you switch to another app.
+- Mirrors show while Tibia is in front, and hide when you switch to another app or minimize Tibia.
 - In the panel they stay as they were: visible if you came from Tibia, hidden if you came from, say, a browser.
 - They follow the Tibia window when it moves.
-- Each game window size (e.g. windowed and fullscreen) has its own layout.
-  The first time at a new size, the app makes a proportional guess; adjust it once and it's remembered.
+- Each mirror belongs to the game window size it was added at, e.g. windowed or fullscreen.
+  At another size it hides, together with its card, and comes back when Tibia has that size again.
+  To have mirrors at both sizes, add them at each size.
 
 ## Profiles
 
