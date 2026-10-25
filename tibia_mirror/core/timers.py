@@ -1,12 +1,8 @@
-"""Mirror timers: their settings, what the badge shows, and paused progress per
-character. Pure logic, unit-tested; see docs/architecture.md, "Input and timers".
-"""
+"""Timer helpers: key combinations, clock text, alert times and paused progress per character."""
 
-import math
-from dataclasses import dataclass
-from typing import Any, TypeGuard
+from typing import TypeGuard
 
-from tibia_mirror.config import TIMER_ALERT_RANGE, TIMER_BUTTONS, TIMER_DIRECTIONS, TIMER_SOUNDS
+from tibia_mirror.config import TIMER_ALERT_RANGE
 
 # Modifier keys a timer's key can be combined with, in the order they are written.
 MODIFIERS = ("ctrl", "shift", "alt")
@@ -17,73 +13,13 @@ MODIFIER_NAMES = {"ctrl": "Ctrl", "shift": "Shift", "alt": "Alt"}
 KeyCombo = tuple[int, tuple[str, ...]]
 
 
-@dataclass(frozen=True)
-class TimerSettings:
-    enabled: bool = False
-    alert: int = 60  # seconds, within TIMER_ALERT_RANGE
-    direction: str = TIMER_DIRECTIONS[0]  # "down" or "up"
-    button: str = TIMER_BUTTONS[0]  # which mouse button on the region starts it
-    key: int | None = None  # Windows virtual-key code that also starts it
-    sound: str = TIMER_SOUNDS[0]
-    modifiers: tuple[str, ...] = ()  # held with the key, from MODIFIERS, e.g. ("shift",)
-    offline_pause: bool = True  # pauses while the character is logged out
-
-    @property
-    def combo(self) -> KeyCombo | None:
-        """The key and its modifiers, or None if the timer has no key."""
-        return None if self.key is None else (self.key, self.modifiers)
-
-    def to_json(self) -> dict[str, Any]:
-        return {
-            "enabled": self.enabled,
-            "alert": self.alert,
-            "direction": self.direction,
-            "button": self.button,
-            "key": self.key,
-            "modifiers": list(self.modifiers),
-            "sound": self.sound,
-            "offline_pause": self.offline_pause,
-        }
-
-    @classmethod
-    def from_json(cls, data: object) -> "TimerSettings":
-        """Settings from a profile file; anything missing or invalid falls back to its default."""
-        if not isinstance(data, dict):
-            return cls()
-        default = cls()
-        lo, hi = TIMER_ALERT_RANGE
-        alert = data.get("alert")
-        return cls(
-            enabled=data.get("enabled") is True,
-            alert=alert if _is_int(alert) and lo <= alert <= hi else default.alert,
-            direction=_one_of(data.get("direction"), TIMER_DIRECTIONS),
-            button=_one_of(data.get("button"), TIMER_BUTTONS),
-            key=parse_key(data.get("key")),
-            sound=_one_of(data.get("sound"), TIMER_SOUNDS),
-            modifiers=canonical_modifiers(data.get("modifiers")),
-            offline_pause=_bool(data.get("offline_pause"), default.offline_pause),
-        )
-
-    @property
-    def pauses_offline(self) -> bool:
-        return self.enabled and self.offline_pause
-
-
 def _is_int(value: object) -> TypeGuard[int]:
     return isinstance(value, int) and not isinstance(value, bool)
-
-
-def _bool(value: object, default: bool) -> bool:
-    return value if isinstance(value, bool) else default
 
 
 def parse_key(value: object) -> int | None:
     """A Windows virtual-key code read from a file, or None if `value` is not one."""
     return value if _is_int(value) and 0 < value < 256 else None
-
-
-def _one_of(value: object, choices: tuple[str, ...]) -> str:
-    return value if isinstance(value, str) and value in choices else choices[0]
 
 
 def canonical_modifiers(names: object) -> tuple[str, ...]:
@@ -103,43 +39,10 @@ def combo_matches(combo: KeyCombo | None, vk: int, modifiers: tuple[str, ...]) -
     return combo is not None and combo == (vk, canonical_modifiers(modifiers))
 
 
-def key_matches(settings: TimerSettings, vk: int, modifiers: tuple[str, ...]) -> bool:
-    """Whether pressing `vk` with exactly `modifiers` held starts this timer."""
-    return combo_matches(settings.combo, vk, modifiers)
-
-
-def key_clashes(settings: TimerSettings, combo: KeyCombo | None) -> bool:
-    """Whether this timer is on and started by `combo`: a key may start one thing only."""
-    return settings.enabled and combo is not None and key_matches(settings, *combo)
-
-
 def clock(seconds: int) -> str:
     """Whole seconds as mm:ss, at most 59:59."""
     minutes, secs = divmod(max(0, min(seconds, 59 * 60 + 59)), 60)
     return f"{minutes:02d}:{secs:02d}"
-
-
-def badge_text(settings: TimerSettings, elapsed: float | None) -> str:
-    """The badge's text `elapsed` seconds after the start (None: not started yet).
-
-    Counting down rounds up, so it reads 00:01 until the very end.
-    """
-    down = settings.direction == "down"
-    if elapsed is None:
-        return clock(settings.alert if down else 0)
-    elapsed = min(elapsed, settings.alert)
-    if down:
-        return clock(math.ceil(settings.alert - elapsed))
-    return clock(math.floor(elapsed))
-
-
-def is_done(settings: TimerSettings, elapsed: float | None) -> bool:
-    return elapsed is not None and elapsed >= settings.alert
-
-
-def button_matches(settings: TimerSettings, button: str) -> bool:
-    """Whether a click with `button` ("left" or "right") starts this timer."""
-    return settings.button in ("both", button)
 
 
 def parse_alert(minutes: str, seconds: str) -> int | None:

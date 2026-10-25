@@ -49,8 +49,6 @@ ROUND_SMALL_RADIUS = 4
 # default), and how often running timers are redrawn.
 TIMER_ALERT_RANGE = (1, 59 * 60 + 59)
 TIMER_DIRECTIONS = ("down", "up")
-TIMER_BUTTONS = ("both", "left", "right")
-TIMER_SOUNDS = ("asterisk", "exclamation", "notification", "critical", "beep", "none")
 TIMER_TICK_MS = 200
 
 # The panel's colour themes and languages; the first of each is the default.
