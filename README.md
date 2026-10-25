@@ -171,23 +171,21 @@ Click the box at the top of the Mirrors page to switch profiles or manage them.
 | Menu item | What it does |
 |---|---|
 | New profile | Starts empty |
-| Duplicate | Copies what's on screen, unsaved changes included, and switches to it |
+| Duplicate | Copies the active profile and switches to it |
 | Rename | Renames the active profile |
-| Characters | The characters whose login opens this profile (see below) |
-| Copy from | Replaces this profile's mirrors with another's; **Revert** undoes it until you save (Tibia must be running) |
-| Import / Export | Load or save a profile as a file: the easy way to move your mirrors to another PC |
 | Delete profile | Asks first; the last profile can't be deleted |
+
+To move your mirrors to another PC, copy their profile files (see [Your data](#your-data)).
 
 ### Profile per character
 
 Turn on **Profile per character** in Settings, and logging in opens the character's own profile.
 The app only reads the character's name from Tibia's window title ("Tibia - Knight Name").
 
-- A character's first login creates a profile for it: a copy of the active one, named after the character.
-  An existing profile with that name, not used by another character, is used instead.
-- Rename it as you like (e.g. "EK"): the character stays linked.
-- Several characters can share a profile: add their exact names under **Characters**.
-- With unsaved changes you're asked first; **Cancel** keeps the current profile.
+- The profile with the character's name opens, whatever its letter case.
+- A character's first login creates that profile: a copy of the active one.
+- Keep the character's name on its profile: after a rename, the next login creates a new copy.
+- Turning the setting on while you're logged in opens the profile right away.
 - Logging out leaves the current profile open.
 
 ## Saving
