@@ -96,11 +96,13 @@ Reading the program's path uses the lowest access level Windows offers (`PROCESS
 
 ## When mirrors show
 
-Mirrors should show while the player is looking at Tibia (`core/visibility.py`):
+Mirrors should show while the player is looking at Tibia:
 
-- They show while Tibia is the foreground window.
-- While one of the app's own windows is in front (the panel, a dialog), the last *other* window decides: coming from Tibia keeps them visible, coming from a browser keeps them hidden.
-- They hide while a region is being selected, and while the hide-all key is active.
+- `FrontWindowTracker` (`app_parts/front_window_tracker.py`) keeps the last window in front, leaving out the app's own windows and the taskbar and Alt+Tab windows.
+  So while the panel or a dialog is in front, the window before it decides: coming from Tibia keeps the mirrors visible, coming from a browser keeps them hidden.
+- `TibiaConnection` reads it at each check, so `GameWindow.is_in_front` changes and the mirrors follow.
+- A mirror window (`MirrorWindow._show_at_saved_place`) shows only while Tibia is in front and not minimized, the mirror isn't hidden, and it has a layout for the current size.
+- The App closes every mirror window when a region selection starts (`App._on_select_area`), and while the hide-all key is active (`App._show_mirrors`).
 
 ## Input and timers
 
