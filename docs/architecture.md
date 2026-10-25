@@ -10,7 +10,7 @@ For the details, follow the file names into the code.
 flowchart LR
     Tibia["Tibia window"] -->|"previewed by"| DWM["Windows<br>window previews (DWM)"]
     DWM -->|"live preview"| Mirrors["Mirror windows<br>+ timer badges"]
-    App["App (app.py)<br>wires it all together"] -->|"which part, where"| DWM
+    App["App (app.py)<br>and its parts"] -->|"which part, where"| DWM
     Tibia -.->|"public window info<br>(read only)"| App
     Raw["Windows<br>Raw Input"] -.->|"clicks and keys<br>(observe only)"| App
     App <-->|"draws / button callbacks"| Panel["Control panel"]
@@ -34,17 +34,25 @@ The app never receives the game's image: it only tells Windows which part of Tib
 The app knows Tibia only from what Windows shows every program about any window, as the taskbar and Alt+Tab do: its title, whether it's minimized, and where it is, so the mirrors can follow it.
 To make sure the window is really Tibia, it also reads the program's file path, using the lowest access level Windows offers (`PROCESS_QUERY_LIMITED_INFORMATION`), which gives no access to the game's memory.
 
-- **`App`** (`app.py`) wires the pieces together.
-  It holds only a little state of its own, for example if a region is being selected and if all mirrors are hidden.
-  It runs a few timers on Tk's event loop (the "polls") and reacts to the panel's buttons.
-- **Services** (`services/`) are the pieces cut out of the App, each owning one part of the running app.
-  `ActiveProfile` (`services/active_profile.py`) is the profile that is open now: it saves and loads its file, finds unsaved changes, and does rename, duplicate and delete.
-  `Game` (`services/game.py`) knows the Tibia window: it finds it, reads its client area, and notices when it moves, changes size or closes.
-  `Mirrors` (`services/mirrors.py`) owns the mirror windows: it creates and closes them, reconnects them after Tibia restarts, and passes changes on to all of them.
-  `RunningTimers` (`services/running_timers.py`) starts the timers, remembers who is logged in, and pauses and continues the timers at logout and login.
-  A service never imports the App.
-- **The UI** (`ui/`) is a pure view: it draws what the App gives it and calls back into the App.
-- **Pure logic** (geometry, regions, profiles, settings, timers, visibility, rendering) has no Windows or Tk code, so it is unit-tested.
+- **`App`** (`app.py`) starts the parts and connects them.
+  Its methods tell the story of each action: they check, call the parts, and show the result.
+  Its only state of its own is whether the hide-all key hides the mirrors.
+- **The parts** (`app_parts/`) each own one piece of the running app:
+  - `AppWindow`: the main window, its place, size and theme, closing, and coming to the front at a second start.
+  - `TibiaConnection`: finds Tibia, follows its window, and reads who is logged in.
+    It tells the App what changed.
+    It uses `Game` (`services/game.py`) for the window and `FrontWindowTracker` for the window the user works in.
+  - `ProfileManager`: the profiles, the open one and its mirrors.
+  - `MirrorManager`: the mirror windows on the screen, and new mirrors.
+  - `TimerManager`: when each timer started, and its paused progress at a logout.
+  - `SettingsWriter`: writes `settings.json` shortly after a change.
+
+  Only `app.py` uses the parts.
+  A part gets every object it uses in its constructor, and never imports `app.py`.
+- **The UI** (`ui/`) draws what the App gives it and calls back into the App.
+  The Settings and Shortcuts pages change the settings themselves.
+- **Pure logic** (`core/`, the settings in `settings/`, and the shapes in `ui/base/render.py`) has no Windows or Tk code, so it is unit-tested.
+  The parts are tested too, with small fakes in place of Tk and Tibia.
 
 ## Mirrors: DWM thumbnails
 
