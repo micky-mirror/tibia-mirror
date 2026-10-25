@@ -5,7 +5,6 @@ from typing import get_type_hints
 
 from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY
 from tibia_mirror.settings.app_settings import AppSettings, AppSettingsUpdate
-from tibia_mirror.settings.settings import Settings
 
 # Settings where every value is different from its default.
 CHANGED_SETTINGS = AppSettings(
@@ -23,6 +22,28 @@ CHANGED_SETTINGS = AppSettings(
     panel_rect=(-300, 50, 400, 600),
     timer_pauses=(("Bubble", "mirror-1", 12.5),),
 )
+# settings.json as v1.0.0 writes CHANGED_SETTINGS
+V1_FILE_CONTENT = {
+    "autosave": False,
+    "new_opacity": 0.8,
+    "mirror_frame": False,
+    "fades": True,
+    "panel_on_top": True,
+    "rounded_corners": True,
+    "frame_tint": True,
+    "theme": "light",
+    "language": "pl",
+    "profile": "Knight",
+    "profile_per_character": True,
+    "characters": {},
+    "timer_pauses": {"Bubble": {"mirror-1": 12.5}},
+    "last_character": "Bubble",
+    "hide_all_key": 120,
+    "hide_all_modifiers": ["ctrl", "shift"],
+    "panel_rect": [-300, 50, 400, 600],
+}
+# only v1.0.0 has fade animations, the autosave setting and character links
+V1_ONLY_KEYS = ("autosave", "fades", "characters")
 
 
 def test_empty_file_content_gives_the_defaults() -> None:
@@ -163,16 +184,16 @@ def test_written_default_settings_are_read_back_the_same() -> None:
     assert AppSettings.from_json(file_content) == AppSettings()
 
 
-def test_the_old_settings_class_reads_and_writes_the_same_file() -> None:
-    file_content = CHANGED_SETTINGS.to_json()
+def test_a_settings_file_of_v1_0_0_is_read() -> None:
+    assert AppSettings.from_json(V1_FILE_CONTENT) == CHANGED_SETTINGS
 
-    old_file_content = Settings.from_json(file_content).to_json()
-    # only the old app still has fade animations, the autosave setting and character links
-    del old_file_content["fades"]
-    del old_file_content["autosave"]
-    del old_file_content["characters"]
 
-    assert old_file_content == file_content
+def test_written_settings_keep_the_format_of_v1_0_0() -> None:
+    shared_content = {
+        key: value for key, value in V1_FILE_CONTENT.items() if key not in V1_ONLY_KEYS
+    }
+
+    assert CHANGED_SETTINGS.to_json() == shared_content
 
 
 def test_update_type_has_every_setting_with_the_same_type() -> None:
