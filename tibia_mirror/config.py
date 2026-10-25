@@ -9,7 +9,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 DATA_DIR = Path(os.environ.get("APPDATA") or Path.home()) / "Tibia Mirror"
 PROFILES_DIR = DATA_DIR / "profiles"
 SETTINGS_FILE = DATA_DIR / "settings.json"
-# Errors and crashes (the .exe has no console); trimmed on start once this big.
+# Errors (the .exe has no console); at this size the log moves to error.log.1.
 ERROR_LOG = DATA_DIR / "error.log"
 ERROR_LOG_MAX_BYTES = 1_000_000
 # The app's icon, in every size Windows asks for.
