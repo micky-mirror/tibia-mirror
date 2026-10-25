@@ -69,7 +69,6 @@ class Panel(tk.Frame):
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
         on_select_area: Callable[[str | None], None],
-        start_page: str = START_PAGE,
     ) -> None:
         super().__init__(window, bg=theme.BG)
         self._settings = settings
@@ -86,7 +85,7 @@ class Panel(tk.Frame):
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
         # gets the id of the mirror whose area is selected again, None for a new mirror
         self._on_select_area = on_select_area
-        self.open_page = start_page  # the key of the page that is shown
+        self._open_page = START_PAGE  # the key of the page that is shown
         self._add_menu()
         self._add_content()
         self._add_top_line()
@@ -94,7 +93,7 @@ class Panel(tk.Frame):
         self._add_pages()
 
     def _add_menu(self) -> None:
-        NavRail(self, self.open_page, self._show_page).pack(side="left", fill="y")
+        NavRail(self, self._open_page, self._show_page).pack(side="left", fill="y")
 
     def _add_content(self) -> None:
         """The area to the right of the menu. It takes all the space the menu leaves."""
@@ -230,12 +229,12 @@ class Panel(tk.Frame):
             "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
             "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),
         }
-        self._pack_page(self.open_page)
+        self._pack_page(self._open_page)
 
     def _show_page(self, key: str) -> None:
         """Show the page `key` in place of the open one. The menu calls this."""
-        self._pages[self.open_page].pack_forget()  # hide currently displayed page
-        self.open_page = key  # assign selected page
+        self._pages[self._open_page].pack_forget()  # hide currently displayed page
+        self._open_page = key  # assign selected page
         self._pack_page(key)  # open selected page
 
     def _pack_page(self, key: str) -> None:

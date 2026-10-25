@@ -35,7 +35,7 @@ class AppWindow(tk.Tk):
         self._window_handle: Hwnd = win32.toplevel_hwnd(self)
         self.title("Tibia Mirror")
         self._use_display_scaling()
-        self.set_theme()
+        self._set_theme()
         self._set_icon()
         self._set_size_and_place()
         self.set_panel_on_top()
@@ -62,7 +62,7 @@ class AppWindow(tk.Tk):
         """Keep the window above other windows, or not, as the setting says."""
         self.attributes("-topmost", self._settings.current.is_panel_on_top)
 
-    def set_theme(self) -> None:
+    def _set_theme(self) -> None:
         """Load the saved theme and give the window its colours."""
         # Button styles contain pixel sizes, so the theme is loaded after the scaling.
         theme.use(self._settings.current.theme)

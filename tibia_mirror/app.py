@@ -84,7 +84,7 @@ from tibia_mirror.ui.panel.mirrors_page import (
 )
 from tibia_mirror.ui.panel.panel import ControlPanel
 from tibia_mirror.ui.panel.settings_page import SettingValue
-from tibia_mirror.ui.panel2.panel import START_PAGE, Panel
+from tibia_mirror.ui.panel2.panel import Panel
 from tibia_mirror.ui.panel2.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.instance import SingleInstance
@@ -1199,11 +1199,6 @@ class App2:
         if is_mirror_look_changed:
             self.mirror_manager.update_mirror_look()
 
-        if current.theme != previous.theme or current.language != previous.language:
-            # The panel is still handling the mouse click on the option, so it cannot be
-            # destroyed yet. after_idle runs the rebuild when the panel has finished.
-            self.window.after_idle(self._rebuild_panel)
-
     def _on_connection_changed(self, state: str) -> None:
         """Show the new state of the connection on the panel, and show or close the mirrors."""
         self.panel.set_connection_state(state)
@@ -1395,16 +1390,6 @@ class App2:
 
         self._show_mirrors()
 
-    def _rebuild_panel(self) -> None:
-        """Build the panel again in the saved theme and language, and redraw the mirrors."""
-        open_page = self.panel.open_page
-        self.panel.destroy()
-
-        self.window.set_theme()
-        self.mirror_manager.update_mirror_look()
-        i18n.use(self.settings.current.language)
-        self._show_panel(open_page)
-
     def _load_profile(self) -> bool:
         """Read the open profile. False if its file is invalid."""
         try:
@@ -1440,7 +1425,7 @@ class App2:
             names=tuple(self.profile_manager.get_names()),
         )
 
-    def _show_panel(self, start_page: str = START_PAGE) -> None:
+    def _show_panel(self) -> None:
         profile_info = self._get_profile_info()
         mirror_infos = self.mirror_manager.get_mirror_infos()
 
@@ -1459,7 +1444,6 @@ class App2:
             self.mirror_manager.update_mirror,
             self.profile_manager.remove_mirror,
             self._on_select_area,
-            start_page,
         )
         self.panel.pack(fill="both", expand=True)
         self._show_hidden_note()
