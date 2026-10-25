@@ -76,7 +76,7 @@ INPUT_POLL_MS = 15
 
 # 100px menu rail + 400px page; tall enough for the whole Settings page.
 # Shorter screens get a shorter panel (geometry.panel_geometry), and pages scroll.
-# The panel sizes are at 100% display scaling; the App scales them (ui/scale.py).
+# The panel sizes are at 100% display scaling; the App scales them (ui/base/scale.py).
 PANEL_SIZE = (500, 996)
 # Title bar and borders (39px at 100% scaling): 996 + 40 fits a 1080p screen.
 PANEL_FRAME = 40
