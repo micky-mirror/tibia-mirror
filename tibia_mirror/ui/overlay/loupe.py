@@ -8,7 +8,7 @@ from tibia_mirror.core.handles import Hwnd
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
-from tibia_mirror.ui.overlay2.pixel_marker import PixelMarker
+from tibia_mirror.ui.overlay.pixel_marker import PixelMarker
 from tibia_mirror.winapi import win32
 from tibia_mirror.winapi.dwm import Thumbnail
 

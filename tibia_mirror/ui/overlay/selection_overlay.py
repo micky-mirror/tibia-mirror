@@ -18,7 +18,7 @@ from tibia_mirror.core.geometry import (
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.overlay2.loupe import Loupe
+from tibia_mirror.ui.overlay.loupe import Loupe
 from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
 from tibia_mirror.winapi import win32
 

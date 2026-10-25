@@ -22,8 +22,8 @@ from tibia_mirror.core.regions import Layout, size_key
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
-from tibia_mirror.ui.overlay2.mirror_frame import MirrorFrame
-from tibia_mirror.ui.overlay2.timer_badge import DONE_TEXT, IDLE_TEXT, RUNNING_TEXT, TimerBadge
+from tibia_mirror.ui.overlay.mirror_frame import MirrorFrame
+from tibia_mirror.ui.overlay.timer_badge import DONE_TEXT, IDLE_TEXT, RUNNING_TEXT, TimerBadge
 from tibia_mirror.winapi import dwm, sounds, win32
 from tibia_mirror.winapi.dwm import Thumbnail
 
