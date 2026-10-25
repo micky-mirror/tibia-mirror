@@ -38,7 +38,7 @@ from tibia_mirror.winapi.instance import SingleInstance
 from tibia_mirror.winapi.rawinput import InputWatcher
 
 
-class App2:
+class App:
     """The app: starts its parts and connects them."""
 
     def __init__(self, instance: SingleInstance) -> None:
@@ -369,7 +369,7 @@ def main() -> None:
             instance.ask_first_to_show()
             return
         errors.start(ERROR_LOG, ERROR_LOG_MAX_BYTES)
-        app = App2(instance)
+        app = App(instance)
     except Exception as e:
         errors.log_exception(type(e), e, e.__traceback__)
         win32.error_box(
