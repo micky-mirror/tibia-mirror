@@ -1,12 +1,14 @@
 """The Settings page: groups of settings, each under its own caption."""
 
 import tkinter as tk
+from collections.abc import Callable
 
 from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.text import percent
+from tibia_mirror.ui.panel2.controls.confirm_dialog import ConfirmDialog
 from tibia_mirror.ui.panel2.rows.choice_row import ChoiceRow
 from tibia_mirror.ui.panel2.rows.scroll_cards import ScrollCards
 from tibia_mirror.ui.panel2.rows.slider_row import SliderRow
@@ -41,17 +43,17 @@ class SettingsPage(tk.Frame):
 
         self._scroll_cards.add_caption(tr("GENERAL"))
         # The names of languages are written in their own language, never translated.
-        language_row = ChoiceRow(
+        self._language_row = ChoiceRow(
             tr("Language"),
             (("en", "English"), ("pl", "Polski")),
             current_settings.language,
-            on_change=lambda language: self._settings.update(language=language),
+            on_change=self._on_language_chosen,
         )
-        theme_row = ChoiceRow(
+        self._theme_row = ChoiceRow(
             tr("Theme"),
             (("dark", tr("Dark")), ("light", tr("Light"))),
             current_settings.theme,
-            on_change=lambda theme_name: self._settings.update(theme=theme_name),
+            on_change=self._on_theme_chosen,
         )
         on_top_row = ToggleRow(
             tr("Keep this panel on top"),
@@ -59,7 +61,7 @@ class SettingsPage(tk.Frame):
             is_on=current_settings.is_panel_on_top,
             on_change=lambda is_on: self._settings.update(is_panel_on_top=is_on),
         )
-        self._scroll_cards.add_card([language_row, theme_row, on_top_row])
+        self._scroll_cards.add_card([self._language_row, self._theme_row, on_top_row])
 
     def _add_profiles_group(self) -> None:
         """The second group: how the app chooses a profile."""
@@ -109,3 +111,25 @@ class SettingsPage(tk.Frame):
             on_change=lambda is_on: self._settings.update(is_rounded_corners_on=is_on),
         )
         self._scroll_cards.add_card([opacity_row, frame_row, tint_row, corners_row])
+
+    def _on_language_chosen(self, language: str) -> None:
+        self._ask_restart(
+            on_ok=lambda: self._settings.update(language=language),
+            on_cancel=lambda: self._language_row.set_selected(self._settings.current.language),
+        )
+
+    def _on_theme_chosen(self, theme_name: str) -> None:
+        self._ask_restart(
+            on_ok=lambda: self._settings.update(theme=theme_name),
+            on_cancel=lambda: self._theme_row.set_selected(self._settings.current.theme),
+        )
+
+    def _ask_restart(self, on_ok: Callable[[], None], on_cancel: Callable[[], None]) -> None:
+        """Ask the user to accept a change that is used after a restart."""
+        ConfirmDialog(
+            self.winfo_toplevel(),
+            tr("Restart needed"),
+            tr("Changes will take effect the next time you start Tibia Mirror."),
+            on_ok=on_ok,
+            on_cancel=on_cancel,
+        )

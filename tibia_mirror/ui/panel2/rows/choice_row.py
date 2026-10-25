@@ -45,6 +45,12 @@ class ChoiceRow:
         """The pointer went out of the card: no option is hovered."""
         self._set_hovered(None)
 
+    def set_selected(self, option: str) -> None:
+        """Make `option` the chosen one and draw the options again."""
+        self._selected = option
+        self._hovered = None  # the chosen option has no hover look
+        self._options_drawing.draw(self._selected, self._hovered)
+
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
         """Remember the option the mouse button went down on."""
         self._pressed = self._get_option_at(position_x, position_y)
@@ -71,10 +77,8 @@ class ChoiceRow:
         return option
 
     def _select(self, option: str) -> None:
-        """Make `option` the chosen one, draw the options again, and report the choice."""
-        self._selected = option
-        self._hovered = None  # the chosen option has no hover look
-        self._options_drawing.draw(self._selected, self._hovered)
+        """Make `option` the chosen one and report the choice."""
+        self.set_selected(option)
         self._on_change(option)
 
     def _draw_options(

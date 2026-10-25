@@ -242,6 +242,10 @@ POLISH = {
     "Theme": "Motyw",
     "Dark": "Ciemny",
     "Light": "Jasny",
+    "Restart needed": "Wymagany restart",
+    "Changes will take effect the next time you start Tibia Mirror.": (
+        "Zmiany zostaną zastosowane przy następnym uruchomieniu Tibia Mirror."
+    ),
     "Keep this panel on top": "Panel zawsze na wierzchu",
     "Stays above other windows.": "Pozostaje nad innymi oknami.",
     "Save automatically": "Zapisuj automatycznie",
