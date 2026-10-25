@@ -1,1 +1,1 @@
-"""The new mirror windows, built beside ui/overlay/. They replace the old ones at the switch."""
+"""The windows over the game: the mirrors, their frames and badges, and the selection cover."""

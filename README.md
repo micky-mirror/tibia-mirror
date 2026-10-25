@@ -313,7 +313,7 @@ tibia_mirror/
   settings/                  the settings of the app
     app_settings.py          the settings, as they are saved in settings.json
     app_settings_store.py    the settings while the app runs
-  services/
+  services/                  reading the window of Tibia
     game.py                  the Tibia window and its client area
   winapi/                    everything that calls Windows
     win32.py                 ctypes bindings and window helpers

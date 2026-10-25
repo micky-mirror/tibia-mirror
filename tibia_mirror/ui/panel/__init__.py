@@ -1,1 +1,1 @@
-"""The new panel, built beside the old one in ui/panel/. It replaces it at the switch."""
+"""The panel in the main window, with its pages and the parts they are built from."""

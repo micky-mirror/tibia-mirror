@@ -1,1 +1,1 @@
-"""The pieces of the running app that App wires together."""
+"""Reading the window of Tibia."""
