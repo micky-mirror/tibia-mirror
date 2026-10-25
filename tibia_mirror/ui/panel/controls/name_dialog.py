@@ -6,8 +6,8 @@ from collections.abc import Callable
 from tibia_mirror.config import MAX_NAME_LENGTH
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.widgets import TextField
 from tibia_mirror.ui.panel.controls.popup import PAD, Popup
+from tibia_mirror.ui.panel.controls.widgets import TextField
 
 
 class NameDialog(Popup):

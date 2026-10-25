@@ -10,7 +10,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.controls.menu import SwatchPicker
+from tibia_mirror.ui.panel.controls.menu import SwatchPicker
 from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
 from tibia_mirror.ui.panel.mirrors.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel.mirrors.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y

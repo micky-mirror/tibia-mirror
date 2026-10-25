@@ -8,8 +8,8 @@ from tibia_mirror.core.geometry import Box, Point
 from tibia_mirror.core.profiles import copy_name, name_error
 from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui.controls.dialogs import Choice, ChoiceDialog, NameDialog
-from tibia_mirror.ui.controls.menu import SEPARATOR, MenuItem, PopupMenu
+from tibia_mirror.ui.panel.controls.dialogs import Choice, ChoiceDialog, NameDialog
+from tibia_mirror.ui.panel.controls.menu import SEPARATOR, MenuItem, PopupMenu
 
 
 class ProfileMenu:

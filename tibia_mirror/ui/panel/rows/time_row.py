@@ -7,7 +7,7 @@ from tibia_mirror.core.timers import parse_alert
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.widgets import TextField
+from tibia_mirror.ui.panel.controls.widgets import TextField
 from tibia_mirror.ui.panel.rows.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
 
 # Sizes at 100% display scaling; px() scales them where they are used.

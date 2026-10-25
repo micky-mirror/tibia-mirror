@@ -12,7 +12,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import margins
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.widgets import RaisedButton
+from tibia_mirror.ui.panel.controls.widgets import RaisedButton
 from tibia_mirror.winapi import dwm, win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.

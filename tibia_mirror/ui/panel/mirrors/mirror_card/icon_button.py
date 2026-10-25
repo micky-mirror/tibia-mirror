@@ -7,7 +7,7 @@ from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.tooltip import Tooltip
+from tibia_mirror.ui.panel.controls.tooltip import Tooltip
 from tibia_mirror.ui.panel.mirrors.mirror_card.tip import Tip
 
 

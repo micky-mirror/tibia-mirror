@@ -7,7 +7,7 @@ from functools import partial
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.widgets import RaisedButton, ScrollList
+from tibia_mirror.ui.panel.controls.widgets import RaisedButton, ScrollList
 from tibia_mirror.ui.panel.mirrors.mirror_card.card import MirrorCard
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
