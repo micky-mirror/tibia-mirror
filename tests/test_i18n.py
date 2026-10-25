@@ -25,8 +25,8 @@ def test_english_is_the_text_itself_with_fields_filled_in():
 
 def test_polish_and_the_fallback_to_english():
     i18n.use("pl")
-    assert tr("Save") == "Zapisz"
-    assert tr('Exported "{name}"', name="Knight") == "Wyeksportowano „Knight”"
+    assert tr("Cancel") == "Anuluj"
+    assert tr('Timer for "{name}"', name="Minimap") == "Minutnik dla „Minimap”"
     assert tr("Not in any catalog") == "Not in any catalog"
 
 
@@ -35,7 +35,9 @@ def test_unknown_language_falls_back_to_english():
     assert i18n.current() == "en"
 
 
-def test_plurals():
+def test_plurals(monkeypatch):
+    # the three Polish forms of a text of this test, so it does not depend on the app's texts
+    monkeypatch.setitem(POLISH_PLURALS, "{n} region", ("{n} region", "{n} regiony", "{n} regionów"))
     i18n.use("en")
     assert [tr_n(n, "{n} region", "{n} regions") for n in (1, 2)] == ["1 region", "2 regions"]
     i18n.use("pl")
