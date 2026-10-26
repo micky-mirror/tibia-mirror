@@ -8,9 +8,17 @@ from tibia_mirror.core.geometry import Box
 from tibia_mirror.core.profiles import copy_name, name_error
 from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
+from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
-from tibia_mirror.ui.panel.controls.menu import SEPARATOR, MenuItem, PopupMenu
+from tibia_mirror.ui.panel.controls.dropdown_menu import DIVIDER, DropdownMenu, MenuOption
 from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
+
+# The keys of the actions in the menu. The other keys are profile names, and
+# a profile name can't hold "<" or ">", so the two never mix.
+NEW = "<new>"
+DUPLICATE = "<duplicate>"
+RENAME = "<rename>"
+DELETE = "<delete>"
 
 
 class ProfileMenu:
@@ -45,28 +53,37 @@ class ProfileMenu:
 
         `on_close` is called when the menu closes.
         """
-        PopupMenu(self._window, box, self._get_items(), on_close=on_close)
+        menu = DropdownMenu(self._window, self._get_options(), self._active_name, self._on_pick)
+        menu.open(box, on_close)
 
-    def _get_items(self) -> list[MenuItem | None]:
-        """The entries of the menu: every profile, then what can be done with profiles."""
-        # the last profile cannot be deleted
-        has_other_profiles: bool = len(self._profile_names) > 1
-        return [
-            *self._get_profile_items(),
-            SEPARATOR,
-            MenuItem(tr("New profile…"), self._new),
-            MenuItem(tr("Duplicate…"), self._duplicate),
-            MenuItem(tr("Rename…"), self._rename),
-            SEPARATOR,
-            MenuItem(tr("Delete profile"), self._delete, enabled=has_other_profiles, danger=True),
+    def _get_options(self) -> list[MenuOption | None]:
+        """Every profile, then what can be done with profiles. The last one can't be deleted."""
+        options: list[MenuOption | None] = [
+            *[MenuOption(name, name) for name in self._profile_names],
+            DIVIDER,
+            MenuOption(NEW, tr("New profile…")),
+            MenuOption(DUPLICATE, tr("Duplicate…")),
+            MenuOption(RENAME, tr("Rename…")),
         ]
 
-    def _get_profile_items(self) -> list[MenuItem]:
-        """One entry for each profile, with a check mark at the active one."""
-        return [
-            MenuItem(name, partial(self._select, name), checked=name == self._active_name)
-            for name in self._profile_names
-        ]
+        if len(self._profile_names) > 1:
+            options += [DIVIDER, MenuOption(DELETE, tr("Delete profile"), text_colour=theme.RED)]
+
+        return options
+
+    def _on_pick(self, key: str) -> None:
+        """Do what the picked option stands for: an action, or opening a profile."""
+        actions = {
+            NEW: self._new,
+            DUPLICATE: self._duplicate,
+            RENAME: self._rename,
+            DELETE: self._delete,
+        }
+
+        if key in actions:
+            actions[key]()
+        else:
+            self._select(key)
 
     def _select(self, name: str) -> None:
         """Make the profile `name` the active one. Do nothing when it is already active."""
