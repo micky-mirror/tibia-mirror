@@ -64,6 +64,7 @@ class App:
         )
         self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
         self._is_selecting = False  # True while the user selects or names a part of the game
+        self._is_login_waiting = False  # True while a login waits for the selection to end
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
         self.input_watcher = InputWatcher(self._on_click, self._on_key)
         self.input_watcher.start(self.window)
@@ -133,13 +134,28 @@ class App:
         self.timer_manager.continue_timers(now)
 
     def _open_character_profile(self, character: str) -> None:
-        """Open the profile with the character's name, or make one from the open profile."""
+        """Open the profile with the character's name, or make one from the open profile.
+
+        During a selection it waits, so the area goes into the profile it was selected in.
+        """
+        if self._is_selecting:
+            self._is_login_waiting = True
+            return
+
         name = self.profile_manager.find_name(character)
 
         if name is None:
             self._on_duplicate_profile(character)
         elif name != self.profile_manager.active_name:
             self._on_profile_selected(name)
+
+    def _open_waiting_profile(self) -> None:
+        """Open the profile of a character who logged in during the selection, if one did."""
+        if not self._is_login_waiting:
+            return
+
+        self._is_login_waiting = False
+        self._on_character_changed(self.connection.character)
 
     def _on_click(self, button: str, position_x: int, position_y: int, pressed_at: float) -> None:
         """Start the timers of the mirrors whose area was clicked in Tibia."""
@@ -292,21 +308,22 @@ class App:
         """Bring the mirrors back after the cover or the name popup closed without an area."""
         self._is_selecting = False
         self._show_mirrors()
+        self._open_waiting_profile()
 
     def _on_area_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
         self._is_selecting = False
 
         if self.connection.game_window is None:
-            # Tibia closed while the user was selecting or naming
+            # Tibia closed or was minimized while the user was selecting or naming
             self.panel.set_message(tr("Could not mirror"), "error")
-            return
-
-        if mirror_id is None:
+        elif mirror_id is None:
             self.mirror_manager.add_mirror(name, area)
         else:
             self.mirror_manager.set_area(mirror_id, area)
 
         self._show_mirrors()
+        # after the area is kept, so it stays in the profile it was selected in
+        self._open_waiting_profile()
 
     def _load_profile(self) -> bool:
         """Read the open profile. False if its file is invalid."""
