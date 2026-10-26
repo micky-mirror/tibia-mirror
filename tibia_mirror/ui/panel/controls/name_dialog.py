@@ -4,6 +4,7 @@ import tkinter as tk
 from collections.abc import Callable
 
 from tibia_mirror.config import MAX_NAME_LENGTH
+from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.popup import PAD, Popup
@@ -28,7 +29,7 @@ class NameDialog(Popup):
         self._name_text = tk.StringVar(value=suggested_name)
 
         self._name_field = self._add_name_field()
-        self._add_buttons()
+        self._add_buttons(tr("OK"))
         self._open()
         self._select_name()
 

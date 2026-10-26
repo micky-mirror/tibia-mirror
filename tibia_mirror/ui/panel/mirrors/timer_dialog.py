@@ -40,7 +40,7 @@ class TimerDialog(Popup):
         self._on_ok = on_ok
 
         self._add_timer_card()
-        self._add_buttons()
+        self._add_buttons(tr("OK"))
         self._open()
 
     def _add_timer_card(self) -> None:

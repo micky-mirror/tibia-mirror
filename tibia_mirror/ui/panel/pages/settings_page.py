@@ -130,6 +130,7 @@ class SettingsPage(tk.Frame):
             self.winfo_toplevel(),
             tr("Restart needed"),
             tr("Changes will take effect the next time you start Tibia Mirror."),
+            tr("OK"),
             on_ok=on_ok,
             on_cancel=on_cancel,
         )

@@ -8,7 +8,8 @@ from tibia_mirror.core.geometry import Box, Point
 from tibia_mirror.core.profiles import copy_name, name_error
 from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui.panel.controls.dialogs import Choice, ChoiceDialog, NameDialog
+from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
+from tibia_mirror.ui.panel.controls.dialogs import NameDialog
 from tibia_mirror.ui.panel.controls.menu import SEPARATOR, MenuItem, PopupMenu
 
 
@@ -125,13 +126,15 @@ class ProfileMenu:
             'Delete "{name}" and all its mirrors? This can\'t be undone.',
             name=self._active_name,
         )
-        center = self._get_window_center()
-        choices = [
-            Choice(tr("Cancel"), lambda: None),
-            Choice(tr("Delete"), self._on_delete, "danger"),
-        ]
-
-        ChoiceDialog(self._window, tr("Delete profile"), message, center, choices)
+        ConfirmDialog(
+            self._window,
+            tr("Delete profile"),
+            message,
+            tr("Delete"),
+            on_ok=self._on_delete,
+            on_cancel=lambda: None,
+            is_danger=True,
+        )
 
     def _get_window_center(self) -> Point:
         """The middle of the main window on the screen, where the dialogs open."""

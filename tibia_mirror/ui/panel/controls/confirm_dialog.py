@@ -9,22 +9,25 @@ from tibia_mirror.ui.panel.controls.popup import PAD, Popup
 
 
 class ConfirmDialog(Popup):
-    """Shows a short text with Cancel and OK."""
+    """Shows a short text with Cancel and a button that accepts."""
 
     def __init__(
         self,
         window: tk.Misc,
         title: str,
         text: str,
+        ok_text: str,
         on_ok: Callable[[], None],
         on_cancel: Callable[[], None],
+        *,
+        is_danger: bool = False,
     ) -> None:
         super().__init__(window, title)
         self._on_ok = on_ok
         self._on_cancel = on_cancel
 
         self._add_text(text)
-        self._add_buttons()
+        self._add_buttons(ok_text, is_danger=is_danger)
         self._open()
 
     def _add_text(self, text: str) -> None:

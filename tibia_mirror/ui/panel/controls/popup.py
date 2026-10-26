@@ -54,8 +54,11 @@ class Popup(tk.Toplevel, ABC):
         )
         label.pack(anchor="w", padx=px(PAD), pady=(px(PAD), px(TITLE_GAP)))
 
-    def _add_buttons(self) -> None:
-        """Cancel and OK, side by side at the bottom."""
+    def _add_buttons(self, ok_text: str, *, is_danger: bool = False) -> None:
+        """Cancel and OK, side by side at the bottom.
+
+        The OK button says `ok_text`. A danger one is red, for a step that can't be undone.
+        """
         # The button widgets are bigger than the buttons we see: they hold the shadows.
         shadow = margins(theme.SECONDARY_BUTTON)
         row = tk.Frame(self, bg=theme.BG)
@@ -65,18 +68,23 @@ class Popup(tk.Toplevel, ABC):
             pady=(px(BUTTONS_TOP_PAD) - shadow.top, px(PAD) - shadow.bottom),
         )
 
-        self._add_button(row, tr("Cancel"), self._cancel, is_primary=False)
-        self._add_button(row, tr("OK"), self._confirm, is_primary=True)
+        self._add_button(row, tr("Cancel"), self._cancel, kind="secondary")
+        self._add_button(row, ok_text, self._confirm, kind="danger" if is_danger else "primary")
 
     def _add_button(
-        self, row: tk.Frame, text: str, command: Callable[[], None], *, is_primary: bool
+        self, row: tk.Frame, text: str, command: Callable[[], None], *, kind: str
     ) -> None:
-        """One of two buttons of the same width, with the room for their shadows between them."""
+        """One of two buttons of the same width, with the room for their shadows between them.
+
+        `kind` is "secondary", "primary" or "danger".
+        """
         shadow = margins(theme.SECONDARY_BUTTON)
         width = (self._content_width - shadow.left - shadow.right) // 2
-        fill = theme.ACCENT if is_primary else theme.SURFACE
-        hover_fill = theme.ACCENT_HI if is_primary else theme.SURFACE_HI
-        text_colour = theme.ON_ACCENT if is_primary else theme.TEXT
+        fill, hover_fill, text_colour = {
+            "secondary": (theme.SURFACE, theme.SURFACE_HI, theme.TEXT),
+            "primary": (theme.ACCENT, theme.ACCENT_HI, theme.ON_ACCENT),
+            "danger": (theme.RED, theme.RED_HI, theme.ON_ACCENT),
+        }[kind]
 
         button = RaisedButton(
             row,
