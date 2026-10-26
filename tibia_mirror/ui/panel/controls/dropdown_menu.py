@@ -11,6 +11,7 @@ from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.base.text import elide
 from tibia_mirror.winapi import dwm, win32
 
 CHECK = "\ue73e"  # a check mark, from the Segoe MDL2 Assets icon font
@@ -67,6 +68,7 @@ class DropdownMenu(tk.Toplevel):
         self._selected = selected  # the key of the chosen option
         self._on_pick = on_pick  # called with the key of the option the user picks
         self._hovered_index: int | None = None  # the option under the pointer
+        self._font = tkfont.Font(font=theme.FONT)  # measures the texts that may be too long
         # basic window configuration
         self.overrideredirect(True)  # no title bar and no borders
         self.attributes("-topmost", True)  # above the dialog, which is on top too
@@ -74,7 +76,6 @@ class DropdownMenu(tk.Toplevel):
         dwm.round_popup(win32.toplevel_hwnd(self), theme.SURFACE_HI)
         # add menu content
         self._add_canvas()
-        self._draw_options()
         self._bind_events()
 
     def open(self, box: Box, on_close: Callable[[], None]) -> None:
@@ -88,7 +89,7 @@ class DropdownMenu(tk.Toplevel):
         height = self._get_height()
         position_y = bottom + px(GAP)
 
-        self._draw_dividers(width)
+        self._draw_options(width)
         self._draw_highlight(width)
         self.geometry(f"{width}x{height}+{left}+{position_y}")
         self.deiconify()
@@ -114,23 +115,28 @@ class DropdownMenu(tk.Toplevel):
         self._canvas = tk.Canvas(self, bg=theme.SURFACE, highlightthickness=0, bd=0)
         self._canvas.pack(fill="both", expand=True)
 
-    def _draw_options(self) -> None:
-        """Each option in its own row, with a check mark at the chosen one."""
+    def _draw_options(self, width: int) -> None:
+        """Each option in its own row, with a check mark at the chosen one, and the dividers."""
         for index, option in enumerate(self._choices):
-            if option is DIVIDER:
-                continue  # its line needs the width of the menu, so open() draws it
-
             middle_y = self._get_row_middle_y(index)
-            self._draw_text(option, middle_y)
 
-            if option.key == self._selected:
-                self._draw_check(middle_y)
+            if option is DIVIDER:
+                self._draw_divider(middle_y, width)
+            else:
+                self._draw_text(option, middle_y, width)
 
-    def _draw_text(self, option: MenuOption, middle_y: int) -> None:
+                if option.key == self._selected:
+                    self._draw_check(middle_y)
+
+    def _draw_text(self, option: MenuOption, middle_y: int, width: int) -> None:
+        """The text of the option, cut short with "…" when it is too long for the menu."""
+        text_x = px(PAD + TEXT_X)
+        text = elide(option.text, self._font, width - text_x - px(TEXT_ROOM + PAD))
+
         self._canvas.create_text(
-            px(PAD + TEXT_X),
+            text_x,
             middle_y,
-            text=option.text,
+            text=text,
             anchor="w",
             font=theme.FONT,
             fill=option.text_colour or theme.TEXT,
@@ -145,17 +151,11 @@ class DropdownMenu(tk.Toplevel):
             fill=theme.ACCENT,
         )
 
-    def _draw_dividers(self, width: int) -> None:
-        """A thin line across the menu, in the middle of each divider row."""
-        line_start_x = px(PAD + DIVIDER_INSET)
-        line_end_x = width - px(PAD + DIVIDER_INSET)
+    def _draw_divider(self, middle_y: int, width: int) -> None:
+        """A thin line across the menu."""
+        inset = px(PAD + DIVIDER_INSET)
 
-        for index, option in enumerate(self._choices):
-            if option is DIVIDER:
-                middle_y = self._get_row_middle_y(index)
-                self._canvas.create_line(
-                    line_start_x, middle_y, line_end_x, middle_y, fill=theme.SURFACE_HI
-                )
+        self._canvas.create_line(inset, middle_y, width - inset, middle_y, fill=theme.SURFACE_HI)
 
     def _draw_highlight(self, width: int) -> None:
         """The lighter shape behind the hovered option, hidden until an option is hovered."""
