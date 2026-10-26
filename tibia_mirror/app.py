@@ -277,6 +277,9 @@ class App:
             self._on_profile_selected(self.profile_manager.active_name)
 
     def _on_select_area(self, mirror_id: str | None) -> None:
+        if self._is_selecting:
+            return  # a cover is already open, maybe on another monitor than the panel
+
         game_window = self.connection.game_window
 
         if game_window is None:
