@@ -112,6 +112,11 @@ class Popup(tk.Toplevel, ABC):
         self.grab_set()  # the rest of the app takes no clicks or keys until the popup closes
         self.focus_force()
 
+    def _fit_height(self) -> None:
+        """Make the popup as tall as its content again. Its top stays where it is."""
+        self.update_idletasks()
+        self.geometry(f"{px(WIDTH)}x{self.winfo_reqheight()}")
+
     def _get_position(self, width: int, height: int) -> Point:
         """The top-left corner: the middle of the main window, kept on its screen."""
         center_x = self._window.winfo_rootx() + self._window.winfo_width() // 2

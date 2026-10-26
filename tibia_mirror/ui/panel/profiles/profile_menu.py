@@ -4,13 +4,13 @@ import tkinter as tk
 from collections.abc import Callable, Sequence
 from functools import partial
 
-from tibia_mirror.core.geometry import Box, Point
+from tibia_mirror.core.geometry import Box
 from tibia_mirror.core.profiles import copy_name, name_error
 from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
-from tibia_mirror.ui.panel.controls.dialogs import NameDialog
 from tibia_mirror.ui.panel.controls.menu import SEPARATOR, MenuItem, PopupMenu
+from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
 
 
 class ProfileMenu:
@@ -77,47 +77,41 @@ class ProfileMenu:
 
     def _new(self) -> None:
         """Ask for a name and make a new, empty profile."""
-        default_name = next_default_name(self._profile_names, stem=tr("Profile"))
-        center = self._get_window_center()
+        suggested_name = next_default_name(self._profile_names, stem=tr("Profile"))
 
         NameDialog(
             self._window,
-            default_name,
-            center,
+            tr("New profile"),
+            suggested_name,
             on_ok=self._on_new,
             on_cancel=lambda: None,
-            title=tr("New profile"),
-            validate=partial(name_error, taken=self._profile_names),
+            get_name_error=partial(name_error, taken=self._profile_names),
         )
 
     def _duplicate(self) -> None:
         """Ask for a name and make a copy of the active profile."""
-        default_name = copy_name(self._active_name, self._profile_names, tr("copy"))
-        center = self._get_window_center()
+        suggested_name = copy_name(self._active_name, self._profile_names, tr("copy"))
 
         NameDialog(
             self._window,
-            default_name,
-            center,
+            tr("Duplicate profile"),
+            suggested_name,
             on_ok=self._on_duplicate,
             on_cancel=lambda: None,
-            title=tr("Duplicate profile"),
-            validate=partial(name_error, taken=self._profile_names),
+            get_name_error=partial(name_error, taken=self._profile_names),
         )
 
     def _rename(self) -> None:
         """Ask for a new name for the active profile."""
         other_names = [name for name in self._profile_names if name != self._active_name]
-        center = self._get_window_center()
 
         NameDialog(
             self._window,
+            tr("Rename profile"),
             self._active_name,
-            center,
             on_ok=self._on_rename,
             on_cancel=lambda: None,
-            title=tr("Rename profile"),
-            validate=partial(name_error, taken=other_names),
+            get_name_error=partial(name_error, taken=other_names),
         )
 
     def _delete(self) -> None:
@@ -135,10 +129,3 @@ class ProfileMenu:
             on_cancel=lambda: None,
             is_danger=True,
         )
-
-    def _get_window_center(self) -> Point:
-        """The middle of the main window on the screen, where the dialogs open."""
-        center_x = self._window.winfo_rootx() + self._window.winfo_width() // 2
-        center_y = self._window.winfo_rooty() + self._window.winfo_height() // 2
-
-        return center_x, center_y
