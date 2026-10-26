@@ -24,6 +24,11 @@ TEXT_X = 32  # from PAD to the start of the text
 TEXT_ROOM = 8  # kept free after the longest text, before PAD
 HIGHLIGHT_RADIUS = 6  # of the rounded corners of the highlight behind a hovered option
 HIGHLIGHT_GAP = 1  # above and below the highlight, so two rows never touch
+DIVIDER_HEIGHT = 9  # of the row of a dividing line
+DIVIDER_INSET = 8  # from PAD to each end of a dividing line
+
+# In the options of a DropdownMenu: a thin line between two groups of options.
+DIVIDER = None
 
 
 @dataclass(frozen=True)
@@ -35,10 +40,10 @@ class MenuOption:
     text_colour: str | None = None  # a theme colour; None draws the text in theme.TEXT
 
 
-def get_menu_width(options: Sequence[MenuOption]) -> int:
+def get_menu_width(options: Sequence[MenuOption | None]) -> int:
     """The width the menu needs for its longest option."""
     font = tkfont.Font(font=theme.FONT)
-    longest = max(font.measure(option.text) for option in options)
+    longest = max(font.measure(option.text) for option in options if option is not DIVIDER)
 
     return px(PAD + TEXT_X) + longest + px(TEXT_ROOM + PAD)
 
@@ -49,7 +54,7 @@ class DropdownMenu(tk.Toplevel):
     def __init__(
         self,
         window: tk.Misc,
-        options: Sequence[MenuOption],
+        options: Sequence[MenuOption | None],
         selected: str,
         on_pick: Callable[[str], None],
     ) -> None:
@@ -57,7 +62,7 @@ class DropdownMenu(tk.Toplevel):
         self.withdraw()  # hidden until it has a size and a place
         self._window = window  # the window under the menu; it gets the focus back
         self._is_window_modal = window.grab_status() is not None  # it gets the grab back too
-        # the options, from top to bottom; tkinter itself uses self._options
+        # the options and DIVIDERs, from top to bottom; tkinter itself uses self._options
         self._choices = options
         self._selected = selected  # the key of the chosen option
         self._on_pick = on_pick  # called with the key of the option the user picks
@@ -83,6 +88,7 @@ class DropdownMenu(tk.Toplevel):
         height = self._get_height()
         position_y = bottom + px(GAP)
 
+        self._draw_dividers(width)
         self._draw_highlight(width)
         self.geometry(f"{width}x{height}+{left}+{position_y}")
         self.deiconify()
@@ -111,6 +117,9 @@ class DropdownMenu(tk.Toplevel):
     def _draw_options(self) -> None:
         """Each option in its own row, with a check mark at the chosen one."""
         for index, option in enumerate(self._choices):
+            if option is DIVIDER:
+                continue  # its line needs the width of the menu, so open() draws it
+
             middle_y = self._get_row_middle_y(index)
             self._draw_text(option, middle_y)
 
@@ -136,6 +145,18 @@ class DropdownMenu(tk.Toplevel):
             fill=theme.ACCENT,
         )
 
+    def _draw_dividers(self, width: int) -> None:
+        """A thin line across the menu, in the middle of each divider row."""
+        line_start_x = px(PAD + DIVIDER_INSET)
+        line_end_x = width - px(PAD + DIVIDER_INSET)
+
+        for index, option in enumerate(self._choices):
+            if option is DIVIDER:
+                middle_y = self._get_row_middle_y(index)
+                self._canvas.create_line(
+                    line_start_x, middle_y, line_end_x, middle_y, fill=theme.SURFACE_HI
+                )
+
     def _draw_highlight(self, width: int) -> None:
         """The lighter shape behind the hovered option, hidden until an option is hovered."""
         self._highlight_image = rounded_image(
@@ -152,32 +173,43 @@ class DropdownMenu(tk.Toplevel):
         # the options are drawn first, so the highlight must go under them
         self._canvas.tag_lower(self._highlight)
 
+    def _get_row_height(self, option: MenuOption | None) -> int:
+        return px(DIVIDER_HEIGHT) if option is DIVIDER else px(ROW_HEIGHT)
+
     def _get_row_top_y(self, index: int) -> int:
-        """The top of the row of the option at `index`, from the top of the menu."""
-        return px(PAD) + index * px(ROW_HEIGHT)
+        """The top of the row at `index`, from the top of the menu."""
+        rows_above = self._choices[:index]
+        return px(PAD) + sum(self._get_row_height(option) for option in rows_above)
 
     def _get_row_middle_y(self, index: int) -> int:
-        """The middle of the row of the option at `index`, from the top of the menu."""
-        return self._get_row_top_y(index) + px(ROW_HEIGHT) // 2
+        """The middle of the row at `index`, from the top of the menu."""
+        return self._get_row_top_y(index) + self._get_row_height(self._choices[index]) // 2
 
     def _get_index_at(self, position_y: int) -> int | None:
-        """The index of the option at this height. None between the options and the edges."""
-        if position_y < px(PAD):
-            return None
+        """The index of the option at this height. None on a divider and at the edges."""
+        for index, option in enumerate(self._choices):
+            row_top_y = self._get_row_top_y(index)
+            is_in_row = row_top_y <= position_y < row_top_y + self._get_row_height(option)
 
-        index = (position_y - px(PAD)) // px(ROW_HEIGHT)
+            if is_in_row and option is not DIVIDER:
+                return index
 
-        if index >= len(self._choices):
-            return None
-
-        return index
+        return None
 
     def _get_next_index(self, step: int) -> int:
-        """The option `step` rows away from the hovered one, going round at the ends."""
-        if self._hovered_index is None:
-            return 0 if step > 0 else len(self._choices) - 1
+        """The option `step` options away from the hovered one, going round at the ends.
 
-        return (self._hovered_index + step) % len(self._choices)
+        The dividers are skipped.
+        """
+        option_indexes = [
+            index for index, option in enumerate(self._choices) if option is not DIVIDER
+        ]
+
+        if self._hovered_index is None:
+            return option_indexes[0] if step > 0 else option_indexes[-1]
+
+        position = option_indexes.index(self._hovered_index)
+        return option_indexes[(position + step) % len(option_indexes)]
 
     def _is_inside(self, position_x: int, position_y: int) -> bool:
         """Whether this place on the screen is on the menu."""
@@ -190,7 +222,7 @@ class DropdownMenu(tk.Toplevel):
 
     def _get_height(self) -> int:
         """Room for every option, with a pad above and below."""
-        return 2 * px(PAD) + len(self._choices) * px(ROW_HEIGHT)
+        return 2 * px(PAD) + sum(self._get_row_height(option) for option in self._choices)
 
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
@@ -242,10 +274,13 @@ class DropdownMenu(tk.Toplevel):
 
     def _pick(self, index: int) -> None:
         """Close the menu, then hand over the key of the option at `index`."""
-        key = self._choices[index].key
+        option = self._choices[index]
+
+        if option is DIVIDER:
+            return  # a divider is never hovered or clicked, so it can't be picked
 
         self.close()
-        self._on_pick(key)
+        self._on_pick(option.key)
 
     def _set_hovered(self, index: int | None) -> None:
         self._hovered_index = index
