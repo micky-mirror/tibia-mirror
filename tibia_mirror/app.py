@@ -63,6 +63,7 @@ class App:
             self.window, self.settings, self.profile_manager, self.timer_manager, self.connection
         )
         self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
+        self._is_selecting = False  # True while the user selects or names a part of the game
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
         self.input_watcher = InputWatcher(self._on_click, self._on_key)
         self.input_watcher.start(self.window)
@@ -269,11 +270,12 @@ class App:
             return
 
         # the mirrors would cover the game while the user selects a part of it
-        self.mirror_manager.close()
+        self._is_selecting = True
+        self._show_mirrors()
         on_selected = partial(self._on_area_selected, mirror_id)
 
         if mirror_id is not None:
-            SelectionOverlay(self.window, game_window, on_selected, self._show_mirrors)
+            SelectionOverlay(self.window, game_window, on_selected, self._on_selection_cancelled)
             return
 
         names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
@@ -283,10 +285,17 @@ class App:
             game_window,
             suggested_name,
             on_selected,
-            self._show_mirrors,
+            self._on_selection_cancelled,
         )
 
+    def _on_selection_cancelled(self) -> None:
+        """Bring the mirrors back after the cover or the name popup closed without an area."""
+        self._is_selecting = False
+        self._show_mirrors()
+
     def _on_area_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
+        self._is_selecting = False
+
         if self.connection.game_window is None:
             # Tibia closed while the user was selecting or naming
             self.panel.set_message(tr("Could not mirror"), "error")
@@ -311,11 +320,12 @@ class App:
     def _show_mirrors(self) -> None:
         """Show the kept mirrors on the Mirrors page and on the window of Tibia.
 
-        The windows close without a window of Tibia, and while the hide-all key hides them.
+        The windows close without a window of Tibia, while the hide-all key hides them,
+        and while the user selects a part of the game.
         """
         self.panel.set_mirrors(self.mirror_manager.get_mirror_infos())
 
-        if self._is_all_hidden:
+        if self._is_all_hidden or self._is_selecting:
             self.mirror_manager.close()
             return
 
