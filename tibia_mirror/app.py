@@ -76,7 +76,7 @@ class App:
         self.window.show()
 
         if not is_profile_loaded:
-            self.panel.set_message(tr("Profile file is invalid"), "error")
+            self.panel.set_message(tr("Profile file is invalid"), "error", is_lasting=True)
         else:
             self._show_mirrors()
 
@@ -236,7 +236,7 @@ class App:
         if self._load_profile():
             self.panel.set_message("")
         else:
-            self.panel.set_message(tr("Profile file is invalid"), "error")
+            self.panel.set_message(tr("Profile file is invalid"), "error", is_lasting=True)
 
         self._show_mirrors()
 

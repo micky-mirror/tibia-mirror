@@ -5,7 +5,7 @@ import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
-from tibia_mirror.config import PANEL_SIZE
+from tibia_mirror.config import MESSAGE_SHOW_MS, PANEL_SIZE
 from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
@@ -130,6 +130,7 @@ class Panel(tk.Frame):
         self._message_font = tkfont.Font(font=theme.FONT)
         self._message_text = ""  # the whole text, before it is cut short to fit
         self._message_tone = "muted"
+        self._hide_message_job: str | None = None  # the waiting hide, if any
 
     def set_connection_state(self, state: str) -> None:
         """Set Tibia connection state."""
@@ -149,11 +150,26 @@ class Panel(tk.Frame):
         """Show these mirrors on the Mirrors page."""
         self._mirrors_page.set_mirrors(mirrors)
 
-    def set_message(self, text: str, tone: str = "muted") -> None:
-        """Show a short message for the user. An empty text hides it."""
+    def set_message(self, text: str, tone: str = "muted", *, is_lasting: bool = False) -> None:
+        """Show a short message for the user. An empty text hides it.
+
+        It hides after MESSAGE_SHOW_MS, unless it is lasting. A new message replaces it.
+        """
+        # the new message gets its own time, so the old wait is thrown away
+        if self._hide_message_job is not None:
+            self.after_cancel(self._hide_message_job)
+            self._hide_message_job = None
+
         self._message_text = text
         self._message_tone = tone
         self._draw_message()
+
+        if text and not is_lasting:
+            self._hide_message_job = self.after(MESSAGE_SHOW_MS, self._hide_message)
+
+    def _hide_message(self) -> None:
+        self._hide_message_job = None
+        self.set_message("")
 
     def set_all_hidden(self, key_name: str | None) -> None:
         """Say that the hide-all key `key_name` hides every mirror. None takes the note away."""
