@@ -7,6 +7,7 @@ from dataclasses import replace
 from tibia_mirror.core.mirror_timer import SOUNDS, MirrorTimer
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel.controls.dropdown_menu import MenuOption
 from tibia_mirror.ui.panel.controls.popup import PAD, Popup
 from tibia_mirror.ui.panel.rows.choice_row import ChoiceRow
 from tibia_mirror.ui.panel.rows.dropdown_row import DropdownRow
@@ -68,7 +69,7 @@ class TimerDialog(Popup):
         )
         sound_row = DropdownRow(
             tr("Sound"),
-            [(sound, tr(SOUND_LABELS[sound])) for sound in SOUNDS],
+            [MenuOption(sound, tr(SOUND_LABELS[sound])) for sound in SOUNDS],
             self._timer.sound,
             on_change=self._on_sound_changed,
         )

@@ -9,7 +9,7 @@ from collections.abc import Callable, Sequence
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import outlined_image, rounded_image
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel.controls.dropdown_menu import DropdownMenu, get_menu_width
+from tibia_mirror.ui.panel.controls.dropdown_menu import DropdownMenu, MenuOption, get_menu_width
 
 ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
 ARROW_UP = "\ue70e"  # the same arrow, pointing up
@@ -28,7 +28,7 @@ class DropdownPicker(tk.Canvas):
     def __init__(
         self,
         parent: tk.Misc,
-        options: Sequence[tuple[str, str]],
+        options: Sequence[MenuOption],
         selected: str,
         on_change: Callable[[str], None],
     ) -> None:
@@ -41,7 +41,7 @@ class DropdownPicker(tk.Canvas):
             bd=0,
             cursor="hand2",
         )
-        # (key, text) of each option, from top to bottom; tkinter itself uses self._options
+        # the options, from top to bottom; tkinter itself uses self._options
         self._choices = options
         self._selected = selected  # the key of the chosen option
         self._on_change = on_change  # called with the key of the option the user chose
@@ -61,7 +61,7 @@ class DropdownPicker(tk.Canvas):
     def _get_width(self) -> int:
         """Room for the longest option and the small arrow, and for the menu under the box."""
         font = tkfont.Font(font=theme.FONT)
-        longest = max(font.measure(text) for _key, text in self._choices)
+        longest = max(font.measure(option.text) for option in self._choices)
         box_width = px(TEXT_X) + longest + px(ARROW_ROOM)
 
         return max(box_width, get_menu_width(self._choices))
@@ -115,7 +115,7 @@ class DropdownPicker(tk.Canvas):
         )
 
     def _get_selected_text(self) -> str:
-        return dict(self._choices)[self._selected]
+        return next(option.text for option in self._choices if option.key == self._selected)
 
     def _bind_events(self) -> None:
         self.bind("<Enter>", self._on_mouse_enter)

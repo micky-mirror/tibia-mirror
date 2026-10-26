@@ -5,6 +5,7 @@ from __future__ import annotations
 import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
@@ -25,10 +26,19 @@ HIGHLIGHT_RADIUS = 6  # of the rounded corners of the highlight behind a hovered
 HIGHLIGHT_GAP = 1  # above and below the highlight, so two rows never touch
 
 
-def get_menu_width(options: Sequence[tuple[str, str]]) -> int:
+@dataclass(frozen=True)
+class MenuOption:
+    """One option of a dropdown menu."""
+
+    key: str  # what the menu hands over when the option is picked
+    text: str
+    text_colour: str | None = None  # a theme colour; None draws the text in theme.TEXT
+
+
+def get_menu_width(options: Sequence[MenuOption]) -> int:
     """The width the menu needs for its longest option."""
     font = tkfont.Font(font=theme.FONT)
-    longest = max(font.measure(text) for _key, text in options)
+    longest = max(font.measure(option.text) for option in options)
 
     return px(PAD + TEXT_X) + longest + px(TEXT_ROOM + PAD)
 
@@ -39,7 +49,7 @@ class DropdownMenu(tk.Toplevel):
     def __init__(
         self,
         window: tk.Misc,
-        options: Sequence[tuple[str, str]],
+        options: Sequence[MenuOption],
         selected: str,
         on_pick: Callable[[str], None],
     ) -> None:
@@ -47,7 +57,7 @@ class DropdownMenu(tk.Toplevel):
         self.withdraw()  # hidden until it has a size and a place
         self._window = window  # the window under the menu; it gets the focus back
         self._is_window_modal = window.grab_status() is not None  # it gets the grab back too
-        # (key, text) of each option, from top to bottom; tkinter itself uses self._options
+        # the options, from top to bottom; tkinter itself uses self._options
         self._choices = options
         self._selected = selected  # the key of the chosen option
         self._on_pick = on_pick  # called with the key of the option the user picks
@@ -100,21 +110,21 @@ class DropdownMenu(tk.Toplevel):
 
     def _draw_options(self) -> None:
         """Each option in its own row, with a check mark at the chosen one."""
-        for index, (key, text) in enumerate(self._choices):
+        for index, option in enumerate(self._choices):
             middle_y = self._get_row_middle_y(index)
-            self._draw_text(text, middle_y)
+            self._draw_text(option, middle_y)
 
-            if key == self._selected:
+            if option.key == self._selected:
                 self._draw_check(middle_y)
 
-    def _draw_text(self, text: str, middle_y: int) -> None:
+    def _draw_text(self, option: MenuOption, middle_y: int) -> None:
         self._canvas.create_text(
             px(PAD + TEXT_X),
             middle_y,
-            text=text,
+            text=option.text,
             anchor="w",
             font=theme.FONT,
-            fill=theme.TEXT,
+            fill=option.text_colour or theme.TEXT,
         )
 
     def _draw_check(self, middle_y: int) -> None:
@@ -232,7 +242,7 @@ class DropdownMenu(tk.Toplevel):
 
     def _pick(self, index: int) -> None:
         """Close the menu, then hand over the key of the option at `index`."""
-        key, _text = self._choices[index]
+        key = self._choices[index].key
 
         self.close()
         self._on_pick(key)

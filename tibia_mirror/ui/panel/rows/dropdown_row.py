@@ -4,6 +4,7 @@ import tkinter as tk
 from collections.abc import Callable, Sequence
 
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel.controls.dropdown_menu import MenuOption
 from tibia_mirror.ui.panel.controls.dropdown_picker import DropdownPicker
 from tibia_mirror.ui.panel.rows.row import ROW_PAD, SIDE_PAD, draw_label
 
@@ -18,12 +19,12 @@ class DropdownRow:
     def __init__(
         self,
         label: str,
-        options: Sequence[tuple[str, str]],
+        options: Sequence[MenuOption],
         selected: str,
         on_change: Callable[[str], None],
     ) -> None:
         self._label = label
-        self._options = options  # (key, text) of each option, from top to bottom
+        self._options = options  # from top to bottom
         self._selected = selected  # the key of the chosen option
         self._on_change = on_change  # called with the key of the option the user chose
 
