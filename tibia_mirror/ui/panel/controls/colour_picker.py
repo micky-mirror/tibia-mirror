@@ -143,15 +143,51 @@ class ColourPicker(tk.Toplevel):
 
         return left, top, left + px(SWATCH_SIZE), top + px(SWATCH_SIZE)
 
+    def _get_name_at(self, position_x: int, position_y: int) -> str | None:
+        """The colour whose swatch is at this place on the picker."""
+        for index, name in enumerate(self._colours):
+            left, top, right, bottom = self._get_swatch_box(index)
+            is_inside_x = left <= position_x < right
+            is_inside_y = top <= position_y < bottom
+
+            if is_inside_x and is_inside_y:
+                return name
+
+        return None
+
+    def _is_inside(self, position_x: int, position_y: int) -> bool:
+        """Whether this place, measured from the top left corner of the picker, is on it."""
+        is_inside_x = 0 <= position_x < self.winfo_width()
+        is_inside_y = 0 <= position_y < self.winfo_height()
+
+        return is_inside_x and is_inside_y
+
     def _bind_events(self) -> None:
         self.bind("<Escape>", self._on_escape)
+        self.bind("<ButtonRelease>", self._on_mouse_up)
         self.bind("<FocusOut>", self._on_focus_out)
         self.protocol("WM_DELETE_WINDOW", self.close)  # Alt+F4
 
     def _on_escape(self, event: tk.Event[tk.Misc]) -> None:
         self.close()
 
+    def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
+        # the picker holds the grab, so every click of the app ends here
+        position_x = event.x_root - self.winfo_rootx()
+        position_y = event.y_root - self.winfo_rooty()
+        name = self._get_name_at(position_x, position_y)
+
+        if not self._is_inside(position_x, position_y):
+            self.close()
+        elif name is not None:
+            self._pick(name)
+
     def _on_focus_out(self, event: tk.Event[tk.Misc]) -> None:
         # another app has the focus now, so the picker closes and leaves the focus there
         if event.widget is self:
             self.destroy()
+
+    def _pick(self, name: str) -> None:
+        """Close the picker, then hand over the name of the colour."""
+        self.close()
+        self._on_pick(name)
