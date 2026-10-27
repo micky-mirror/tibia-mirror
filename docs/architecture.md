@@ -41,7 +41,7 @@ To make sure the window is really Tibia, it also reads the program's file path, 
   - `AppWindow`: the main window, its place, size and theme, closing, and coming to the front at a second start.
   - `TibiaConnection`: finds Tibia, follows its window, and reads who is logged in.
     It tells the App what changed.
-    It uses `Game` (`services/game.py`) for the window and `FrontWindowTracker` for the window the user works in.
+    It uses `Game` (in the same file) for the window and `FrontWindowTracker` for the window the user works in.
   - `ProfileManager`: the profiles, the open one and its mirrors.
   - `MirrorManager`: the mirror windows on the screen, and new mirrors.
   - `TimerManager`: when each timer started, and its paused progress at a logout.
@@ -90,7 +90,7 @@ Reading the program's path uses the lowest access level Windows offers (`PROCESS
   Until Tibia is found, the panel shows "Waiting for Tibia...".
 - When Tibia closes, the mirrors keep their settings and reconnect to the new window once Tibia starts again.
 - A minimized Tibia has no client area, so mirrors hide until it's restored.
-- `Game` (`services/game.py`) remembers the window and its client area.
+- `Game` (in `app_parts/tibia_connection.py`) remembers the window and its client area.
   At each check, `TibiaConnection` also reads who is logged in, from the window title.
   It tells the App when the state, the game window or the character changed, and the App decides what to do.
 
@@ -189,7 +189,7 @@ These are deliberate and must stay true:
 | Area | Files |
 |---|---|
 | App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
-| App parts | `app_parts/app_window.py`, `app_parts/tibia_connection.py`, `app_parts/front_window_tracker.py`, `app_parts/profile_manager.py`, `app_parts/mirror_manager.py`, `app_parts/timer_manager.py`, `app_parts/settings_writer.py`, `services/game.py` |
+| App parts | `app_parts/app_window.py`, `app_parts/tibia_connection.py`, `app_parts/front_window_tracker.py`, `app_parts/profile_manager.py`, `app_parts/mirror_manager.py`, `app_parts/timer_manager.py`, `app_parts/settings_writer.py` |
 | Settings | `settings/app_settings.py`, `settings/app_settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
 | Pure logic | `core/geometry.py`, `core/game_window.py`, `core/connection.py`, `core/profile.py`, `core/mirror_settings.py`, `core/mirror_timer.py`, `core/mirror_look.py`, `core/regions.py`, `core/profiles.py`, `core/timers.py`, `core/characters.py`, `core/handles.py` |
