@@ -3,18 +3,14 @@
 from __future__ import annotations
 
 import tkinter as tk
-import tkinter.font as tkfont
 from collections.abc import Callable
 
-from tibia_mirror.core.geometry import Box, scroll_fraction, scroll_thumb
+from tibia_mirror.core.geometry import scroll_fraction, scroll_thumb
 from tibia_mirror.core.timers import KeyCombo
-from tibia_mirror.i18n import tr
-from tibia_mirror.ui.base import icons, theme
+from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, outlined_pixels
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.panel.controls.tooltip import Tip, Tooltip
 
 
 class KeyField(tk.Canvas):
@@ -274,99 +270,3 @@ class ScrollList(tk.Frame):
                 return True
             w = w.master
         return False
-
-
-class CopyText(tk.Canvas):
-    """`text` with a copy icon; a click copies it and the hint says "Copied".
-
-    With `max_width`, a long text is cut short with "…" but still copied in full.
-    """
-
-    # Where a tk.Label starts its text (2px border, 1px padding), to line up with one.
-    # Tk doesn't scale those, so neither is this.
-    INSET = 3
-    # At 100% display scaling, scaled with px() where used.
-    GAP = 6  # between the text and the icon
-    SLACK = 2  # room above, below and after the glyphs, so the edges are easy to hit
-
-    def __init__(
-        self,
-        parent: tk.Misc,
-        text: str,
-        *,
-        background: str,
-        fg: str | None = None,
-        small: bool = False,
-        inset: int = INSET,
-        max_width: int | None = None,
-    ) -> None:
-        text_spec, icon_spec = (
-            (theme.FONT_SMALL, theme.FONT_ICON_SMALL) if small else (theme.FONT, theme.FONT_ICON)
-        )
-        font = tkfont.Font(font=text_spec)
-        icon_font = tkfont.Font(font=icon_spec)
-        slack, gap = px(self.SLACK), px(self.GAP)
-        icon_w = icon_font.measure(icons.COPY)
-        shown = text
-        if max_width is not None:
-            shown = elide(text, font, max_width - inset - gap - icon_w - slack)
-        text_w = font.measure(shown)
-        height = max(font.metrics("linespace"), icon_font.metrics("linespace")) + 2 * slack
-        super().__init__(
-            parent,
-            width=inset + text_w + gap + icon_w + slack,
-            height=height,
-            bg=background,
-            highlightthickness=0,
-            bd=0,
-            cursor="hand2",
-        )
-        self._value = text
-        self._fg = fg or theme.TEXT
-        middle_y = height / 2
-        self._text = self.create_text(inset, middle_y, text=shown, anchor="w", font=text_spec)
-        self._icon = self.create_text(inset + text_w + gap, middle_y, anchor="w", font=icon_spec)
-        self._tooltip = Tooltip(self.winfo_toplevel())
-        self._hovered = self._pressed = self._copied = False
-        self._paint()
-
-        self.bind("<Enter>", self._enter)
-        self.bind("<Leave>", self._leave)
-        self.bind("<ButtonPress-1>", self._press)
-        self.bind("<ButtonRelease-1>", self._release)
-        self.bind("<Destroy>", lambda e: self._tooltip.hide())
-
-    def _enter(self, _e: tk.Event[tk.Canvas]) -> None:
-        self._hovered = True
-        self._paint()
-        self._tooltip.show(Tip(tr("Copy")), self._screen_box())
-
-    def _leave(self, _e: tk.Event[tk.Canvas]) -> None:
-        self._hovered = self._copied = False
-        self._paint()
-        self._tooltip.hide()
-
-    def _press(self, _e: tk.Event[tk.Canvas]) -> None:
-        self._pressed = True
-
-    def _release(self, _e: tk.Event[tk.Canvas]) -> None:
-        fire, self._pressed = self._pressed and self._hovered, False
-        if not fire:
-            return
-        self.clipboard_clear()
-        self.clipboard_append(self._value)
-        self._copied = True
-        self._paint()
-        self._tooltip.show(Tip(tr("Copied")), self._screen_box())
-
-    def _screen_box(self) -> Box:
-        x, y = self.winfo_rootx(), self.winfo_rooty()
-        return x, y, x + self.winfo_width(), y + self.winfo_height()
-
-    def _paint(self) -> None:
-        self.itemconfigure(self._text, fill=theme.ACCENT if self._hovered else self._fg)
-        if self._copied:
-            self.itemconfigure(self._icon, text=icons.CHECK, fill=theme.GREEN)
-        else:
-            fill = theme.ACCENT if self._hovered else theme.SUBTEXT
-            self.itemconfigure(self._icon, text=icons.COPY, fill=fill)
