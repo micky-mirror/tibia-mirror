@@ -8,7 +8,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.popup import PAD, Popup
-from tibia_mirror.ui.panel.controls.widgets import TextField
+from tibia_mirror.ui.panel.controls.text_field import TextField
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 ERROR_GAP = 6  # between the field and the error line
@@ -36,26 +36,23 @@ class NameDialog(Popup):
         self._on_cancel = on_cancel
         # gives why a name can't be used, in English, or None; without it every name is fine
         self._get_name_error = get_name_error
-        self._name_text = tk.StringVar(value=suggested_name)
 
         self._name_field = self._add_name_field()
         self._error_line = self._add_error_line()
         self._add_buttons(tr("OK"))
         self._open()
-        self._select_name()
+        self._name_field.select_all()
 
     def _add_name_field(self) -> TextField:
         name_field = TextField(
             self,
-            self._name_text,
+            self._suggested_name,
             width=self._content_width,
             background=theme.BG,
+            is_allowed=self._is_allowed_name,
+            on_change=self._on_name_changed,
         )
         name_field.pack(anchor="w", padx=px(PAD))
-        # Tk asks before every change. %P: the text the field would have after it.
-        allowed_name = (self.register(self._is_allowed_name), "%P")
-        name_field.entry.configure(validate="key", validatecommand=allowed_name)
-        self._name_text.trace_add("write", self._on_name_changed)
         return name_field
 
     def _add_error_line(self) -> tk.Label:
@@ -71,17 +68,10 @@ class NameDialog(Popup):
             wraplength=self._content_width,
         )
 
-    def _select_name(self) -> None:
-        """Put the keys in the field with the whole name selected, so typing replaces it."""
-        entry = self._name_field.entry
-        entry.focus_set()
-        entry.select_range(0, "end")
-        entry.icursor("end")
-
     def _is_allowed_name(self, name: str) -> bool:
         return len(name) <= MAX_NAME_LENGTH
 
-    def _on_name_changed(self, *trace_details: str) -> None:
+    def _on_name_changed(self, name: str) -> None:
         # the changed name may be fine, so the old reason goes away
         if self._error_line.winfo_manager():
             self._hide_error()
@@ -101,7 +91,7 @@ class NameDialog(Popup):
         self._fit_height()
 
     def _confirm(self) -> None:
-        name = self._name_text.get().strip() or self._suggested_name
+        name = self._name_field.get_text().strip() or self._suggested_name
         error = None if self._get_name_error is None else self._get_name_error(name)
 
         if error is not None:
