@@ -7,20 +7,13 @@ from dataclasses import replace
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.timers import clock
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.tooltip import Tip
 from tibia_mirror.ui.panel.mirrors.mirror_card.icon_button import IconButton
 from tibia_mirror.ui.panel.mirrors.mirror_card.layout import TOP_ROW_Y
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel.mirrors.timer_dialog import TimerDialog
-
-REMOVE_ICON = "✕"
-LOCKED_ICON = "\ue72e"  # a closed lock, from the Segoe MDL2 Assets icon font
-UNLOCKED_ICON = "\ue785"  # an open lock, from the same font
-SHOWN_ICON = "\ue890"  # an open eye, from the same font
-HIDDEN_ICON = "\ued1a"  # a crossed eye, from the same font
-TIMER_ICON = "\ue916"  # a clock, from the same font
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 RIGHT_PAD = 8  # from the right side of the card to the last button
@@ -110,7 +103,7 @@ class MirrorCardButtonBar:
             self._canvas,
             self._get_button_position_x(0),
             px(TOP_ROW_Y),
-            REMOVE_ICON,
+            icons.REMOVE,
             theme.FONT,
             theme.SUBTEXT,
             theme.RED,
@@ -137,8 +130,8 @@ class MirrorCardButtonBar:
     def _get_lock_look(self) -> tuple[str, str, str]:
         """The icon, the colour and the hovered colour of the lock button."""
         if self._mirror.is_locked:
-            return LOCKED_ICON, theme.ACCENT, theme.ACCENT
-        return UNLOCKED_ICON, theme.SUBTEXT, theme.TEXT
+            return icons.LOCKED, theme.ACCENT, theme.ACCENT
+        return icons.UNLOCKED, theme.SUBTEXT, theme.TEXT
 
     def _draw_eye_button(self) -> None:
         """A crossed eye in the accent colour for a hidden mirror, an open grey eye if not."""
@@ -159,8 +152,8 @@ class MirrorCardButtonBar:
     def _get_eye_look(self) -> tuple[str, str, str]:
         """The icon, the colour and the hovered colour of the show or hide button."""
         if self._mirror.is_hidden:
-            return HIDDEN_ICON, theme.ACCENT, theme.ACCENT
-        return SHOWN_ICON, theme.SUBTEXT, theme.TEXT
+            return icons.HIDDEN, theme.ACCENT, theme.ACCENT
+        return icons.SHOWN, theme.SUBTEXT, theme.TEXT
 
     def _draw_timer_button(self) -> None:
         """A clock, in the accent colour for a mirror with its timer on, grey if not."""
@@ -181,8 +174,8 @@ class MirrorCardButtonBar:
     def _get_timer_look(self) -> tuple[str, str, str]:
         """The icon, the colour and the hovered colour of the timer button."""
         if self._mirror.timer.is_on:
-            return TIMER_ICON, theme.ACCENT, theme.ACCENT
-        return TIMER_ICON, theme.SUBTEXT, theme.TEXT
+            return icons.TIMER, theme.ACCENT, theme.ACCENT
+        return icons.TIMER, theme.SUBTEXT, theme.TEXT
 
     def _get_button_position_x(self, place: int) -> int:
         """The middle of a button. `place` counts the buttons from the right, from 0."""

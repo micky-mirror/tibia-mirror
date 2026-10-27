@@ -6,13 +6,10 @@ import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
 
-from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.images import outlined_image, rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.dropdown_menu import DropdownMenu, MenuOption, get_menu_width
-
-ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the Segoe MDL2 Assets icon font
-ARROW_UP = "\ue70e"  # the same arrow, pointing up
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 28  # as high as the options of a ChoiceRow
@@ -109,7 +106,7 @@ class DropdownPicker(tk.Canvas):
         self._arrow = self.create_text(
             self._width - px(ARROW_X),
             px(HEIGHT) // 2,
-            text=ARROW_DOWN,
+            text=icons.ARROW_DOWN,
             font=theme.FONT_ICON,
             fill=theme.SUBTEXT,
         )
@@ -153,7 +150,7 @@ class DropdownPicker(tk.Canvas):
 
     def _update_arrow(self) -> None:
         """Point the arrow up while the menu is open."""
-        arrow = ARROW_UP if self._is_open else ARROW_DOWN
+        arrow = icons.ARROW_UP if self._is_open else icons.ARROW_DOWN
 
         self.itemconfigure(self._arrow, text=arrow)
 

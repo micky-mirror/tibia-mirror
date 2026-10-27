@@ -8,13 +8,11 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from tibia_mirror.core.geometry import Box
-from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.winapi import dwm, win32
-
-CHECK = "\ue73e"  # a check mark, from the Segoe MDL2 Assets icon font
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 GAP = 4  # between the box of the dropdown and the menu
@@ -146,7 +144,7 @@ class DropdownMenu(tk.Toplevel):
         self._canvas.create_text(
             px(PAD + CHECK_X),
             middle_y,
-            text=CHECK,
+            text=icons.CHECK,
             font=theme.FONT_ICON,
             fill=theme.ACCENT,
         )

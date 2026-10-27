@@ -6,15 +6,11 @@ import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
 
-from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel.profiles.profile_menu import ProfileMenu
-
-ICON = "\ue77b"  # a person, from the Segoe MDL2 Assets icon font
-ARROW_DOWN = "\ue70d"  # a small arrow that points down, from the same icon font
-ARROW_UP = "\ue70e"  # the same arrow, pointing up
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 36
@@ -97,7 +93,7 @@ class ProfilePicker(tk.Canvas):
         self.create_text(
             px(ICON_X),
             px(HEIGHT) // 2,
-            text=ICON,
+            text=icons.PERSON,
             font=theme.FONT_ICON,
             fill=theme.SUBTEXT,
         )
@@ -120,7 +116,7 @@ class ProfilePicker(tk.Canvas):
         self._arrow = self.create_text(
             self._width - px(ARROW_X),
             px(HEIGHT) // 2,
-            text=ARROW_DOWN,
+            text=icons.ARROW_DOWN,
             font=theme.FONT_ICON,
             fill=theme.SUBTEXT,
         )
@@ -151,7 +147,7 @@ class ProfilePicker(tk.Canvas):
         """
         is_bright: bool = self._is_hovered or self._is_open
         self.itemconfigure(self._box, image=self._bright_box if is_bright else self._normal_box)
-        self.itemconfigure(self._arrow, text=ARROW_UP if self._is_open else ARROW_DOWN)
+        self.itemconfigure(self._arrow, text=icons.ARROW_UP if self._is_open else icons.ARROW_DOWN)
 
     def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
         """Open the profile menu if the button went up inside the box."""

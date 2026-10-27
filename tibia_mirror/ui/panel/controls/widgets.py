@@ -9,15 +9,12 @@ from collections.abc import Callable
 from tibia_mirror.core.geometry import Box, scroll_fraction, scroll_thumb
 from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, outlined_pixels
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel.controls.tooltip import Tip, Tooltip
-
-# Segoe MDL2 Assets code points (FONT_ICON).
-GLYPH_CHECK = "\ue73e"
 
 
 class KeyField(tk.Canvas):
@@ -279,9 +276,6 @@ class ScrollList(tk.Frame):
         return False
 
 
-GLYPH_COPY = ""
-
-
 class CopyText(tk.Canvas):
     """`text` with a copy icon; a click copies it and the hint says "Copied".
 
@@ -312,7 +306,7 @@ class CopyText(tk.Canvas):
         font = tkfont.Font(font=text_spec)
         icon_font = tkfont.Font(font=icon_spec)
         slack, gap = px(self.SLACK), px(self.GAP)
-        icon_w = icon_font.measure(GLYPH_COPY)
+        icon_w = icon_font.measure(icons.COPY)
         shown = text
         if max_width is not None:
             shown = elide(text, font, max_width - inset - gap - icon_w - slack)
@@ -372,7 +366,7 @@ class CopyText(tk.Canvas):
     def _paint(self) -> None:
         self.itemconfigure(self._text, fill=theme.ACCENT if self._hovered else self._fg)
         if self._copied:
-            self.itemconfigure(self._icon, text=GLYPH_CHECK, fill=theme.GREEN)
+            self.itemconfigure(self._icon, text=icons.CHECK, fill=theme.GREEN)
         else:
             fill = theme.ACCENT if self._hovered else theme.SUBTEXT
-            self.itemconfigure(self._icon, text=GLYPH_COPY, fill=fill)
+            self.itemconfigure(self._icon, text=icons.COPY, fill=fill)

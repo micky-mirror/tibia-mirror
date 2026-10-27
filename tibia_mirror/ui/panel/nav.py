@@ -6,16 +6,16 @@ import tkinter as tk
 from collections.abc import Callable
 
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 
 # The menu entries: key -> (icon, label in English).
 ENTRIES = {
-    "mirrors": ("\ue8b9", "Mirrors"),
-    "shortcuts": ("\ue765", "Shortcuts"),
-    "about": ("\ue946", "About"),
-    "settings": ("\ue713", "Settings"),
+    "mirrors": (icons.MIRRORS, "Mirrors"),
+    "shortcuts": (icons.SHORTCUTS, "Shortcuts"),
+    "about": (icons.ABOUT, "About"),
+    "settings": (icons.SETTINGS, "Settings"),
 }
 
 
