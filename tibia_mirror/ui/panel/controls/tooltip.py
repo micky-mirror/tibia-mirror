@@ -9,7 +9,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.winapi import dwm, win32
 
-DELAY_MS = 500
+DELAY_MS = 500  # how long the pointer rests on a thing before its hint opens
 # Sizes at 100% display scaling, scaled with px() where used.
 GAP = 6  # between the thing and its hint
 PAD_X = 8  # left and right of the texts, inside the hint
@@ -97,31 +97,35 @@ class Tooltip:
     The title says what a click does; the optional detail explains it.
     """
 
-    def __init__(self, master: tk.Misc) -> None:
-        self._master = master
-        self._hint: HintWindow | None = None
-        self._pending: str | None = None
+    def __init__(self, window: tk.Misc) -> None:
+        self._window = window  # the window the hints belong to
+        self._hint_window: HintWindow | None = None  # the open hint
+        self._waiting_id: str | None = None  # the planned opening, while the hint waits
 
     def show(self, tip: Tip, box: Box) -> None:
-        self._cancel()
-        if self._hint is not None:
-            self._open(tip, box)
+        """Open the hint after a short wait, or at once when a hint is open already."""
+        self._stop_waiting()
+
+        if self._hint_window is None:
+            self._waiting_id = self._window.after(DELAY_MS, lambda: self._open(tip, box))
         else:
-            self._pending = self._master.after(DELAY_MS, lambda: self._open(tip, box))
+            self._open(tip, box)
 
     def hide(self) -> None:
-        self._cancel()
-        if self._hint is not None:
-            self._hint.destroy()
-            self._hint = None
+        """Close the hint, or stop waiting to open it."""
+        self._stop_waiting()
 
-    def _cancel(self) -> None:
-        if self._pending is not None:
-            self._master.after_cancel(self._pending)
-            self._pending = None
+        if self._hint_window is not None:
+            self._hint_window.destroy()
+            self._hint_window = None
+
+    def _stop_waiting(self) -> None:
+        if self._waiting_id is not None:
+            self._window.after_cancel(self._waiting_id)
+            self._waiting_id = None
 
     def _open(self, tip: Tip, box: Box) -> None:
-        self._pending = None
+        self._waiting_id = None
         self.hide()  # the hint that is open now, if there is one
-        self._hint = HintWindow(self._master, tip)
-        self._hint.open(box)
+        self._hint_window = HintWindow(self._window, tip)
+        self._hint_window.open(box)
