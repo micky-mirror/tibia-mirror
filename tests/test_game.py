@@ -1,8 +1,8 @@
 import pytest
 
+from tibia_mirror.app_parts import tibia_connection as connection_module
+from tibia_mirror.app_parts.tibia_connection import Game
 from tibia_mirror.core.geometry import Rect
-from tibia_mirror.services import game as game_module
-from tibia_mirror.services.game import Game
 from tibia_mirror.winapi import win32
 
 HWND = 100
@@ -60,7 +60,7 @@ def test_current_client_remembers_the_area_while_minimized(game, window):
 
 def test_find_looks_for_tibia_until_it_is_running(monkeypatch):
     running = {"hwnd": None}
-    monkeypatch.setattr(game_module, "find_tibia_window", lambda: running["hwnd"])
+    monkeypatch.setattr(connection_module, "find_tibia_window", lambda: running["hwnd"])
     game = Game()
     assert game.find() is None
     running["hwnd"] = HWND
@@ -72,7 +72,7 @@ def test_find_keeps_the_window_it_already_has(game, monkeypatch):
     def search_again():
         raise AssertionError("searched although the window is known")
 
-    monkeypatch.setattr(game_module, "find_tibia_window", search_again)
+    monkeypatch.setattr(connection_module, "find_tibia_window", search_again)
     assert game.find() == HWND
 
 
