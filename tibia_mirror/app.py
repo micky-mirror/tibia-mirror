@@ -29,8 +29,8 @@ from tibia_mirror.core.timers import combo_matches
 from tibia_mirror.i18n import tr, tr_n
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
+from tibia_mirror.ui.base.text import key_combo_name
 from tibia_mirror.ui.overlay.selection_overlay import NewRegionOverlay, SelectionOverlay
-from tibia_mirror.ui.panel.controls.dialogs import key_combo_name
 from tibia_mirror.ui.panel.panel import Panel
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import win32

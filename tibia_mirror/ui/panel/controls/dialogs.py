@@ -9,7 +9,6 @@ from dataclasses import dataclass, replace
 
 from tibia_mirror.config import MAX_NAME_LENGTH
 from tibia_mirror.core.geometry import Point
-from tibia_mirror.core.timers import combo_name
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import margins
@@ -273,9 +272,3 @@ class ChoiceDialog(_Popup):
             command()
 
         return run
-
-
-def key_combo_name(value: tuple[int | None, tuple[str, ...]]) -> str:
-    """A KeyField value, (virtual-key code or None, modifiers), written out: "Shift+F9"."""
-    vk, modifiers = value
-    return combo_name(modifiers, "" if vk is None else win32.key_name(vk))
