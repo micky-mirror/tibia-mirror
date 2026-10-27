@@ -124,6 +124,8 @@ TRACK_HEIGHT = 4
 KNOB_SIZE = 14
 KNOB_SHADOW_OFFSET = 1  # how far the shadow of the knob drops below it
 KNOB_SHADOW_BLUR = 3  # how far the shadow of the knob fades out around it
+HIT_HALF_HEIGHT = 11  # of the band around the track where a press moves the knob
+HIT_SLACK = 4  # the band reaches this far past the ends of the track
 
 
 class Slider:
@@ -153,11 +155,43 @@ class Slider:
         self._step = step  # the knob moves in steps of this size
         self._lowest = lowest  # the knob does not go below this value
         self._on_change = on_change  # called with the new value each time the knob moves a step
+        self._is_dragging = False  # True from a press on the slider until the button goes up
         # draw slider parts
         self._draw_track()
         self._add_fill()
         self._add_knob()
         self._update_knob()
+
+    def pointer_moved(self, position_x: int, position_y: int) -> bool:
+        """Move the knob with the pointer while the user drags it.
+
+        With no drag, show the knob as active when the pointer is over the slider.
+        Return True when a press at this place would move the knob.
+        """
+        if self._is_dragging:
+            self._move_knob(position_x)
+            return True
+
+        is_over_slider = self._contains(position_x, position_y)
+        self._set_active(is_over_slider)
+
+        return is_over_slider
+
+    def pointer_left(self) -> None:
+        """The pointer went out of the canvas: the knob is not shown as active."""
+        # a drag goes on outside the canvas, and the knob stays active until it ends
+        if not self._is_dragging:
+            self._set_active(False)
+
+    def pointer_pressed(self, position_x: int, position_y: int) -> None:
+        """Start a drag if the button went down on the slider: the knob jumps to the pointer."""
+        if self._contains(position_x, position_y):
+            self._is_dragging = True
+            self._move_knob(position_x)
+
+    def pointer_released(self) -> None:
+        """End the drag."""
+        self._is_dragging = False
 
     def _draw_track(self) -> None:
         """The grey rounded line the knob moves along."""
@@ -186,6 +220,24 @@ class Slider:
             is_active: self._get_knob_image(is_active) for is_active in (False, True)
         }
         self._knob = self._canvas.create_image(0, 0, anchor="nw", image=self._knob_images[False])
+
+    def _move_knob(self, position_x: int) -> None:
+        """Put the knob as near to this x as the steps and the lowest value allow.
+
+        Hand over the new value. Do nothing when the value did not change.
+        """
+        value = self._get_value_at(position_x)
+
+        if value == self._value:
+            return
+
+        self._value = value
+        self._update_knob()
+        self._on_change(value)
+
+    def _set_active(self, is_active: bool) -> None:
+        """Show the knob in its active look, or in its normal look."""
+        self._canvas.itemconfigure(self._knob, image=self._knob_images[is_active])
 
     def _update_knob(self) -> None:
         """Put the knob at the value, and draw the accent part of the track up to it."""
@@ -235,6 +287,21 @@ class Slider:
             shadow_offset=px(KNOB_SHADOW_OFFSET),
             shadow_blur=px(KNOB_SHADOW_BLUR),
         )
+
+    def _contains(self, position_x: int, position_y: int) -> bool:
+        """Whether a press here moves the knob: on the track, or a little around it."""
+        slack = px(HIT_SLACK)
+        is_inside_x = self._left - slack <= position_x <= self._right + slack
+        is_inside_y = abs(position_y - self._middle_y) <= px(HIT_HALF_HEIGHT)
+
+        return is_inside_x and is_inside_y
+
+    def _get_value_at(self, position_x: int) -> float:
+        """The value for a knob at this x, in steps, and never below the lowest value."""
+        knob_left, knob_right = self._get_knob_range()
+        value = slider_value(position_x, knob_left, knob_right, self._start, self._end, self._step)
+
+        return max(self._lowest, value)
 
     def _get_knob_x(self) -> float:
         """The middle of the knob for the value."""
