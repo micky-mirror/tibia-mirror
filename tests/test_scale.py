@@ -65,8 +65,6 @@ PIXEL_POSITIONALS = {
 }
 # Sizes that stay the same at any display scaling, on purpose: (file, code) -> why.
 UNSCALED = {
-    ("tooltip.py", "padx=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
-    ("tooltip.py", "pady=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
     ("widgets.py", "y + (1 if down else 0)"): "a pressed button sinks 1px, like its image",
     ("rich_paragraph.py", "height=1"): "a placeholder: the frame is sized to its text",
 }
