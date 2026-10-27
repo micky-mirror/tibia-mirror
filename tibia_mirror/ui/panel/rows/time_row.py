@@ -7,7 +7,8 @@ from tibia_mirror.core.timers import parse_alert
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel.controls.widgets import TextField
+from tibia_mirror.ui.panel.controls.text_field import HEIGHT as FIELD_HEIGHT
+from tibia_mirror.ui.panel.controls.text_field import TextField
 from tibia_mirror.ui.panel.rows.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -39,11 +40,13 @@ class TimeRow:
         hint_end_y = draw_hint(canvas, label_end_y, self._hint, content_width)
         fields_start_y = hint_end_y + px(FIELDS_TOP_PAD)
         self._add_fields(canvas, fields_start_y)
-        return fields_start_y + px(TextField.HEIGHT) + px(ROW_PAD)
+        return fields_start_y + px(FIELD_HEIGHT) + px(ROW_PAD)
 
     def get_seconds(self) -> int | None:
         """The time written in the fields, in seconds. None if it is not from 0:01 to 59:59."""
-        return parse_alert(self._minutes_text.get(), self._seconds_text.get())
+        minutes_field, seconds_field = self._fields
+
+        return parse_alert(minutes_field.get_text(), seconds_field.get_text())
 
     def set_error(self, is_error: bool) -> None:
         """Show the fields with a red border, or with the normal one again."""
@@ -66,35 +69,35 @@ class TimeRow:
     def _add_fields(self, canvas: tk.Canvas, fields_start_y: int) -> None:
         """The minutes and the seconds side by side, each with its unit after it."""
         minutes, seconds = divmod(self._seconds, 60)
-        # the row keeps the texts: Tk empties a field whose text is thrown away
-        self._minutes_text = tk.StringVar(canvas, str(minutes))
-        self._seconds_text = tk.StringVar(canvas, f"{seconds:02d}")
 
         minutes_end_x = self._add_field(
-            canvas, px(SIDE_PAD), fields_start_y, self._minutes_text, tr("min")
+            canvas, px(SIDE_PAD), fields_start_y, str(minutes), tr("min")
         )
         seconds_start_x = minutes_end_x + px(SECONDS_GAP)
-        self._add_field(canvas, seconds_start_x, fields_start_y, self._seconds_text, tr("s"))
+        self._add_field(canvas, seconds_start_x, fields_start_y, f"{seconds:02d}", tr("s"))
 
     def _add_field(
         self,
         canvas: tk.Canvas,
         field_start_x: int,
         fields_start_y: int,
-        text: tk.StringVar,
+        text: str,
         unit: str,
     ) -> int:
         """One field with its unit after it. Return the x where the unit ends."""
-        field = TextField(canvas, text, width=px(FIELD_WIDTH), background=theme.SURFACE)
+        field = TextField(
+            canvas,
+            text,
+            width=px(FIELD_WIDTH),
+            background=theme.SURFACE,
+            is_allowed=self._is_allowed_text,
+            on_change=self._on_text_changed,
+        )
         canvas.create_window(field_start_x, fields_start_y, window=field, anchor="nw")
         self._fields.append(field)
-        text.trace_add("write", self._on_text_changed)
-        # Tk asks before every change. %P: the text the field would have after it.
-        allowed_text = (canvas.register(self._is_allowed_text), "%P")
-        field.entry.configure(validate="key", validatecommand=allowed_text)
         unit_text = canvas.create_text(
             field_start_x + px(FIELD_WIDTH) + px(UNIT_GAP),
-            fields_start_y + px(TextField.HEIGHT) // 2,
+            fields_start_y + px(FIELD_HEIGHT) // 2,
             text=unit,
             anchor="w",
             font=theme.FONT,
@@ -106,5 +109,5 @@ class TimeRow:
     def _is_allowed_text(self, text: str) -> bool:
         return len(text) <= MAX_DIGITS and all(char in string.digits for char in text)
 
-    def _on_text_changed(self, *trace_details: str) -> None:
+    def _on_text_changed(self, text: str) -> None:
         self.set_error(False)
