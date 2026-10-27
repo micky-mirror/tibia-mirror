@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tkinter as tk
 import tkinter.font as tkfont
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from dataclasses import replace
 
 from tibia_mirror.core.geometry import Box, scroll_fraction, scroll_thumb
@@ -175,91 +175,6 @@ class TextField(tk.Canvas):
 
 # Segoe MDL2 Assets code points (FONT_ICON).
 GLYPH_CHECK = "\ue73e"
-
-
-class SegmentedDrawing:
-    """Options side by side in a rounded track, the chosen one on an accent pill.
-
-    Drawn on `canvas` with its right edge at x1, centred on `middle_y`. The owner
-    handles the mouse with at() and redraws with draw().
-    """
-
-    # Sizes at 100% display scaling, scaled with px() where used.
-    HEIGHT = 28
-    INSET = 2  # track padding around the pills
-    PAD_X = 14  # text padding inside a pill
-    TRACK_RADIUS = 8
-    PILL_RADIUS = 6
-
-    @classmethod
-    def _widths(cls, options: Sequence[tuple[str, str]]) -> list[int]:
-        font = tkfont.Font(font=theme.FONT)
-        return [font.measure(text) + 2 * px(cls.PAD_X) for _, text in options]
-
-    @classmethod
-    def measure(cls, options: Sequence[tuple[str, str]]) -> int:
-        return sum(cls._widths(options)) + 2 * px(cls.INSET)
-
-    def __init__(
-        self,
-        canvas: tk.Canvas,
-        x1: int,
-        middle_y: int,
-        options: Sequence[tuple[str, str]],
-        background: str | None = None,
-        width: int | None = None,
-        height: int | None = None,
-    ) -> None:
-        background = theme.SURFACE if background is None else background
-        self._canvas = canvas
-        widths = self._widths(options)
-        self.width = max(width or 0, self.measure(options))
-        extra = self.width - self.measure(options)
-        widths = [w + extra // len(widths) for w in widths]
-        widths[-1] += extra % len(widths)
-        self.height = height or px(self.HEIGHT)
-        x0, y0 = x1 - self.width, middle_y - self.height // 2
-        track = ButtonStyle(fill=theme.SURFACE_HI, radius=px(self.TRACK_RADIUS))
-        self._track_img = photo(canvas, button_pixels(self.width, self.height, track, background))
-        canvas.create_image(x0, y0, anchor="nw", image=self._track_img)
-        inset = px(self.INSET)
-        pill_h = self.height - 2 * inset
-        pill = ButtonStyle(fill=theme.ACCENT, radius=px(self.PILL_RADIUS))
-        self._segments: list[tuple[str, Box, tk.PhotoImage]] = []  # (value, box, pill image)
-        x = x0 + inset
-        for (value, _text), w in zip(options, widths, strict=True):
-            img = photo(canvas, button_pixels(w, pill_h, pill, theme.SURFACE_HI))
-            box = (x, y0 + inset, x + w, y0 + inset + pill_h)
-            self._segments.append((value, box, img))
-            x += w
-        self._pill = canvas.create_image(0, 0, anchor="nw")
-        self._texts = {
-            value: canvas.create_text(
-                (box[0] + box[2]) / 2, middle_y, text=text, font=theme.FONT, fill=theme.SUBTEXT
-            )
-            for (value, box, _), (_, text) in zip(self._segments, options, strict=True)
-        }
-
-    def at(self, x: int, y: int) -> str | None:
-        """The option under (x, y), or None."""
-        return next(
-            (
-                option
-                for option, (x0, y0, x1, y1), _label in self._segments
-                if x0 <= x < x1 and y0 <= y < y1
-            ),
-            None,
-        )
-
-    def draw(self, selected: str, hovered: str | None) -> None:
-        for value, box, img in self._segments:
-            if value == selected:
-                self._canvas.coords(self._pill, box[0], box[1])
-                self._canvas.itemconfigure(self._pill, image=img)
-                color = theme.ON_ACCENT
-            else:
-                color = theme.TEXT if value == hovered else theme.SUBTEXT
-            self._canvas.itemconfigure(self._texts[value], fill=color)
 
 
 class KeyField(tk.Canvas):
