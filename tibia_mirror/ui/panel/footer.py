@@ -7,7 +7,7 @@ from tibia_mirror.about import AUTHOR, TIP_CHARACTER, copyright_years
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import LABEL_INSET, px
-from tibia_mirror.ui.panel.controls.widgets import CopyText
+from tibia_mirror.ui.panel.controls.copy_text import CopyText
 
 # At 100% display scaling; px() scales it where it is used.
 TIP_DIVIDER_PAD = 10  # above and below the thin line between the tip and the credit
@@ -67,9 +67,9 @@ class Footer(tk.Frame):
         name = CopyText(
             self._tip_row,
             character,
+            text_colour=theme.GOLD,
             background=theme.BG,
-            fg=theme.GOLD,
-            small=True,
+            is_small=True,
             inset=0,
             max_width=self._get_tip_name_space(),
         )

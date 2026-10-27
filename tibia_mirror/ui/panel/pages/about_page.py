@@ -8,8 +8,9 @@ from tibia_mirror.about import DISCORD, TIP_CHARACTER
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel.controls.copy_text import CopyText
 from tibia_mirror.ui.panel.controls.rich_paragraph import RichParagraph
-from tibia_mirror.ui.panel.controls.widgets import CopyText, ScrollList
+from tibia_mirror.ui.panel.controls.widgets import ScrollList
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 18  # above the title
@@ -122,7 +123,7 @@ class AboutPage(tk.Frame):
 
     def _add_copy_name(self, name: str, colour: str) -> None:
         """A name on its own line, with a copy icon. A click copies the name."""
-        copy_name = CopyText(self._column, name, background=theme.BG, fg=colour)
+        copy_name = CopyText(self._column, name, text_colour=colour, background=theme.BG)
         copy_name.pack(side="top", anchor="w")
 
     def _add_trademark_notice(self) -> None:
