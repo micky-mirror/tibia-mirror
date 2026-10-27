@@ -8,7 +8,7 @@ from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import percent
-from tibia_mirror.ui.panel.controls.slider import SliderDrawing
+from tibia_mirror.ui.panel.controls.slider import Slider
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -35,40 +35,22 @@ class MirrorCardSlider:
         self._width = width  # of the card
         self._mirror = mirror
         self._on_changed = on_changed  # gets the new info after the opacity was changed
-        self._is_dragging = False  # True from a press on the slider until the button goes up
 
         self._draw_slider()
         self._draw_percent()
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
-        """Move the knob with the pointer while the user drags it.
-
-        With no drag, show the knob as active when the pointer is over the slider.
-        Return True when a press at this place would move the knob.
-        """
-        if self._is_dragging:
-            self._move_knob(position_x)
-            return True
-
-        is_over_slider: bool = self._slider.contains(position_x, position_y)
-        self._slider.set_active(is_over_slider)
-        return is_over_slider
+        """Pass the pointer on to the slider. Return True when a press here would move the knob."""
+        return self._slider.pointer_moved(position_x, position_y)
 
     def pointer_left(self) -> None:
-        """The pointer went out of the card: the knob is not shown as active."""
-        # a drag goes on outside the card, and the knob stays active until it ends
-        if not self._is_dragging:
-            self._slider.set_active(False)
+        self._slider.pointer_left()
 
     def pointer_pressed(self, position_x: int, position_y: int) -> None:
-        """Start a drag if the button went down on the slider: the knob jumps to the pointer."""
-        if self._slider.contains(position_x, position_y):
-            self._is_dragging = True
-            self._move_knob(position_x)
+        self._slider.pointer_pressed(position_x, position_y)
 
     def pointer_released(self, position_x: int, position_y: int) -> None:
-        """End the drag."""
-        self._is_dragging = False
+        self._slider.pointer_released()
 
     def set_mirror(self, mirror: MirrorInfo) -> None:
         """Keep the new state of the mirror."""
@@ -79,16 +61,17 @@ class MirrorCardSlider:
         position_x_start = px(SIDE_PAD)
         position_x_end = self._width - px(SIDE_PAD) - px(PERCENT_ROOM)
 
-        self._slider = SliderDrawing(
+        self._slider = Slider(
             self._canvas,
             position_x_start,
             position_x_end,
             px(SLIDER_Y),
             self._mirror.opacity,
-            lo=0.0,
-            hi=1.0,
+            start=0.0,
+            end=1.0,
             step=OPACITY_STEP,
-            floor=MIN_OPACITY,
+            lowest=MIN_OPACITY,
+            on_change=self._on_opacity_changed,
         )
 
     def _draw_percent(self) -> None:
@@ -102,16 +85,7 @@ class MirrorCardSlider:
             fill=theme.SUBTEXT,
         )
 
-    def _move_knob(self, position_x: int) -> None:
-        """Put the knob as near to this x as the steps and the lowest value allow.
-
-        Show the new opacity as a percent, and hand up the mirror with it.
-        Do nothing when the opacity did not change.
-        """
-        opacity = self._slider.value_at(position_x)
-        if opacity == self._slider.value:
-            return
-
-        self._slider.set_value(opacity)
+    def _on_opacity_changed(self, opacity: float) -> None:
+        """Show the new opacity as a percent, and hand up the mirror with it."""
         self._canvas.itemconfigure(self._percent, text=percent(opacity))
         self._on_changed(replace(self._mirror, opacity=opacity))
