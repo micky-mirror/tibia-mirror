@@ -1,11 +1,9 @@
-"""Dropdowns: the menu and the colour picker."""
+"""Dropdowns: the colour picker."""
 
 from __future__ import annotations
 
 import tkinter as tk
-import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
 from functools import partial
 
 from tibia_mirror.core.geometry import Box
@@ -13,26 +11,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.base.text import elide
 from tibia_mirror.winapi import dwm, win32
-
-# Segoe MDL2 Assets code points (FONT_ICON).
-GLYPH_CHECK = "\ue73e"
-
-
-@dataclass(frozen=True)
-class MenuItem:
-    label: str
-    command: Callable[[], None]
-    checked: bool = False
-    enabled: bool = True
-    danger: bool = False
-
-
-SEPARATOR = None  # in a PopupMenu item list
-
-# A menu row: its top and bottom on the menu's canvas, and its item.
-_Row = tuple[int, int, MenuItem]
 
 
 class _Dropdown:
@@ -99,121 +78,6 @@ class _Dropdown:
         self.win.grab_release()
         self.win.destroy()
         self._on_close()
-
-
-class PopupMenu(_Dropdown):
-    """A list of MenuItems under `box`, as wide as it; commands run after it closes."""
-
-    # Sizes at 100% display scaling, scaled with px() where used.
-    ROW_HEIGHT = 32
-    SEPARATOR_HEIGHT = 9
-    PAD = 4
-    CHIP_RADIUS = 6
-    CHECK_X = 16  # the check mark's centre, after PAD
-    TEXT_X = 32  # where the labels start, after PAD
-    TEXT_ROOM = 8  # kept free after a label, before PAD
-    SEPARATOR_INSET = 8  # a separator line's ends, inside PAD
-
-    def __init__(
-        self,
-        root: tk.Misc,
-        box: Box,
-        items: Sequence[MenuItem | None],
-        on_close: Callable[[], None],
-    ) -> None:
-        self._hovered: _Row | None = None
-        self._rows: list[_Row] = []  # (y0, y1, item) for every non-separator item
-        self._pad = pad = px(self.PAD)
-        y = pad
-        for item in items:
-            h = px(self.SEPARATOR_HEIGHT) if item is SEPARATOR else px(self.ROW_HEIGHT)
-            if item is not SEPARATOR:
-                self._rows.append((y, y + h, item))
-            y += h
-        width = box[2] - box[0]
-        super().__init__(root, width, y + pad, on_close)
-        self._draw(items, width - self.BORDER)
-
-        # <Enter> too: the pointer may land on a row and rest there with no <Motion>.
-        for sequence in ("<Enter>", "<Motion>"):
-            self.canvas.bind(sequence, lambda e: self._hover(self._row_at(e.y)))
-        self.canvas.bind("<Leave>", lambda e: self._hover(None))
-        self.canvas.bind("<ButtonRelease-1>", lambda e: self._pick(self._row_at(e.y)))
-        self.win.bind("<Up>", lambda e: self._step(-1))
-        self.win.bind("<Down>", lambda e: self._step(1))
-        self.win.bind("<Return>", lambda e: self._pick(self._hovered))
-        self._show_under(box)
-
-    def _draw(self, items: Sequence[MenuItem | None], width: int) -> None:
-        canvas = self.canvas
-        pad, row_height = self._pad, px(self.ROW_HEIGHT)
-        separator_height, inset = px(self.SEPARATOR_HEIGHT), px(self.SEPARATOR_INSET)
-        chip = ButtonStyle(fill=theme.SURFACE_HI, radius=px(self.CHIP_RADIUS))
-        # The chip leaves a pixel above and below, so hovered rows never touch.
-        self._chip_img = photo(
-            canvas, button_pixels(width - 2 * pad, row_height - 2, chip, theme.SURFACE)
-        )
-        self._chip = canvas.create_image(pad, 0, anchor="nw", image=self._chip_img, state="hidden")
-        font = tkfont.Font(font=theme.FONT)
-        text_x = px(self.PAD + self.TEXT_X)
-        y = pad
-        for item in items:
-            if item is SEPARATOR:
-                middle_y = y + separator_height // 2
-                canvas.create_line(
-                    pad + inset,
-                    middle_y,
-                    width - pad - inset,
-                    middle_y,
-                    fill=theme.SURFACE_HI,
-                    width=px(1),
-                )
-                y += separator_height
-                continue
-            middle_y = y + row_height // 2
-            if item.checked:
-                canvas.create_text(
-                    px(self.PAD + self.CHECK_X),
-                    middle_y,
-                    text=GLYPH_CHECK,
-                    font=theme.FONT_ICON,
-                    fill=theme.ACCENT,
-                )
-            color = theme.OVERLAY if not item.enabled else theme.RED if item.danger else theme.TEXT
-            label = elide(item.label, font, width - text_x - px(self.PAD + self.TEXT_ROOM))
-            canvas.create_text(text_x, middle_y, text=label, anchor="w", font=font, fill=color)
-            y += row_height
-        canvas.tag_lower(self._chip)
-
-    def _row_at(self, y: int) -> _Row | None:
-        return next((row for row in self._rows if row[0] <= y < row[1]), None)
-
-    def _hover(self, row: _Row | None) -> None:
-        if row is not None and not row[2].enabled:
-            row = None
-        self._hovered = row
-        if row is None:
-            self.canvas.itemconfigure(self._chip, state="hidden")
-            self.canvas.configure(cursor="")
-        else:
-            self.canvas.coords(self._chip, self._pad, row[0] + 1)
-            self.canvas.itemconfigure(self._chip, state="normal")
-            self.canvas.configure(cursor="hand2")
-
-    def _step(self, direction: int) -> None:
-        enabled = [row for row in self._rows if row[2].enabled]
-        if not enabled:
-            return
-        if self._hovered not in enabled:
-            self._hover(enabled[0 if direction > 0 else -1])
-        else:
-            self._hover(enabled[(enabled.index(self._hovered) + direction) % len(enabled)])
-
-    def _pick(self, row: _Row | None) -> None:
-        if row is None or not row[2].enabled:
-            return
-        self.close()
-        row[2].command()
 
 
 class SwatchPicker(_Dropdown):

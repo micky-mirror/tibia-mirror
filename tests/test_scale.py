@@ -67,8 +67,6 @@ PIXEL_POSITIONALS = {
 UNSCALED = {
     ("tooltip.py", "padx=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
     ("tooltip.py", "pady=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
-    ("menu.py", "row_height - 2"): "the hover chip leaves 1px above and below",
-    ("menu.py", "row[0] + 1"): "the hover chip leaves 1px above and below",
     ("widgets.py", "y + (1 if down else 0)"): "a pressed button sinks 1px, like its image",
     ("rich_paragraph.py", "height=1"): "a placeholder: the frame is sized to its text",
 }
