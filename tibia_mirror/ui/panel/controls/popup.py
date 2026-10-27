@@ -12,7 +12,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import margins
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel.controls.widgets import RaisedButton
+from tibia_mirror.ui.panel.controls.raised_button import RaisedButton
 from tibia_mirror.winapi import dwm, win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -95,7 +95,7 @@ class Popup(tk.Toplevel, ABC):
             style=replace(theme.SECONDARY_BUTTON, fill=fill),
             hover_fill=hover_fill,
             font=theme.FONT_BOLD,
-            fg=text_colour,
+            text_colour=text_colour,
             background=theme.BG,
         )
         button.pack(side="left")
