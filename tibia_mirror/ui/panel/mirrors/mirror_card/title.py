@@ -12,10 +12,10 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel.controls.colour_picker import ColourPicker
 from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
+from tibia_mirror.ui.panel.controls.tooltip import Tip
 from tibia_mirror.ui.panel.mirrors.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel.mirrors.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel.mirrors.mirror_card.text_link import TextLink
-from tibia_mirror.ui.panel.mirrors.mirror_card.tip import Tip
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 
 # Sizes at 100% display scaling; px() scales them where they are used.

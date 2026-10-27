@@ -6,8 +6,7 @@ from collections.abc import Callable
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.panel.controls.tooltip import Tooltip
-from tibia_mirror.ui.panel.mirrors.mirror_card.tip import Tip
+from tibia_mirror.ui.panel.controls.tooltip import Tip, Tooltip
 
 
 class TextLink:
@@ -71,7 +70,7 @@ class TextLink:
     def _update_tip(self) -> None:
         """Open the hint while the link is hovered, and close it when it is not."""
         if self._is_hovered:
-            self._tooltip.show(self._tip.title, self._get_screen_box(), self._tip.detail)
+            self._tooltip.show(self._tip, self._get_screen_box())
         else:
             self._tooltip.hide()
 

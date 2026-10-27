@@ -9,9 +9,9 @@ from tibia_mirror.core.timers import clock
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel.controls.tooltip import Tip
 from tibia_mirror.ui.panel.mirrors.mirror_card.icon_button import IconButton
 from tibia_mirror.ui.panel.mirrors.mirror_card.layout import TOP_ROW_Y
-from tibia_mirror.ui.panel.mirrors.mirror_card.tip import Tip
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel.mirrors.timer_dialog import TimerDialog
 

@@ -20,6 +20,14 @@ DETAIL_WIDTH = 230  # the explanation line wraps at this width
 
 
 @dataclass(frozen=True)
+class Tip:
+    """The texts of one hint."""
+
+    title: str  # what a click does, such as "Lock mirror"
+    detail: str = ""  # one more line that explains it; "" for none
+
+
+@dataclass(frozen=True)
 class _Hint:
     """The open hint's window and its two lines."""
 
@@ -29,7 +37,7 @@ class _Hint:
 
 
 class Tooltip:
-    """One hover hint at a time: show(title, box, detail) on enter, hide() on leave.
+    """One hover hint at a time: show(tip, box) on enter, hide() on leave.
 
     The title says what a click does; the optional detail explains it. It opens
     below the target (above near the screen's bottom) and never takes focus.
@@ -41,12 +49,14 @@ class Tooltip:
         self._pending: str | None = None
         self._closed_at = float("-inf")
 
-    def show(self, title: str, box: Box, detail: str = "") -> None:
+    def show(self, tip: Tip, box: Box) -> None:
         self._cancel()
         if self._hint is not None or time.monotonic() - self._closed_at < WARM_S:
-            self._open(title, detail, box)
+            self._open(tip.title, tip.detail, box)
         else:
-            self._pending = self._master.after(DELAY_MS, lambda: self._open(title, detail, box))
+            self._pending = self._master.after(
+                DELAY_MS, lambda: self._open(tip.title, tip.detail, box)
+            )
 
     def hide(self) -> None:
         self._cancel()

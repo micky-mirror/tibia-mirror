@@ -15,7 +15,7 @@ from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, margins, outlined_pixels
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.panel.controls.tooltip import Tooltip
+from tibia_mirror.ui.panel.controls.tooltip import Tip, Tooltip
 
 
 class RaisedButton(tk.Canvas):
@@ -587,7 +587,7 @@ class CopyText(tk.Canvas):
     def _enter(self, _e: tk.Event[tk.Canvas]) -> None:
         self._hovered = True
         self._paint()
-        self._tooltip.show(tr("Copy"), self._screen_box())
+        self._tooltip.show(Tip(tr("Copy")), self._screen_box())
 
     def _leave(self, _e: tk.Event[tk.Canvas]) -> None:
         self._hovered = self._copied = False
@@ -607,7 +607,7 @@ class CopyText(tk.Canvas):
         self._paint()
         # Hidden first so the new hint opens at once, as when skimming between hints.
         self._tooltip.hide()
-        self._tooltip.show(tr("Copied"), self._screen_box())
+        self._tooltip.show(Tip(tr("Copied")), self._screen_box())
 
     def _screen_box(self) -> Box:
         x, y = self.winfo_rootx(), self.winfo_rooty()
