@@ -1,5 +1,7 @@
 """A raised button: a rounded button with a soft shadow, drawn on its own canvas."""
 
+from __future__ import annotations
+
 import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
@@ -7,6 +9,9 @@ from dataclasses import replace
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
 from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, margins
+
+# A pressed button's picture is 1px lower at any display scaling, so its text drops by the same.
+PRESSED_SINK = 1
 
 
 class RaisedButton(tk.Canvas):
@@ -48,9 +53,12 @@ class RaisedButton(tk.Canvas):
         self._font = font
         self._text_colour = text_colour
         self._background = background  # the colour behind the button; its shadow fades into it
+        self._is_hovered = False
+        self._is_pressed = False  # True from a press on the button until the mouse button goes up
         # draw button parts
         self._add_images()
         self._add_text()
+        self._bind_events()
 
     def _add_images(self) -> None:
         """The button in each of its looks: normal, hovered and pressed."""
@@ -70,6 +78,52 @@ class RaisedButton(tk.Canvas):
         self._text_item = self.create_text(
             middle_x, middle_y, text=self._text, font=self._font, fill=self._text_colour
         )
+
+    def _bind_events(self) -> None:
+        self.bind("<Enter>", self._on_mouse_enter)
+        self.bind("<Leave>", self._on_mouse_leave)
+        self.bind("<ButtonPress-1>", self._on_mouse_down)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
+
+    def _on_mouse_enter(self, event: tk.Event[tk.Canvas]) -> None:
+        self._is_hovered = True
+        self._update_look()
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        self._is_hovered = False
+        self._update_look()
+
+    def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
+        self._is_pressed = True
+        self._update_look()
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        # a click only when the mouse button went down and up on the button
+        is_click = self._is_pressed and self._is_hovered
+        self._is_pressed = False
+        self._update_look()
+
+        if is_click:
+            self._command()
+
+    def _update_look(self) -> None:
+        """Show the picture of the current look, and drop the text with a pressed button."""
+        look = self._get_look()
+        middle_x, middle_y = self._get_text_position()
+        sink = PRESSED_SINK if look == "pressed" else 0
+
+        self.itemconfigure(self._image_item, image=self._images[look])
+        self.coords(self._text_item, middle_x, middle_y + sink)
+
+    def _get_look(self) -> str:
+        """Pressed while it is down with the pointer on it, hovered while only pointed at."""
+        if self._is_pressed and self._is_hovered:
+            return "pressed"
+
+        if self._is_hovered:
+            return "hovered"
+
+        return "normal"
 
     def _get_image(self, style: ButtonStyle, *, is_pressed: bool) -> tk.PhotoImage:
         """The button and its shadow. Pressed, it is a pixel lower and its shadow is flatter."""
