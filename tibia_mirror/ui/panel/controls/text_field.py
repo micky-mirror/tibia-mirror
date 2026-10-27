@@ -50,6 +50,20 @@ class TextField(tk.Canvas):
         self._bind_events()
         self._update_box()
 
+    def get_text(self) -> str:
+        return self._text.get()
+
+    def set_error(self, is_error: bool) -> None:
+        """Show the box with a red border, or with its normal one again."""
+        self._is_error = is_error
+        self._update_box()
+
+    def select_all(self) -> None:
+        """Put the keys in the field with the whole text selected, so typing replaces it."""
+        self._entry.focus_set()
+        self._entry.select_range(0, "end")
+        self._entry.icursor("end")
+
     def _add_box(self) -> None:
         """The rounded box, with its border in each of its looks."""
         self._box_images = {
@@ -62,9 +76,13 @@ class TextField(tk.Canvas):
     def _add_entry(self) -> None:
         """The Tk entry the text is typed in, inside the box with room left and right."""
         text_pad = px(TEXT_PAD)
+        # Tk asks before every change. %P: the text the field would have after it.
+        allowed_text = (self.register(self._is_allowed), "%P")
         self._entry = tk.Entry(
             self,
             textvariable=self._text,
+            validate="key",
+            validatecommand=allowed_text,
             font=theme.FONT,
             bg=theme.SURFACE,
             fg=theme.TEXT,
@@ -85,10 +103,14 @@ class TextField(tk.Canvas):
         )
 
     def _bind_events(self) -> None:
+        self._text.trace_add("write", self._on_text_changed)
         self._entry.bind("<FocusIn>", self._on_focus_in)
         self._entry.bind("<FocusOut>", self._on_focus_out)
         # a click on the room around the text puts the keys in the entry too
         self.bind("<ButtonPress-1>", self._on_mouse_down)
+
+    def _on_text_changed(self, *trace_details: str) -> None:
+        self._on_change(self._text.get())
 
     def _on_focus_in(self, event: tk.Event[tk.Entry]) -> None:
         self._is_focused = True
