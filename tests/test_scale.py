@@ -65,7 +65,6 @@ PIXEL_POSITIONALS = {
 }
 # Sizes that stay the same at any display scaling, on purpose: (file, code) -> why.
 UNSCALED = {
-    ("widgets.py", "y + (1 if down else 0)"): "a pressed button sinks 1px, like its image",
     ("rich_paragraph.py", "height=1"): "a placeholder: the frame is sized to its text",
 }
 # Constants that are never scaled, on purpose: name -> why. They need no px() anywhere.

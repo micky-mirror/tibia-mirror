@@ -5,98 +5,16 @@ from __future__ import annotations
 import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Callable
-from dataclasses import replace
 
 from tibia_mirror.core.geometry import Box, scroll_fraction, scroll_thumb
 from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
-from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, margins, outlined_pixels
+from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, outlined_pixels
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel.controls.tooltip import Tip, Tooltip
-
-
-class RaisedButton(tk.Canvas):
-    """Rounded button with a soft shadow, and hover, pressed and disabled looks.
-
-    The canvas is bigger by `self.margins` (room for the shadow); offset the widget
-    by them so the button body lines up.
-    """
-
-    def __init__(
-        self,
-        parent: tk.Misc,
-        text: str,
-        command: Callable[[], object],  # what it returns is ignored
-        *,
-        width: int,
-        height: int,
-        style: ButtonStyle,
-        hover_fill: str,
-        font: theme.FontSpec,
-        fg: str,
-        background: str,
-    ) -> None:
-        self.margins = margins(style)
-        super().__init__(
-            parent,
-            width=self.margins.left + width + self.margins.right,
-            height=self.margins.top + height + self.margins.bottom,
-            bg=background,
-            highlightthickness=0,
-            bd=0,
-            cursor="hand2",
-        )
-        self._command = command
-        self._fg = fg
-        hover = replace(style, fill=hover_fill)
-        disabled = replace(style, fill=theme.SURFACE)
-        self._images = {
-            "normal": photo(self, button_pixels(width, height, style, background)),
-            "hover": photo(self, button_pixels(width, height, hover, background)),
-            "pressed": photo(self, button_pixels(width, height, hover, background, True)),
-            "disabled": photo(self, button_pixels(width, height, disabled, background)),
-        }
-        self._image = self.create_image(0, 0, anchor="nw", image=self._images["normal"])
-        self._text_pos = (self.margins.left + width / 2, self.margins.top + height / 2)
-        self._text = self.create_text(*self._text_pos, text=text, font=font, fill=fg)
-        self._hovered = self._pressed = False
-        self._enabled = True
-
-        self.bind("<Enter>", lambda e: self._update(hovered=True))
-        self.bind("<Leave>", lambda e: self._update(hovered=False))
-        self.bind("<ButtonPress-1>", lambda e: self._update(pressed=True))
-        self.bind("<ButtonRelease-1>", self._release)
-
-    def set_enabled(self, enabled: bool) -> None:
-        if enabled != self._enabled:
-            self._enabled = enabled
-            self._pressed = False
-            self.configure(cursor="hand2" if enabled else "")
-            self.itemconfigure(self._text, fill=self._fg if enabled else theme.OVERLAY)
-            self._update()
-
-    def _release(self, _event: tk.Event[tk.Canvas]) -> None:
-        fire = self._pressed and self._hovered and self._enabled
-        self._update(pressed=False)
-        if fire:
-            self._command()
-
-    def _update(self, hovered: bool | None = None, pressed: bool | None = None) -> None:
-        if hovered is not None:
-            self._hovered = hovered
-        if pressed is not None:
-            self._pressed = pressed
-        down = self._pressed and self._hovered and self._enabled
-        if not self._enabled:
-            state = "disabled"
-        else:
-            state = "pressed" if down else "hover" if self._hovered else "normal"
-        self.itemconfigure(self._image, image=self._images[state])
-        x, y = self._text_pos
-        self.coords(self._text, x, y + (1 if down else 0))
 
 
 class TextField(tk.Canvas):
