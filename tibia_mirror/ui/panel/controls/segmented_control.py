@@ -35,6 +35,8 @@ class SegmentedControl:
         self._options = options  # (key, text) of each option, from left to right
         self._selected = selected  # the key of the chosen option
         self._on_change = on_change  # called with the key of the option the user chooses
+        self._hovered: str | None = None  # the key of the option under the pointer
+        self._pressed: str | None = None  # the key of the option the button went down on
         self._font = tkfont.Font(font=theme.FONT)  # measures the texts
         self._boxes = self._get_boxes()  # the place of the pill of each option, by key
         # draw control parts
@@ -42,6 +44,53 @@ class SegmentedControl:
         self._add_pill()
         self._add_texts()
         self._update_pill()
+        self._update_texts()
+
+    def pointer_moved(self, position_x: int, position_y: int) -> bool:
+        """Show the option under the pointer as hovered.
+
+        Return True when a click at this place would choose an option.
+        """
+        key = self._get_key_at(position_x, position_y)
+        self._set_hovered(key)
+
+        return key is not None
+
+    def pointer_left(self) -> None:
+        """The pointer went out of the canvas: no option is hovered."""
+        self._set_hovered(None)
+
+    def pointer_pressed(self, position_x: int, position_y: int) -> None:
+        """Remember the option the mouse button went down on."""
+        self._pressed = self._get_key_at(position_x, position_y)
+
+    def pointer_released(self, position_x: int, position_y: int) -> None:
+        """Choose the option if the button went down and up on it, like a normal button."""
+        key = self._get_key_at(position_x, position_y)
+        pressed = self._pressed
+        self._pressed = None
+
+        if key is not None and key == pressed:
+            self._select(key)
+
+    def set_selected(self, key: str) -> None:
+        """Make `key` the chosen option, without reporting it."""
+        self._selected = key
+        self._hovered = None  # the chosen option has no hover look
+        self._update_pill()
+        self._update_texts()
+
+    def _select(self, key: str) -> None:
+        """Make `key` the chosen option, and report it."""
+        self.set_selected(key)
+        self._on_change(key)
+
+    def _set_hovered(self, key: str | None) -> None:
+        """Remember the hovered option, and colour the texts again when it changed."""
+        if key == self._hovered:
+            return
+
+        self._hovered = key
         self._update_texts()
 
     def _draw_track(self) -> None:
@@ -98,11 +147,25 @@ class SegmentedControl:
             self._canvas.itemconfigure(item, fill=self._get_text_colour(key))
 
     def _get_text_colour(self, key: str) -> str:
-        """On the accent for the chosen option, grey for the others."""
+        """On the accent for the chosen option, bright for the hovered one, grey for the others."""
         if key == self._selected:
             return theme.ON_ACCENT
 
+        if key == self._hovered:
+            return theme.TEXT
+
         return theme.SUBTEXT
+
+    def _get_key_at(self, position_x: int, position_y: int) -> str | None:
+        """The key of the option at this place, or None. The chosen option does not count."""
+        for key, (left, top, right, bottom) in self._boxes.items():
+            is_inside_x = left <= position_x < right
+            is_inside_y = top <= position_y < bottom
+
+            if is_inside_x and is_inside_y and key != self._selected:
+                return key
+
+        return None
 
     def _get_boxes(self) -> dict[str, Box]:
         """The place of the pill of each option: side by side, each as wide as its text."""
