@@ -98,8 +98,6 @@ def set_rounded_corners(hwnd: Hwnd, rounded: bool) -> None:
 
 # Windows 11 (build 22000) rounds windows' corners on request; Windows 10 cannot.
 ROUNDED_POPUPS = sys.getwindowsversion().build >= 22000
-# Popups draw their own 1px frame only where Windows cannot draw a rounded one.
-POPUP_FRAME = 0 if ROUNDED_POPUPS else 1
 
 
 def round_popup(hwnd: Hwnd, border: str, small: bool = False) -> None:
