@@ -10,7 +10,7 @@ from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
-from tibia_mirror.ui.panel.controls.menu import SwatchPicker
+from tibia_mirror.ui.panel.controls.colour_picker import ColourPicker
 from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
 from tibia_mirror.ui.panel.mirrors.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel.mirrors.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
@@ -177,15 +177,16 @@ class MirrorCardTitle:
 
     def _pick_colour(self) -> None:
         """Open the choice of colours for the mirror's frame."""
-        SwatchPicker(
+        colours = {name: theme.frame_color(name) for name in FRAME_COLORS}
+
+        picker = ColourPicker(
             self._canvas.winfo_toplevel(),
-            self._colour_dot.get_screen_box(),
-            [(name, theme.frame_color(name)) for name in FRAME_COLORS],
+            colours,
             self._mirror.colour,
-            on_pick=self._on_colour_picked,
-            on_close=lambda: None,
-            per_row=FRAME_COLORS_PER_ROW,
+            FRAME_COLORS_PER_ROW,
+            self._on_colour_picked,
         )
+        picker.open(self._colour_dot.get_screen_box())
 
     def _on_colour_picked(self, colour: str) -> None:
         """Hand up the mirror with its new frame colour. Do nothing when it is the same colour."""
