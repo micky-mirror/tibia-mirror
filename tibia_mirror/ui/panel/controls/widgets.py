@@ -605,8 +605,6 @@ class CopyText(tk.Canvas):
         self.clipboard_append(self._value)
         self._copied = True
         self._paint()
-        # Hidden first so the new hint opens at once, as when skimming between hints.
-        self._tooltip.hide()
         self._tooltip.show(Tip(tr("Copied")), self._screen_box())
 
     def _screen_box(self) -> Box:

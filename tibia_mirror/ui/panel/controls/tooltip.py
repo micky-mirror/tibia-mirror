@@ -1,6 +1,5 @@
 """Small hover hints, styled like the rest of the app."""
 
-import time
 import tkinter as tk
 from dataclasses import dataclass
 
@@ -11,8 +10,6 @@ from tibia_mirror.ui.base.windows import keep_open
 from tibia_mirror.winapi import dwm, win32
 
 DELAY_MS = 500
-# Moving to another target this soon after a hint closed shows the next at once.
-WARM_S = 0.4
 # Sizes at 100% display scaling, scaled with px() where used.
 GAP = 6
 PAD_X, PAD_Y = 8, 5
@@ -47,11 +44,10 @@ class Tooltip:
         self._master = master
         self._hint: _Hint | None = None
         self._pending: str | None = None
-        self._closed_at = float("-inf")
 
     def show(self, tip: Tip, box: Box) -> None:
         self._cancel()
-        if self._hint is not None or time.monotonic() - self._closed_at < WARM_S:
+        if self._hint is not None:
             self._open(tip.title, tip.detail, box)
         else:
             self._pending = self._master.after(
@@ -63,7 +59,6 @@ class Tooltip:
         if self._hint is not None:
             self._hint.win.destroy()
             self._hint = None
-            self._closed_at = time.monotonic()
 
     def _cancel(self) -> None:
         if self._pending is not None:
