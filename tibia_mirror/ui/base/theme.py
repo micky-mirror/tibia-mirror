@@ -146,6 +146,22 @@ FRAME_COLOR_HEX = {
     "deep_teal": "#179299",
     "deep_blue": "#1e66f5",
     "deep_purple": "#8839ef",
+    "silver": "#c0c0c0",
+    "neon_pink": "#ff2d95",
+    "coral": "#ff6f61",
+    "gold": "#ffd700",
+    "neon_green": "#39ff14",
+    "cyan": "#00e5ff",
+    "indigo": "#5c6bff",
+    "magenta": "#ff00ff",
+    "black": "#000000",
+    "maroon": "#800020",
+    "brown": "#8b4513",
+    "olive": "#808000",
+    "forest": "#1b5e20",
+    "dark_teal": "#005f5f",
+    "navy": "#001f7a",
+    "plum": "#5b1f6e",
 }
 
 

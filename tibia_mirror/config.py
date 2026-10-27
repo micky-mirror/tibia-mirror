@@ -33,12 +33,15 @@ DEFAULT_OPACITY = 0.5
 MIN_OPACITY = 0.1
 OPACITY_STEP = 0.05
 
-# Frame colours ("default" is the theme's grey), shown in rows: soft shades,
-# then deep ones. Coloured frames are COLOR_BORDER wide, to read at a glance.
+# Frame colours ("default" is the theme's grey), shown in rows: soft shades, deep ones,
+# neon ones and dark ones, with one colour family per column.
+# Coloured frames are COLOR_BORDER wide, to read at a glance.
 FRAME_COLORS = (
     *("default", "red", "orange", "yellow", "green", "teal", "blue", "purple"),
     *("white", "deep_red", "deep_orange", "deep_yellow"),
     *("deep_green", "deep_teal", "deep_blue", "deep_purple"),
+    *("silver", "neon_pink", "coral", "gold", "neon_green", "cyan", "indigo", "magenta"),
+    *("black", "maroon", "brown", "olive", "forest", "dark_teal", "navy", "plum"),
 )
 FRAME_COLORS_PER_ROW = 8
 COLOR_BORDER = 2

@@ -101,7 +101,7 @@ Hover any icon on it for a short explanation.
 New mirrors start at actual size and 50% opacity, with a thin grey frame.
 Zoom goes from 25% to 400%.
 
-**Frame colours**: the picker has soft shades, deep ones and white; arrow keys and <kbd>Enter</kbd> work too.
+**Frame colours**: the picker has soft, deep, neon and dark shades, with white, silver and black.
 Coloured frames are a bit thicker and always show.
 Only the frame is coloured, unless **Tint with frame colour** is on in Settings.
 
