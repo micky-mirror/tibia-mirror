@@ -10,7 +10,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.copy_text import CopyText
 from tibia_mirror.ui.panel.controls.rich_paragraph import RichParagraph
-from tibia_mirror.ui.panel.controls.widgets import ScrollList
+from tibia_mirror.ui.panel.controls.scroll_list import ScrollList
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 18  # above the title
