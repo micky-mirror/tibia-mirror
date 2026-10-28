@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tkinter as tk
 
-from tibia_mirror.core.geometry import scroll_thumb
+from tibia_mirror.core.geometry import scroll_fraction, scroll_thumb
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
@@ -13,6 +13,10 @@ from tibia_mirror.ui.base.scale import px
 BAR_WIDTH = 6
 BAR_GAP = 7  # between the column and the bar
 MIN_THUMB_HEIGHT = 24
+WHEEL_STEP = 24  # how far one notch of the mouse wheel scrolls
+
+NOTCH_DELTA = 120  # the delta Windows gives for one notch of the mouse wheel
+PAGE_PART = 0.9  # a click beside the thumb scrolls this part of the view, like Tk does
 
 
 class ScrollList(tk.Frame):
@@ -22,9 +26,11 @@ class ScrollList(tk.Frame):
         super().__init__(parent, bg=theme.BG)
         self._width = width  # the width of the column, in pixels
         self._offset = 0  # how far the content is scrolled up, in pixels
+        self._thumb_box: tuple[int, int] | None = None  # (top, height) while the thumb shows
         self._thumb_images: dict[str, tk.PhotoImage] = {}  # for the current thumb height
         self._is_hovered = False  # True while the pointer is over the bar
         self._is_dragging = False  # True from a press on the thumb until the button goes up
+        self._drag_offset = 0  # from the top of the thumb to the pointer, while dragging
         # draw scroll list parts
         self._add_view()
         self._add_inner()
@@ -50,9 +56,69 @@ class ScrollList(tk.Frame):
         self.inner.bind("<Configure>", self._on_resize)
         self._view.bind("<Configure>", self._on_resize)
         self._bar.bind("<Configure>", self._on_resize)
+        self._bar.bind("<Enter>", self._on_mouse_enter)
+        self._bar.bind("<Leave>", self._on_mouse_leave)
+        self._bar.bind("<ButtonPress-1>", self._on_mouse_down)
+        self._bar.bind("<B1-Motion>", self._on_mouse_drag)
+        self._bar.bind("<ButtonRelease-1>", self._on_mouse_up)
+        # every widget has its window in its bindtags, so this hears the wheel over the content
+        self.winfo_toplevel().bind("<MouseWheel>", self._on_mouse_wheel, add="+")
 
     def _on_resize(self, _event: tk.Event[tk.Misc]) -> None:
         self._scroll_to(self._offset)
+
+    def _on_mouse_enter(self, _event: tk.Event[tk.Misc]) -> None:
+        self._is_hovered = True
+        self._update_thumb()
+
+    def _on_mouse_leave(self, _event: tk.Event[tk.Misc]) -> None:
+        self._is_hovered = False
+        self._update_thumb()
+
+    def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
+        if self._thumb_box is None:
+            return
+
+        top, height = self._thumb_box
+        if top <= event.y < top + height:
+            self._is_dragging = True
+            self._drag_offset = event.y - top
+            self._update_thumb()
+            return
+
+        page = int(self._view.winfo_height() * PAGE_PART)
+        direction = -1 if event.y < top else 1
+        self._scroll_to(self._offset + direction * page)
+
+    def _on_mouse_drag(self, event: tk.Event[tk.Misc]) -> None:
+        if not self._is_dragging or self._thumb_box is None:
+            return
+
+        content_height = self.inner.winfo_reqheight()
+        visible = self._view.winfo_height() / content_height
+        thumb_top = event.y - self._drag_offset
+        first = scroll_fraction(thumb_top, self._thumb_box[1], self._bar.winfo_height(), visible)
+
+        self._scroll_to(round(first * content_height))
+
+    def _on_mouse_up(self, _event: tk.Event[tk.Misc]) -> None:
+        self._is_dragging = False
+        self._update_thumb()
+
+    def _on_mouse_wheel(self, event: tk.Event[tk.Misc]) -> None:
+        if not self._contains_pointer(event.x_root, event.y_root):
+            return
+
+        distance = round(event.delta * px(WHEEL_STEP) / NOTCH_DELTA)
+        self._scroll_to(self._offset - distance)
+
+    def _contains_pointer(self, position_x: int, position_y: int) -> bool:
+        widget = self.winfo_containing(position_x, position_y)
+        while widget is not None:
+            if widget is self:
+                return True
+            widget = widget.master
+        return False
 
     def _scroll_to(self, offset: int) -> None:
         """Scroll the content up by `offset` pixels, kept between the top and the bottom."""
@@ -67,12 +133,12 @@ class ScrollList(tk.Frame):
         first = self._offset / content_height
         last = (self._offset + self._view.winfo_height()) / content_height
         track_height = self._bar.winfo_height()
-        thumb_box = scroll_thumb(first, last, track_height, px(MIN_THUMB_HEIGHT))
-        if thumb_box is None:
+        self._thumb_box = scroll_thumb(first, last, track_height, px(MIN_THUMB_HEIGHT))
+        if self._thumb_box is None:
             self._bar.itemconfigure(self._thumb, state="hidden")
             return
 
-        top, height = thumb_box
+        top, height = self._thumb_box
         self._update_thumb_images(height)
         image = self._thumb_images[self._get_look()]
 
