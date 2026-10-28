@@ -60,6 +60,7 @@ PIXEL_KEYWORDS = {
 PIXEL_POSITIONALS = {
     "button_pixels": 2,
     "outlined_pixels": 3,
+    "rounded_pixels": 3,
     **dict.fromkeys(("create_line", "create_text", "create_image", "create_window"), None),
     **dict.fromkeys(("create_rectangle", "create_oval", "coords"), None),
 }

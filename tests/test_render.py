@@ -11,6 +11,7 @@ from tibia_mirror.ui.base.render import (
     hex_to_rgb,
     margins,
     outlined_pixels,
+    rounded_pixels,
 )
 
 BG = "#1e1e2e"
@@ -111,6 +112,7 @@ def test_outlined_box_corners_stay_background_outside_the_curve():
         assert rows[y][x] == BG
 
 
+# Pinned before the rewrite of render.py: real looks of the app at 100% and 125%, and odd shapes.
 def fingerprint(rows):
     """A short hash of every pixel: one changed pixel changes it."""
     text = "\n".join(" ".join(row) for row in rows)
@@ -125,7 +127,6 @@ KNOB = ButtonStyle("#cdd6f4", radius=9, shadow_alpha=0.45, shadow_offset=1, shad
 WIDE_SHADOW = ButtonStyle("#89b4fa", radius=15, shadow_alpha=0.55, shadow_offset=5, shadow_blur=13)
 
 
-# Real looks of the app at 100% and 125%, and two odd shapes, pinned before the rewrite.
 @pytest.mark.parametrize(
     ("width", "height", "style", "background", "pressed", "expected"),
     [
@@ -134,14 +135,23 @@ WIDE_SHADOW = ButtonStyle("#89b4fa", radius=15, shadow_alpha=0.55, shadow_offset
         (95, 38, SECONDARY_LIGHT, "#eff1f5", False, "95c071b86de41d58"),
         (95, 38, SECONDARY_LIGHT, "#eff1f5", True, "2097618ceaffd099"),
         (18, 18, KNOB, "#313244", False, "7b79cb1fd1714e1e"),
-        (8, 60, ButtonStyle("#45475a", radius=4), "#1e1e2e", False, "916b2b88c47e7f95"),
-        (30, 5, ButtonStyle("#89b4fa", radius=0), "#1e1e2e", False, "c20a55589bfe753b"),
         (57, 83, WIDE_SHADOW, "#1e1e2e", True, "55bbc6d75ef56cb2"),
-        (6, 3, ButtonStyle("#89b4fa", radius=15), "#1e1e2e", False, "6e81736e8985893a"),
     ],
 )
 def test_button_pixels_stay_the_same(width, height, style, background, pressed, expected):
     assert fingerprint(button_pixels(width, height, style, background, pressed)) == expected
+
+
+@pytest.mark.parametrize(
+    ("width", "height", "radius", "colour", "background", "expected"),
+    [
+        (8, 60, 4, "#45475a", "#1e1e2e", "916b2b88c47e7f95"),
+        (30, 5, 0, "#89b4fa", "#1e1e2e", "c20a55589bfe753b"),
+        (30, 12, 6, "#89b4fa", "#1e1e2e", "3b0390b36e1f1e42"),  # a pill: no straight rows
+    ],
+)
+def test_rounded_pixels_stay_the_same(width, height, radius, colour, background, expected):
+    assert fingerprint(rounded_pixels(width, height, radius, colour, background)) == expected
 
 
 @pytest.mark.parametrize(
