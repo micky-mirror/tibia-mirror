@@ -17,6 +17,10 @@ Pixels = tuple[tuple[str, ...], ...]
 
 BLACK: Rgb = (0, 0, 0)
 
+# A pressed button is drawn 1px lower at any display scaling; its users move the text by the same.
+PRESSED_SINK = 1
+PRESSED_SHADOW_PART = 0.6  # how much of its shadow's strength a pressed button keeps
+
 
 @dataclass(frozen=True)
 class ButtonStyle:
@@ -116,17 +120,18 @@ def button_pixels(
 ) -> Pixels:
     """The button over `background`, with its shadow margins around it.
 
-    Pressed moves the body 1px down and flattens the shadow.
+    Pressed sinks the body by PRESSED_SINK and flattens the shadow.
     """
     margin = margins(style)
-    sink = 1 if pressed else 0
+    sink = PRESSED_SINK if pressed else 0
     left, top = margin.left, margin.top + sink
     body = Box(left, top, left + width, top + height, style.radius)
 
     shadow = None
     if style.shadow_alpha:
+        # pressed, the button is closer to the page: its shadow drops half as far and is fainter
         drop = (style.shadow_offset // 2 if pressed else style.shadow_offset) - sink
-        alpha = style.shadow_alpha * (0.6 if pressed else 1.0)
+        alpha = style.shadow_alpha * (PRESSED_SHADOW_PART if pressed else 1.0)
         shadow = Shadow(body.moved_down(drop), alpha, style.shadow_blur)
 
     full_width = margin.left + width + margin.right

@@ -8,10 +8,7 @@ from dataclasses import replace
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import photo
-from tibia_mirror.ui.base.render import ButtonStyle, button_pixels, margins
-
-# A pressed button's picture is 1px lower at any display scaling, so its text drops by the same.
-PRESSED_SINK = 1
+from tibia_mirror.ui.base.render import PRESSED_SINK, ButtonStyle, button_pixels, margins
 
 
 class RaisedButton(tk.Canvas):
