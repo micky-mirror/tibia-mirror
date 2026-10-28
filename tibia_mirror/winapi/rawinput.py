@@ -166,6 +166,7 @@ _sig(
 )
 
 CLASS_NAME = "TibiaMirrorRawInput"
+READ_FAILED = 0xFFFFFFFF  # what GetRawInputData gives on an error: -1 as a UINT
 
 
 class InputWatcher:
@@ -279,3 +280,94 @@ class InputWatcher:
             if vk not in ALL_MODIFIER_KEYS:
                 held = tuple(name for name, keys in MODIFIER_KEYS.items() if keys & self._held)
                 self._pending.append(partial(self._on_key, vk, held))
+
+
+class RawInputWindow:
+    """A hidden window that hears the mouse and the keyboard of the whole computer."""
+
+    def __init__(
+        self,
+        on_left_down: Callable[[], None],
+        on_key_change: Callable[[int, bool], None],
+    ) -> None:
+        self._on_left_down = on_left_down  # called when the left mouse button goes down
+        self._on_key_change = on_key_change  # called with the key code, and True when it goes down
+        # Windows calls this, so it is kept for as long as the window lives
+        self._window_procedure = WNDPROC(self._on_message)
+        # create the hidden window and send it all input
+        self._register_window_class()
+        window_handle = self._create_window()
+        self._register_devices(window_handle)
+
+    def _register_window_class(self) -> None:
+        window_class = WNDCLASSEXW()
+        window_class.cbSize = ctypes.sizeof(WNDCLASSEXW)
+        window_class.lpfnWndProc = self._window_procedure
+        window_class.hInstance = kernel32.GetModuleHandleW(None)
+        window_class.lpszClassName = CLASS_NAME
+
+        if not user32.RegisterClassExW(ctypes.byref(window_class)):
+            raise ctypes.WinError()
+
+    def _create_window(self) -> Hwnd:
+        """A message-only window: it is never shown, it only gets messages."""
+        window_handle: Hwnd | None = user32.CreateWindowExW(
+            0,
+            CLASS_NAME,
+            None,
+            0,
+            0,
+            0,
+            0,
+            0,
+            HWND_MESSAGE,
+            None,
+            kernel32.GetModuleHandleW(None),
+            None,
+        )
+        if not window_handle:
+            raise ctypes.WinError()
+
+        return window_handle
+
+    def _register_devices(self, window_handle: Hwnd) -> None:
+        """Send the mouse and keyboard input to the window, also while the app is not in front."""
+        devices = (RAWINPUTDEVICE * 2)(
+            RAWINPUTDEVICE(USAGE_PAGE_GENERIC, USAGE_MOUSE, RIDEV_INPUTSINK, window_handle),
+            RAWINPUTDEVICE(USAGE_PAGE_GENERIC, USAGE_KEYBOARD, RIDEV_INPUTSINK, window_handle),
+        )
+        if not user32.RegisterRawInputDevices(devices, len(devices), ctypes.sizeof(RAWINPUTDEVICE)):
+            raise ctypes.WinError()
+
+    def _on_message(self, window_handle: Hwnd, message: int, wparam: int, lparam: int) -> int:
+        if message == WM_INPUT:
+            self._read_input(lparam)
+
+        result: int = user32.DefWindowProcW(window_handle, message, wparam, lparam)
+        return result
+
+    def _read_input(self, input_handle: int) -> None:
+        event = RAWINPUT()
+        size = wintypes.UINT(ctypes.sizeof(event))
+        copied = user32.GetRawInputData(
+            input_handle,
+            RID_INPUT,
+            ctypes.byref(event),
+            ctypes.byref(size),
+            ctypes.sizeof(RAWINPUTHEADER),
+        )
+        if copied in (0, READ_FAILED):
+            return
+
+        if event.header.dwType == RIM_TYPEMOUSE:
+            self._read_mouse(event.data.mouse)
+        elif event.header.dwType == RIM_TYPEKEYBOARD:
+            self._read_keyboard(event.data.keyboard)
+
+    def _read_mouse(self, mouse: RAWMOUSE) -> None:
+        if mouse.u.buttons.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN:
+            self._on_left_down()
+
+    def _read_keyboard(self, keyboard: RAWKEYBOARD) -> None:
+        is_down = not keyboard.Flags & RI_KEY_BREAK
+        self._on_key_change(keyboard.VKey, is_down)
