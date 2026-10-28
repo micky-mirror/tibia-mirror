@@ -4,13 +4,11 @@ import tkinter as tk
 from collections.abc import Callable
 
 from tibia_mirror.core.timers import KeyCombo
-from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.base.text import key_combo_name
-from tibia_mirror.ui.panel.controls.widgets import KeyField
+from tibia_mirror.ui.panel.controls.key_field import KeyField
+from tibia_mirror.ui.panel.controls.text_field import HEIGHT as FIELD_HEIGHT
 from tibia_mirror.ui.panel.rows.row import ROW_PAD, SIDE_PAD, draw_hint, draw_label
-from tibia_mirror.winapi import win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 FIELD_GAP = 8  # between the help text and the field for the key
@@ -32,7 +30,7 @@ class KeyRow:
     ) -> None:
         self._label = label
         self._hint = hint  # the help text under the label
-        self._key = key  # the key that is set now, or None when no key is set
+        self._key = key  # the key the field starts with, or None; the field keeps it
         self._on_change = on_change  # called with the new key, or None when it is cleared
 
     def draw(self, canvas: tk.Canvas, row_start_y: int, width: int) -> int:
@@ -45,8 +43,7 @@ class KeyRow:
 
     def set_key(self, key: KeyCombo | None) -> None:
         """Show another key in the field, after it was changed somewhere else."""
-        self._key = key
-        self._field.set_value(key)
+        self._field.set_key(key)
 
     def pointer_moved(self, position_x: int, position_y: int) -> bool:
         """Nothing to do: the field for the key hears the pointer by itself."""
@@ -68,12 +65,8 @@ class KeyRow:
             self._key,
             width=width,
             background=theme.SURFACE,
-            name=key_combo_name,
-            empty=tr("Click to set a key"),
-            waiting=tr("Press a key..."),
-            modifiers=win32.modifiers_down,
             on_change=self._on_change,
         )
         field_start_y = hint_end_y + px(FIELD_GAP)
         canvas.create_window(px(SIDE_PAD), field_start_y, window=self._field, anchor="nw")
-        return field_start_y + px(KeyField.HEIGHT)
+        return field_start_y + px(FIELD_HEIGHT)
