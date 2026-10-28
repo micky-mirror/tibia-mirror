@@ -1,3 +1,7 @@
+import hashlib
+
+import pytest
+
 from tibia_mirror.ui.base.render import (
     ButtonStyle,
     Margins,
@@ -151,6 +155,48 @@ def test_reused_middle_rows_match_computing_every_pixel():
     for width, height, radius in ((40, 36, 8), (45, 45, 10), (20, 5, 3), (30, 50, 0)):
         expected = every_pixel_outlined(width, height, radius, "#313244", FILL, BG)
         assert outlined_pixels(width, height, radius, "#313244", FILL, BG) == expected
+
+
+def fingerprint(rows):
+    """A short hash of every pixel: one changed pixel changes it."""
+    text = "\n".join(" ".join(row) for row in rows)
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
+PRIMARY = ButtonStyle("#89b4fa", radius=10, shadow_alpha=0.55, shadow_offset=4, shadow_blur=10)
+SECONDARY_LIGHT = ButtonStyle(
+    "#ffffff", radius=10, shadow_alpha=0.2025, shadow_offset=3, shadow_blur=8
+)
+KNOB = ButtonStyle("#cdd6f4", radius=9, shadow_alpha=0.45, shadow_offset=1, shadow_blur=4)
+
+
+# Real looks of the app at 100% and 125%, pinned before the rewrite of render.py.
+@pytest.mark.parametrize(
+    ("width", "height", "style", "background", "pressed", "expected"),
+    [
+        (120, 34, PRIMARY, "#1e1e2e", False, "49e6b02590f8b2f4"),
+        (120, 34, PRIMARY, "#1e1e2e", True, "0238f16824750017"),
+        (95, 38, SECONDARY_LIGHT, "#eff1f5", False, "95c071b86de41d58"),
+        (95, 38, SECONDARY_LIGHT, "#eff1f5", True, "2097618ceaffd099"),
+        (18, 18, KNOB, "#313244", False, "7b79cb1fd1714e1e"),
+        (8, 60, ButtonStyle("#45475a", radius=4), "#1e1e2e", False, "916b2b88c47e7f95"),
+        (30, 5, ButtonStyle("#89b4fa", radius=0), "#1e1e2e", False, "c20a55589bfe753b"),
+    ],
+)
+def test_button_pixels_stay_the_same(width, height, style, background, pressed, expected):
+    assert fingerprint(button_pixels(width, height, style, background, pressed)) == expected
+
+
+@pytest.mark.parametrize(
+    ("width", "height", "radius", "fill", "border", "background", "expected"),
+    [
+        (200, 30, 6, "#313244", "#89b4fa", "#1e1e2e", "48f471ff632e573e"),
+        (20, 20, 3, "#f38ba8", "#f38ba8", "#1e1e2e", "2dd49ba3a7363afd"),
+        (45, 45, 10, "#ffffff", "#bcc0cc", "#eff1f5", "153b38e046945a84"),
+    ],
+)
+def test_outlined_pixels_stay_the_same(width, height, radius, fill, border, background, expected):
+    assert fingerprint(outlined_pixels(width, height, radius, fill, border, background)) == expected
 
 
 def test_custom_widgets_do_not_overwrite_tkinter_internals():
