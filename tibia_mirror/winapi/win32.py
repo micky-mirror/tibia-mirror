@@ -38,6 +38,12 @@ MB_ICONERROR = 0x10
 ERROR_ALREADY_EXISTS = 183
 WAIT_OBJECT_0 = 0
 ASFW_ANY = 0xFFFFFFFF
+# The key codes of each modifier: the one for both sides first, then the left and the right one.
+MODIFIER_KEYS = {
+    "ctrl": (0x11, 0xA2, 0xA3),
+    "shift": (0x10, 0xA0, 0xA1),
+    "alt": (0x12, 0xA4, 0xA5),
+}
 
 
 class RECT(ctypes.Structure):
@@ -255,8 +261,9 @@ def key_name(vk: int) -> str:
 
 def modifiers_down() -> tuple[str, ...]:
     """Names of the modifier keys held right now, in order ("ctrl", "shift", "alt")."""
-    modifier_keys = (("ctrl", 0x11), ("shift", 0x10), ("alt", 0x12))
-    return tuple(name for name, vk in modifier_keys if user32.GetKeyState(vk) & 0x8000)
+    return tuple(
+        name for name, codes in MODIFIER_KEYS.items() if user32.GetKeyState(codes[0]) & 0x8000
+    )
 
 
 def window_title(hwnd: Hwnd) -> str:
