@@ -1,8 +1,10 @@
 import hashlib
+import math
 
 import pytest
 
 from tibia_mirror.ui.base.render import (
+    Box,
     ButtonStyle,
     Margins,
     button_pixels,
@@ -27,6 +29,31 @@ def test_no_shadow_means_no_margins():
 
 def test_shadow_margins_extend_further_below():
     assert margins(SHADOWED) == Margins(left=8, top=5, right=8, bottom=11)
+
+
+BOX = Box(0, 0, 100, 40, radius=6)
+
+
+def test_box_distance_is_below_zero_inside_and_above_zero_outside():
+    assert BOX.distance(50, 20) < 0  # the middle
+    assert BOX.distance(150, 20) > 0  # far to the right
+    assert BOX.distance(100, 20) == pytest.approx(0)  # on the right edge
+
+
+def test_box_distance_follows_the_rounded_corner():
+    # the corner point of the frame lies outside the curve, by the diagonal minus the radius
+    assert BOX.distance(0, 0) == pytest.approx(6 * math.sqrt(2) - 6)
+
+
+def test_straight_rows_start_below_the_rounded_corners():
+    assert not BOX.is_straight_row(5.5)  # the last row of the top corners
+    assert BOX.is_straight_row(6.5)
+    assert BOX.is_straight_row(33.5)
+    assert not BOX.is_straight_row(34.5)  # the first row of the bottom corners
+
+
+def test_moved_down_keeps_the_size():
+    assert BOX.moved_down(3) == Box(0, 3, 100, 43, radius=6)
 
 
 def test_image_size_includes_margins():
@@ -95,9 +122,10 @@ SECONDARY_LIGHT = ButtonStyle(
     "#ffffff", radius=10, shadow_alpha=0.2025, shadow_offset=3, shadow_blur=8
 )
 KNOB = ButtonStyle("#cdd6f4", radius=9, shadow_alpha=0.45, shadow_offset=1, shadow_blur=4)
+WIDE_SHADOW = ButtonStyle("#89b4fa", radius=15, shadow_alpha=0.55, shadow_offset=5, shadow_blur=13)
 
 
-# Real looks of the app at 100% and 125%, pinned before the rewrite of render.py.
+# Real looks of the app at 100% and 125%, and two odd shapes, pinned before the rewrite.
 @pytest.mark.parametrize(
     ("width", "height", "style", "background", "pressed", "expected"),
     [
@@ -108,6 +136,8 @@ KNOB = ButtonStyle("#cdd6f4", radius=9, shadow_alpha=0.45, shadow_offset=1, shad
         (18, 18, KNOB, "#313244", False, "7b79cb1fd1714e1e"),
         (8, 60, ButtonStyle("#45475a", radius=4), "#1e1e2e", False, "916b2b88c47e7f95"),
         (30, 5, ButtonStyle("#89b4fa", radius=0), "#1e1e2e", False, "c20a55589bfe753b"),
+        (57, 83, WIDE_SHADOW, "#1e1e2e", True, "55bbc6d75ef56cb2"),
+        (6, 3, ButtonStyle("#89b4fa", radius=15), "#1e1e2e", False, "6e81736e8985893a"),
     ],
 )
 def test_button_pixels_stay_the_same(width, height, style, background, pressed, expected):
