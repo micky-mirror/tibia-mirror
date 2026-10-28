@@ -33,6 +33,35 @@ class Margins:
     bottom: int
 
 
+@dataclass(frozen=True)
+class Box:
+    """A box with rounded corners, in pixels from the top left of the picture."""
+
+    left: float
+    top: float
+    right: float
+    bottom: float
+    radius: float
+
+    def distance(self, position_x: float, position_y: float) -> float:
+        """How far the point is from the edge of the box: below 0 inside it."""
+        beyond_x = self._get_beyond_straight_part(position_x, self.left, self.right)
+        beyond_y = self._get_beyond_straight_part(position_y, self.top, self.bottom)
+        outside = math.hypot(max(beyond_x, 0.0), max(beyond_y, 0.0))
+        inside = min(max(beyond_x, beyond_y), 0.0)
+
+        return outside + inside - self.radius
+
+    def is_straight_row(self, position_y: float) -> bool:
+        """Whether a pixel row here crosses the box between its rounded corners."""
+        return self._get_beyond_straight_part(position_y, self.top, self.bottom) <= -0.5
+
+    def _get_beyond_straight_part(self, position: float, start: float, end: float) -> float:
+        """How far past the straight part of an edge the position lies, below 0 within it."""
+        straight_half = (end - start) / 2 - self.radius
+        return abs(position - (start + end) / 2) - straight_half
+
+
 def margins(style: ButtonStyle) -> Margins:
     blur = style.shadow_blur if style.shadow_alpha else 0
     offset = style.shadow_offset if style.shadow_alpha else 0
@@ -147,29 +176,43 @@ def outlined_pixels(
     width: int, height: int, radius: int, fill: str, border: str, background: str
 ) -> Pixels:
     """A rounded box with a 1px `border` over `background`, both edges anti-aliased."""
-    background_rgb, border_rgb = hex_to_rgb(background), hex_to_rgb(border)
-    fill_rgb = hex_to_rgb(fill)
-    inner_radius = max(0, radius - 1)
+    outer = Box(0, 0, width, height, radius)
+    inner = Box(1, 1, width - 1, height - 1, max(0, radius - 1))
+
+    return _paint(width, height, background, ((outer, border), (inner, fill)))
+
+
+def _paint(width: int, height: int, background: str, layers: tuple[tuple[Box, str], ...]) -> Pixels:
+    """Paint each (box, colour) layer, in order, over `background`."""
+    background_rgb = hex_to_rgb(background)
+    layers_rgb = [(box, hex_to_rgb(colour)) for box, colour in layers]
+
     rows: list[tuple[str, ...]] = []
-    middle: tuple[str, ...] | None = None  # a row of the straight middle, once computed
+    straight_row: tuple[str, ...] | None = None  # rows between all rounded corners look alike
     for y in range(height):
         center_y = y + 0.5  # measured from the pixel's centre
-        straight = in_straight_middle(center_y, 0, height, radius) and in_straight_middle(
-            center_y, 1, height - 1, inner_radius
-        )
-        if straight and middle is not None:
-            rows.append(middle)
+        is_straight = all(box.is_straight_row(center_y) for box, _ in layers)
+        if is_straight and straight_row is not None:
+            rows.append(straight_row)
             continue
-        row: list[str] = []
-        for x in range(width):
-            center_x = x + 0.5
-            outer = coverage(rounded_rect_distance(center_x, center_y, 0, 0, width, height, radius))
-            color = mix(background_rgb, border_rgb, outer)
-            inner = coverage(
-                rounded_rect_distance(center_x, center_y, 1, 1, width - 1, height - 1, inner_radius)
-            )
-            row.append(rgb_to_hex(mix(color, fill_rgb, inner)))
-        rows.append(tuple(row))
-        if straight:
-            middle = rows[-1]
+
+        row = tuple(
+            rgb_to_hex(_get_colour(x + 0.5, center_y, background_rgb, layers_rgb))
+            for x in range(width)
+        )
+        rows.append(row)
+        if is_straight:
+            straight_row = row
     return tuple(rows)
+
+
+def _get_colour(
+    position_x: float, position_y: float, background: Rgb, layers: list[tuple[Box, Rgb]]
+) -> Rgb:
+    """The colour of one pixel: the edge of a layer covers it only partly."""
+    colour = background
+    for box, layer_colour in layers:
+        covered = coverage(box.distance(position_x, position_y))
+        if covered:
+            colour = mix(colour, layer_colour, covered)
+    return colour
