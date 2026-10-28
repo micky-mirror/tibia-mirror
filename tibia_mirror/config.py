@@ -77,7 +77,7 @@ MESSAGE_SHOW_MS = 15_000
 CONNECTION_POLL_MS = 200
 # How often the app checks if a second start asked for its window.
 SHOW_REQUEST_POLL_MS = 200
-# Clicks and key presses seen anywhere are passed on this often (see rawinput).
+# Clicks and key presses seen anywhere are passed on this often (see input_watcher).
 INPUT_POLL_MS = 15
 
 # 100px menu rail + 400px page; tall enough for the whole Settings page.
