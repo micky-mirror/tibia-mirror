@@ -7,6 +7,7 @@ from functools import partial
 
 from tibia_mirror import errors, i18n
 from tibia_mirror.app_parts.app_window import AppWindow
+from tibia_mirror.app_parts.input_watcher import InputWatcher
 from tibia_mirror.app_parts.mirror_manager import MirrorManager
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.app_parts.settings_writer import SettingsWriter
@@ -35,7 +36,6 @@ from tibia_mirror.ui.panel.panel import Panel
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import win32
 from tibia_mirror.winapi.instance import SingleInstance
-from tibia_mirror.winapi.rawinput import InputWatcher
 
 
 class App:
@@ -66,8 +66,7 @@ class App:
         self._is_selecting = False  # True while the user selects or names a part of the game
         self._is_login_waiting = False  # True while a login waits for the selection to end
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
-        self.input_watcher = InputWatcher(self._on_click, self._on_key)
-        self.input_watcher.start(self.window)
+        self.input_watcher = InputWatcher(self.window, self._on_click, self._on_key)
         # use the saved language for every text
         i18n.use(self.settings.current.language)
         self._show_panel()
@@ -157,11 +156,11 @@ class App:
         self._is_login_waiting = False
         self._on_character_changed(self.connection.character)
 
-    def _on_click(self, button: str, position_x: int, position_y: int, pressed_at: float) -> None:
+    def _on_click(self, position_x: int, position_y: int, pressed_at: float) -> None:
         """Start the timers of the mirrors whose area was clicked in Tibia."""
         game_window = self.connection.game_window
 
-        if button != "left" or game_window is None:
+        if game_window is None:
             return
 
         # only clicks that Tibia gets count, not clicks on a window above it
@@ -170,7 +169,7 @@ class App:
 
         self.timer_manager.start_by_click(game_window, position_x, position_y, pressed_at)
 
-    def _on_key(self, key_code: int, modifiers: tuple[str, ...]) -> None:
+    def _on_key(self, key_code: int, modifiers: tuple[str, ...], pressed_at: float) -> None:
         """Act on a key pressed in Tibia: the hide-all key, or the key of a timer."""
         game_window = self.connection.game_window
         hide_all_key = self.settings.current.hide_all_key
@@ -183,7 +182,7 @@ class App:
             self._toggle_all_hidden()
             return
 
-        self.timer_manager.start_by_key(key_code, modifiers, time.monotonic())
+        self.timer_manager.start_by_key(key_code, modifiers, pressed_at)
 
     # It plans its next run first, so an error in one run cannot stop it for good.
     def _tick_timers(self) -> None:
