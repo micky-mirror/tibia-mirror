@@ -12,9 +12,16 @@ from tibia_mirror.ui.base.images import outlined_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import key_combo_name
 from tibia_mirror.ui.panel.controls.text_field import HEIGHT, RADIUS, TEXT_PAD
+from tibia_mirror.winapi import win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 CLEAR_ICON_INSET = 16  # from the right side of the box to the middle of the ✕
+CLEAR_AREA = 28  # a click this close to the right side of the box clears the key
+
+# Tk's names of the modifier keys. Pressed alone, they only show in the text.
+MODIFIER_KEYSYMS = frozenset(
+    {"Shift_L", "Shift_R", "Control_L", "Control_R", "Alt_L", "Alt_R", "Meta_L", "Meta_R"}
+)
 
 
 class KeyField(tk.Canvas):
@@ -49,6 +56,12 @@ class KeyField(tk.Canvas):
         self._add_text()
         self._add_clear_icon()
         self._update_look()
+        self._bind_events()
+
+    def set_key(self, key: KeyCombo | None) -> None:
+        """Show another key, after it was changed somewhere else."""
+        self._key = key
+        self._update_look()
 
     def _add_box(self) -> None:
         """The rounded box, with its border in each of its looks."""
@@ -75,6 +88,60 @@ class KeyField(tk.Canvas):
             font=theme.FONT,
             fill=theme.SUBTEXT,
         )
+
+    def _bind_events(self) -> None:
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
+        self.bind("<KeyPress>", self._on_key_down)
+        self.bind("<KeyRelease>", self._on_key_up)
+        self.bind("<FocusOut>", self._on_focus_out)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        is_on_clear_area = event.x >= self._width - px(CLEAR_AREA)
+
+        if self._can_clear() and is_on_clear_area:
+            self._change_key(None)
+        else:
+            self._start_listening()
+
+    def _on_key_down(self, event: tk.Event[tk.Canvas]) -> str | None:
+        if not self._is_listening:
+            return None
+
+        if event.keysym in MODIFIER_KEYSYMS:
+            self._update_held_modifiers()
+            return "break"
+
+        self._stop_listening()
+        if event.keysym != "Escape":
+            # Tk on Windows gives the virtual-key code as the keycode.
+            self._change_key((event.keycode, win32.modifiers_down()))
+
+        return "break"  # keeps the dialog's Enter and Escape out of it
+
+    def _on_key_up(self, event: tk.Event[tk.Canvas]) -> None:
+        if self._is_listening and event.keysym in MODIFIER_KEYSYMS:
+            self._update_held_modifiers()
+
+    def _on_focus_out(self, event: tk.Event[tk.Canvas]) -> None:
+        self._stop_listening()
+
+    def _start_listening(self) -> None:
+        self._is_listening = True
+        self._held_modifiers = ()
+        self.focus_set()
+        self._update_look()
+
+    def _stop_listening(self) -> None:
+        self._is_listening = False
+        self._update_look()
+
+    def _update_held_modifiers(self) -> None:
+        self._held_modifiers = win32.modifiers_down()
+        self._update_look()
+
+    def _change_key(self, key: KeyCombo | None) -> None:
+        self.set_key(key)
+        self._on_change(key)
 
     def _update_look(self) -> None:
         """Show the box, the text and the ✕ for the current key and state."""
