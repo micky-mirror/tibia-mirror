@@ -96,22 +96,6 @@ def mix(under: Rgb, over: Rgb, alpha: float) -> Rgb:
     return tuple(below + (above - below) * alpha for below, above in zip(under, over, strict=True))
 
 
-def rounded_rect_distance(
-    x: float, y: float, x0: float, y0: float, x1: float, y1: float, radius: float
-) -> float:
-    """Signed distance from (x, y) to a rounded rect: negative inside.
-
-    The standard formula: the distance to the rect shrunk by the radius, minus the radius.
-    """
-    core_half_w, core_half_h = (x1 - x0) / 2 - radius, (y1 - y0) / 2 - radius
-    # How far the point lies beyond the core rect's edges, on each axis (negative: within).
-    beyond_x = abs(x - (x0 + x1) / 2) - core_half_w
-    beyond_y = abs(y - (y0 + y1) / 2) - core_half_h
-    outside = math.hypot(max(beyond_x, 0.0), max(beyond_y, 0.0))
-    inside = min(max(beyond_x, beyond_y), 0.0)
-    return outside + inside - radius
-
-
 def coverage(distance: float) -> float:
     """Fraction of a pixel covered by a shape edge at that signed distance."""
     return min(1.0, max(0.0, 0.5 - distance))
@@ -124,14 +108,6 @@ def shadow_opacity(distance: float, blur: float) -> float:
     if distance >= blur:
         return 0.0
     return math.exp(-3.0 * (distance / blur) ** 2) * (1 - distance / blur)
-
-
-def in_straight_middle(center_y: float, y0: float, y1: float, radius: float) -> bool:
-    """Whether a pixel row lies in the rounded rect's straight middle, clear of its rounded
-    top and bottom. The rect covers every row there alike, so one can stand for them all.
-    """
-    beyond_y = abs(center_y - (y0 + y1) / 2) - ((y1 - y0) / 2 - radius)
-    return beyond_y <= -0.5
 
 
 # Large enough for the opacity slider, whose filled track is rendered once per width.
