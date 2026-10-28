@@ -7,9 +7,9 @@ or Python crashes ("PyEval_RestoreThread"). See docs/architecture.md, "Input and
 import ctypes
 from collections.abc import Callable
 from ctypes import wintypes
-from typing import Any
 
 from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.winapi import win32
 
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
@@ -105,15 +105,9 @@ class RAWINPUT(ctypes.Structure):
     _fields_ = [("header", RAWINPUTHEADER), ("data", _RawData)]
 
 
-# Any: ctypes' foreign functions and C types have no useful static types.
-def _sig(function: Any, restype: Any, *argtypes: Any) -> None:  # noqa: ANN401
-    function.restype = restype
-    function.argtypes = list(argtypes)
-
-
-_sig(kernel32.GetModuleHandleW, wintypes.HMODULE, wintypes.LPCWSTR)
-_sig(user32.RegisterClassExW, wintypes.ATOM, ctypes.POINTER(WNDCLASSEXW))
-_sig(
+win32.set_signature(kernel32.GetModuleHandleW, wintypes.HMODULE, wintypes.LPCWSTR)
+win32.set_signature(user32.RegisterClassExW, wintypes.ATOM, ctypes.POINTER(WNDCLASSEXW))
+win32.set_signature(
     user32.CreateWindowExW,
     wintypes.HWND,
     wintypes.DWORD,
@@ -129,15 +123,17 @@ _sig(
     wintypes.HINSTANCE,
     wintypes.LPVOID,
 )
-_sig(user32.DefWindowProcW, LRESULT, wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM)
-_sig(
+win32.set_signature(
+    user32.DefWindowProcW, LRESULT, wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM
+)
+win32.set_signature(
     user32.RegisterRawInputDevices,
     wintypes.BOOL,
     ctypes.POINTER(RAWINPUTDEVICE),
     wintypes.UINT,
     wintypes.UINT,
 )
-_sig(
+win32.set_signature(
     user32.GetRawInputData,
     wintypes.UINT,
     wintypes.HANDLE,
