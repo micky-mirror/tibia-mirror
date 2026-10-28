@@ -296,6 +296,7 @@ tibia_mirror/
     profile_manager.py       the profiles, and the one that is open
     mirror_manager.py        the mirror windows on screen
     timer_manager.py         the timers that count, and their paused progress
+    input_watcher.py         the clicks and key presses, passed on to App
     settings_writer.py       writing settings.json
   core/                      pure logic: no Windows or Tk code
     geometry.py              pure coordinate math
@@ -317,7 +318,7 @@ tibia_mirror/
     win32.py                 ctypes bindings and window helpers
     dwm.py                   DWM thumbnail wrapper (the core mechanism)
     tibia.py                 finding the Tibia client window
-    rawinput.py              being told of clicks and key presses (Raw Input)
+    rawinput.py              the hidden window that hears clicks and keys (Raw Input)
     instance.py              one copy at a time
     sounds.py                timer alert sounds
   assets/icon.ico            the app icon

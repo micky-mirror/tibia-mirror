@@ -45,6 +45,7 @@ To make sure the window is really Tibia, it also reads the program's file path, 
   - `ProfileManager`: the profiles, the open one and its mirrors.
   - `MirrorManager`: the mirror windows on the screen, and new mirrors.
   - `TimerManager`: when each timer started, and its paused progress at a logout.
+  - `InputWatcher`: the clicks and key presses of the whole computer, passed on to the App.
   - `SettingsWriter`: writes `settings.json` shortly after a change.
 
   Only `app.py` uses the parts.
@@ -106,11 +107,14 @@ Mirrors should show while the player is looking at Tibia:
 
 ## Input and timers
 
-Clicks and key presses come from Windows **Raw Input** (`winapi/rawinput.py`), which only observes: it can't block, change or send input.
+Clicks and key presses come from Windows **Raw Input**, which only observes: it can't block, change or send input.
+`RawInputWindow` (`winapi/rawinput.py`) is a hidden window that Windows tells of every left click and key change.
+`InputWatcher` (`app_parts/input_watcher.py`) turns them into presses for the App, each with its time, and a click with the pointer position.
+It leaves out the repeats of a held key and a modifier pressed alone.
 
 > [!WARNING]
 > Raw Input messages arrive inside Tk's event loop, and calling Tk from there crashes Python.
-> So the watcher only queues each event, and a short Tk timer hands the queue to the App.
+> So `InputWatcher` only queues each press there, and a Tk timer passes the queue on to the App every 15 ms (`INPUT_POLL_MS`).
 > Python's garbage collector can also run there, and if it frees Tk images then, Python crashes too.
 > That is why a new theme or language is used after a restart, instead of building the panel again while the app runs.
 
@@ -189,7 +193,7 @@ These are deliberate and must stay true:
 | Area | Files |
 |---|---|
 | App and startup | `app.py`, `main.py`, `errors.py`, `config.py` |
-| App parts | `app_parts/app_window.py`, `app_parts/tibia_connection.py`, `app_parts/front_window_tracker.py`, `app_parts/profile_manager.py`, `app_parts/mirror_manager.py`, `app_parts/timer_manager.py`, `app_parts/settings_writer.py` |
+| App parts | `app_parts/app_window.py`, `app_parts/tibia_connection.py`, `app_parts/front_window_tracker.py`, `app_parts/profile_manager.py`, `app_parts/mirror_manager.py`, `app_parts/timer_manager.py`, `app_parts/input_watcher.py`, `app_parts/settings_writer.py` |
 | Settings | `settings/app_settings.py`, `settings/app_settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
 | Pure logic | `core/geometry.py`, `core/game_window.py`, `core/connection.py`, `core/profile.py`, `core/mirror_settings.py`, `core/mirror_timer.py`, `core/mirror_look.py`, `core/regions.py`, `core/profiles.py`, `core/timers.py`, `core/characters.py`, `core/handles.py` |
