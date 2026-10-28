@@ -57,8 +57,8 @@ class ProfilePicker(tk.Canvas):
         self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the profile menu is open
 
-        self._normal_box = self._render_box(theme.SURFACE)
-        self._bright_box = self._render_box(theme.SURFACE_HI)
+        self._normal_box = self._get_box_image(theme.SURFACE)
+        self._bright_box = self._get_box_image(theme.SURFACE_HI)
 
         self._draw_box()
         self._draw_icon()
@@ -73,7 +73,7 @@ class ProfilePicker(tk.Canvas):
         self.delete(self._name_item)
         self._draw_name()
 
-    def _render_box(self, colour: str) -> tk.PhotoImage:
+    def _get_box_image(self, colour: str) -> tk.PhotoImage:
         """The rounded shape of the box, as an image in the given colour."""
         return rounded_image(
             self,

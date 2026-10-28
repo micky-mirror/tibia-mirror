@@ -46,8 +46,8 @@ class DropdownPicker(tk.Canvas):
         self._is_hovered = False  # True while the pointer is over the box
         self._is_open = False  # True while the menu is open
 
-        self._normal_box = self._render_normal_box()
-        self._bright_box = self._render_bright_box()
+        self._normal_box = self._get_normal_box_image()
+        self._bright_box = self._get_bright_box_image()
 
         self.configure(width=self._width)
         self._draw_box()
@@ -63,7 +63,7 @@ class DropdownPicker(tk.Canvas):
 
         return max(box_width, get_menu_width(self._choices))
 
-    def _render_normal_box(self) -> tk.PhotoImage:
+    def _get_normal_box_image(self) -> tk.PhotoImage:
         """The rounded shape of the box with a thin border, like the other fields of a card."""
         return outlined_image(
             self,
@@ -75,7 +75,7 @@ class DropdownPicker(tk.Canvas):
             background=theme.SURFACE,
         )
 
-    def _render_bright_box(self) -> tk.PhotoImage:
+    def _get_bright_box_image(self) -> tk.PhotoImage:
         """The rounded shape of the box, filled with the colour of its border."""
         return rounded_image(
             self,

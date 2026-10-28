@@ -39,8 +39,8 @@ class NavRail(tk.Canvas):
         self._hovered: str | None = None  # the key of the entry under the pointer
         self._pressed: str | None = None  # the key of the entry the button went down on
         self._entry_tops: dict[str, int] = {}  # key -> the top edge of the entry
-        self._selected_pill = self._render_pill(theme.ACCENT_TINT)
-        self._hovered_pill = self._render_pill(theme.SURFACE)
+        self._selected_pill = self._get_pill_image(theme.ACCENT_TINT)
+        self._hovered_pill = self._get_pill_image(theme.SURFACE)
         self._bind_events()
 
     def _bind_events(self) -> None:
@@ -74,7 +74,7 @@ class NavRail(tk.Canvas):
             self._select(key)
         self._pressed = None
 
-    def _render_pill(self, colour: str) -> tk.PhotoImage:
+    def _get_pill_image(self, colour: str) -> tk.PhotoImage:
         """The rounded shape behind an icon, as an image in the given colour."""
         height = px(self.ICON_HEIGHT)
         return rounded_image(

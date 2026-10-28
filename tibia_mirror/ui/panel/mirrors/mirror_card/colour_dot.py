@@ -40,8 +40,8 @@ class ColourDot:
         self._is_hovered = False  # True while the pointer is over the dot
 
         # the dot has smooth edges, so it needs one picture for each colour behind it
-        self._normal_dot = self._render_dot(theme.SURFACE)
-        self._hovered_dot = self._render_dot(theme.SURFACE_HI)
+        self._normal_dot = self._get_dot_image(theme.SURFACE)
+        self._hovered_dot = self._get_dot_image(theme.SURFACE_HI)
 
         # the shape first, so the dot lies on top of it
         self._draw_hover_shape()
@@ -72,8 +72,8 @@ class ColourDot:
             return
 
         self._colour = colour
-        self._normal_dot = self._render_dot(theme.SURFACE)
-        self._hovered_dot = self._render_dot(theme.SURFACE_HI)
+        self._normal_dot = self._get_dot_image(theme.SURFACE)
+        self._hovered_dot = self._get_dot_image(theme.SURFACE_HI)
         self._update_look()
 
     def _update_look(self) -> None:
@@ -98,7 +98,7 @@ class ColourDot:
         middle_y = self._canvas.winfo_rooty() + self._middle_y
         return (middle_x - half, middle_y - half, middle_x + half, middle_y + half)
 
-    def _render_dot(self, background: str) -> tk.PhotoImage:
+    def _get_dot_image(self, background: str) -> tk.PhotoImage:
         """The dot as an image, with its smooth edge made for the given colour behind it."""
         size = px(self.DOT_SIZE)
         return rounded_image(
