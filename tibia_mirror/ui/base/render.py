@@ -110,8 +110,7 @@ def shadow_opacity(distance: float, blur: float) -> float:
     return math.exp(-3.0 * (distance / blur) ** 2) * (1 - distance / blur)
 
 
-# Large enough for the opacity slider, whose filled track is rendered once per width.
-@lru_cache(maxsize=512)
+@lru_cache(maxsize=128)
 def button_pixels(
     width: int, height: int, style: ButtonStyle, background: str, pressed: bool = False
 ) -> Pixels:
@@ -133,6 +132,15 @@ def button_pixels(
     full_width = margin.left + width + margin.right
     full_height = margin.top + height + margin.bottom
     return _paint(full_width, full_height, background, ((body, style.fill),), shadow)
+
+
+# Large enough for the opacity slider, whose filled track is rendered once per width.
+@lru_cache(maxsize=512)
+def rounded_pixels(width: int, height: int, radius: int, colour: str, background: str) -> Pixels:
+    """A rounded box in `colour` over `background`, its edge anti-aliased."""
+    box = Box(0, 0, width, height, radius)
+
+    return _paint(width, height, background, ((box, colour),))
 
 
 @lru_cache(maxsize=128)
