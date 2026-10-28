@@ -4,14 +4,18 @@ Tk's canvas has neither, so images are computed here (pure Python, cached,
 unit-tested) and handed to Tk as PhotoImage rows.
 """
 
+from __future__ import annotations
+
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 
 # A colour as (red, green, blue) channels, 0..255; mixing makes them fractional.
 Rgb = tuple[float, ...]
 # An image as rows of "#rrggbb" strings, top to bottom: what PhotoImage.put takes.
 Pixels = tuple[tuple[str, ...], ...]
+
+BLACK: Rgb = (0, 0, 0)
 
 
 @dataclass(frozen=True)
@@ -56,10 +60,20 @@ class Box:
         """Whether a pixel row here crosses the box between its rounded corners."""
         return self._get_beyond_straight_part(position_y, self.top, self.bottom) <= -0.5
 
+    def moved_down(self, distance: float) -> Box:
+        return replace(self, top=self.top + distance, bottom=self.bottom + distance)
+
     def _get_beyond_straight_part(self, position: float, start: float, end: float) -> float:
         """How far past the straight part of an edge the position lies, below 0 within it."""
         straight_half = (end - start) / 2 - self.radius
         return abs(position - (start + end) / 2) - straight_half
+
+
+@dataclass(frozen=True)
+class Shadow:
+    box: Box
+    alpha: float  # how dark the shadow is right under the box, 0..1
+    blur: float  # how far it fades out beyond the edge of the box
 
 
 def margins(style: ButtonStyle) -> Margins:
@@ -130,45 +144,19 @@ def button_pixels(
     Pressed moves the body 1px down and flattens the shadow.
     """
     margin = margins(style)
-    background_rgb = hex_to_rgb(background)
-    fill_rgb = hex_to_rgb(style.fill)
-    black = (0, 0, 0)
-
     sink = 1 if pressed else 0
-    x0, y0 = margin.left, margin.top + sink
-    x1, y1 = x0 + width, y0 + height
-    shadow_drop = (style.shadow_offset // 2 if pressed else style.shadow_offset) - sink
-    shadow_alpha = style.shadow_alpha * (0.6 if pressed else 1.0)
+    left, top = margin.left, margin.top + sink
+    body = Box(left, top, left + width, top + height, style.radius)
 
-    rows: list[tuple[str, ...]] = []
-    middle: tuple[str, ...] | None = None  # a row of the straight middle, once computed
-    for y in range(margin.top + height + margin.bottom):
-        center_y = y + 0.5  # measured from the pixel's centre
-        straight = in_straight_middle(center_y, y0, y1, style.radius) and (
-            not shadow_alpha
-            or in_straight_middle(center_y, y0 + shadow_drop, y1 + shadow_drop, style.radius)
-        )
-        if straight and middle is not None:
-            rows.append(middle)
-            continue
-        row: list[str] = []
-        for x in range(margin.left + width + margin.right):
-            center_x = x + 0.5
-            color = background_rgb
-            if shadow_alpha:
-                to_shadow = rounded_rect_distance(
-                    center_x, center_y, x0, y0 + shadow_drop, x1, y1 + shadow_drop, style.radius
-                )
-                opacity = shadow_alpha * shadow_opacity(to_shadow, style.shadow_blur)
-                color = mix(color, black, opacity)
-            body = coverage(rounded_rect_distance(center_x, center_y, x0, y0, x1, y1, style.radius))
-            if body:
-                color = mix(color, fill_rgb, body)
-            row.append(rgb_to_hex(color))
-        rows.append(tuple(row))
-        if straight:
-            middle = rows[-1]
-    return tuple(rows)
+    shadow = None
+    if style.shadow_alpha:
+        drop = (style.shadow_offset // 2 if pressed else style.shadow_offset) - sink
+        alpha = style.shadow_alpha * (0.6 if pressed else 1.0)
+        shadow = Shadow(body.moved_down(drop), alpha, style.shadow_blur)
+
+    full_width = margin.left + width + margin.right
+    full_height = margin.top + height + margin.bottom
+    return _paint(full_width, full_height, background, ((body, style.fill),), shadow)
 
 
 @lru_cache(maxsize=128)
@@ -182,22 +170,29 @@ def outlined_pixels(
     return _paint(width, height, background, ((outer, border), (inner, fill)))
 
 
-def _paint(width: int, height: int, background: str, layers: tuple[tuple[Box, str], ...]) -> Pixels:
-    """Paint each (box, colour) layer, in order, over `background`."""
+def _paint(
+    width: int,
+    height: int,
+    background: str,
+    layers: tuple[tuple[Box, str], ...],
+    shadow: Shadow | None = None,
+) -> Pixels:
+    """Paint the shadow and then each (box, colour) layer, in order, over `background`."""
     background_rgb = hex_to_rgb(background)
     layers_rgb = [(box, hex_to_rgb(colour)) for box, colour in layers]
+    boxes = [box for box, _ in layers] + ([shadow.box] if shadow else [])
 
     rows: list[tuple[str, ...]] = []
     straight_row: tuple[str, ...] | None = None  # rows between all rounded corners look alike
     for y in range(height):
         center_y = y + 0.5  # measured from the pixel's centre
-        is_straight = all(box.is_straight_row(center_y) for box, _ in layers)
+        is_straight = all(box.is_straight_row(center_y) for box in boxes)
         if is_straight and straight_row is not None:
             rows.append(straight_row)
             continue
 
         row = tuple(
-            rgb_to_hex(_get_colour(x + 0.5, center_y, background_rgb, layers_rgb))
+            rgb_to_hex(_get_colour(x + 0.5, center_y, background_rgb, layers_rgb, shadow))
             for x in range(width)
         )
         rows.append(row)
@@ -207,10 +202,18 @@ def _paint(width: int, height: int, background: str, layers: tuple[tuple[Box, st
 
 
 def _get_colour(
-    position_x: float, position_y: float, background: Rgb, layers: list[tuple[Box, Rgb]]
+    position_x: float,
+    position_y: float,
+    background: Rgb,
+    layers: list[tuple[Box, Rgb]],
+    shadow: Shadow | None,
 ) -> Rgb:
-    """The colour of one pixel: the edge of a layer covers it only partly."""
+    """The colour of one pixel: the shadow fades out, the edge of a layer covers it partly."""
     colour = background
+    if shadow:
+        to_shadow = shadow.box.distance(position_x, position_y)
+        colour = mix(colour, BLACK, shadow.alpha * shadow_opacity(to_shadow, shadow.blur))
+
     for box, layer_colour in layers:
         covered = coverage(box.distance(position_x, position_y))
         if covered:
