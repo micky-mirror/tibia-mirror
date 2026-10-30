@@ -201,14 +201,14 @@ class MirrorWindow(tk.Toplevel):
         thumbnail_area = Rect(window_margin, window_margin, picture_area.w, picture_area.h)
 
         dwm.set_rounded_corners(self._window_handle, self._mirror_look.is_rounded_on)
-        # first, so the picture ends up above its frame
-        self._show_frame_window(picture_area, border)
         # shows as the frame around the picture
         self.configure(bg=theme.frame_color(self._mirror_settings.colour))
         self.geometry(f"{window_area.w}x{window_area.h}+{window_area.x}+{window_area.y}")
         self._thumbnail.show(layout.region, thumbnail_area)
         self.deiconify()
         self.attributes("-topmost", True)  # above other windows, also above the game
+        # after the picture, so a solid frame never covers it on the way
+        self._show_frame_window(picture_area, border)
         self._show_timer_badge(picture_area, border)
 
     def _show_timer_badge(self, picture_area: Rect, border: int) -> None:
@@ -272,6 +272,7 @@ class MirrorWindow(tk.Toplevel):
             picture_area,
             border,
             self._mirror_settings.colour,
+            self._window_handle,
             is_rounded=self._mirror_look.is_rounded_on,
             is_solid=self._is_tinted(),
         )
