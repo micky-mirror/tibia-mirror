@@ -419,6 +419,12 @@ def set_alpha(hwnd: Hwnd, alpha: float) -> None:
     user32.SetLayeredWindowAttributes(hwnd, 0, round(alpha * 255), LWA_ALPHA)
 
 
+def place_below(hwnd: Hwnd, above: Hwnd) -> None:
+    """Put the window right under `above` in the order of windows, without moving it."""
+    flags = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE
+    user32.SetWindowPos(hwnd, above, 0, 0, 0, 0, flags)
+
+
 def set_click_through(hwnd: Hwnd, enabled: bool) -> None:
     """Let mouse input pass through the window (it must be layered, see set_alpha)."""
     _set_ex_style(hwnd, WS_EX_TRANSPARENT, enabled)

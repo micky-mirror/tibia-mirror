@@ -37,6 +37,7 @@ class MirrorFrame(tk.Toplevel):
         picture_area: Rect,
         border: int,
         colour: str,
+        picture_window: Hwnd,
         *,
         is_rounded: bool,
         is_solid: bool,
@@ -48,8 +49,11 @@ class MirrorFrame(tk.Toplevel):
         # move the window first, because a new shape makes Tk forget a move it has not done yet
         self.update_idletasks()
         self._set_ring_shape(picture_area, border, is_rounded=is_rounded, is_solid=is_solid)
-        self.deiconify()
-        self.attributes("-topmost", True)  # above other windows, also above the game
+        # only when hidden, because on a shown window it also raises the frame above the picture
+        if self.state() == "withdrawn":
+            self.deiconify()
+        # right under the picture, so a solid frame never covers it
+        win32.place_below(self._window_handle, picture_window)
 
     def _set_ring_shape(
         self,
