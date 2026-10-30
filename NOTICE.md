@@ -19,17 +19,17 @@ That runtime includes the open-source software below, each under its own license
 
 | Component | Used for | License |
 |---|---|---|
-| [Python 3.10](#python) | Runs the app | PSF License Version 2 |
+| [Python 3.13](#python) | Runs the app | PSF License Version 2 |
 | [Tcl/Tk 8.6](#tcltk) | The control panel and dialogs | Tcl/Tk License |
 | [libffi](#libffi) | Calling Windows functions (`ctypes`) | MIT |
-| [zlib](#zlib) | Unpacking the app from the `.exe` | zlib License |
+| [zlib](#zlib) | Unpacking the app from the `.exe`, and compression in Python | zlib License |
 | [PyInstaller bootloader](#pyinstaller-bootloader) | Starts the `.exe` | GPL 2.0 with the bootloader exception |
 
 ### Python
 
 <https://www.python.org>
 
-Copyright (c) 2001-2023 Python Software Foundation; All Rights Reserved.
+Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved.
 
 <details>
 <summary>License</summary>
@@ -59,10 +59,8 @@ grants Licensee a nonexclusive, royalty-free, world-wide license to reproduce,
 analyze, test, perform and/or display publicly, prepare derivative works,
 distribute, and otherwise use Python alone or in any derivative version,
 provided, however, that PSF's License Agreement and PSF's notice of copyright,
-i.e., "Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023 Python Software Foundation;
-All Rights Reserved" are retained in Python alone or in any derivative version
-prepared by Licensee.
+i.e., "Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved"
+are retained in Python alone or in any derivative version prepared by Licensee.
 
 3. In the event Licensee prepares a derivative work that is based on
 or incorporates Python or any part thereof, and wants to make
@@ -389,13 +387,13 @@ terms specified in this license.
 
 <https://sourceware.org/libffi/>
 
-Copyright (c) 1996-2014 Anthony Green, Red Hat, Inc and others.
+Copyright (c) 1996-2022 Anthony Green, Red Hat, Inc and others.
 
 <details>
 <summary>License</summary>
 
 ```
-libffi - Copyright (c) 1996-2014  Anthony Green, Red Hat, Inc and others.
+libffi - Copyright (c) 1996-2022  Anthony Green, Red Hat, Inc and others.
 See source files for details.
 
 Permission is hereby granted, free of charge, to any person obtaining
@@ -424,13 +422,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 <https://zlib.net>
 
-Copyright (C) 1995-2011 Jean-loup Gailly and Mark Adler.
+Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler.
 
 <details>
 <summary>License</summary>
 
 ```
-Copyright (C) 1995-2011 Jean-loup Gailly and Mark Adler
+Copyright (C) 1995-2026 Jean-loup Gailly and Mark Adler
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
