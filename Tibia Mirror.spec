@@ -39,6 +39,10 @@ a = Analysis(
         *("socket", "_socket", "select", "selectors"),
         *("bz2", "_bz2", "lzma", "_lzma"),
         *("decimal", "_decimal", "_pydecimal"),
+        # Imported only for the type checker; the running app never loads it.
+        "typing_extensions",
+        # pywin32, used only by logging's Windows Event Log handler.
+        *("win32evtlog", "win32evtlogutil", "win32api", "win32con", "pywintypes"),
     ],
 )
 pyz = PYZ(a.pure)
