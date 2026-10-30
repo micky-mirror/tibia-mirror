@@ -86,9 +86,9 @@ def shadow_margins(style: RaisedStyle) -> Margins:
     return Margins(blur, max(0, blur - offset), blur, blur + offset)
 
 
-def hex_to_rgb(color: str) -> Rgb:
-    color = color.lstrip("#")
-    return tuple(int(color[i : i + 2], 16) for i in (0, 2, 4))
+def hex_to_rgb(colour: str) -> Rgb:
+    digits = colour.lstrip("#")
+    return tuple(int(digits[start : start + 2], 16) for start in (0, 2, 4))
 
 
 def rgb_to_hex(rgb: Rgb) -> str:
