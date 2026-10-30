@@ -7,10 +7,10 @@ from pathlib import Path
 from typing import Any
 
 from tibia_mirror.config import DEFAULT_PROFILE
+from tibia_mirror.core.keys import KeyCombo
 from tibia_mirror.core.mirror_settings import MirrorSettings
 from tibia_mirror.core.profile import Profile
 from tibia_mirror.core.regions import new_id
-from tibia_mirror.core.timers import KeyCombo
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 
 

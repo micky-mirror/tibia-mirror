@@ -3,7 +3,7 @@
 import tkinter as tk
 from collections.abc import Callable
 
-from tibia_mirror.core.timers import KeyCombo
+from tibia_mirror.core.keys import KeyCombo
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.key_field import KeyField

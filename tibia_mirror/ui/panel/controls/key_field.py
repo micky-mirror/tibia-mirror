@@ -5,7 +5,7 @@ from __future__ import annotations
 import tkinter as tk
 from collections.abc import Callable
 
-from tibia_mirror.core.timers import KeyCombo
+from tibia_mirror.core.keys import KeyCombo
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.images import outlined_image

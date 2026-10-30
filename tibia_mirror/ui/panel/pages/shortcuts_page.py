@@ -3,7 +3,7 @@
 import tkinter as tk
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
-from tibia_mirror.core.timers import KeyCombo
+from tibia_mirror.core.keys import KeyCombo
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme

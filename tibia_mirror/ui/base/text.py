@@ -3,7 +3,7 @@ and writing out a key combination."""
 
 import tkinter.font as tkfont
 
-from tibia_mirror.core.timers import combo_name
+from tibia_mirror.core.keys import combo_name
 from tibia_mirror.winapi import win32
 
 

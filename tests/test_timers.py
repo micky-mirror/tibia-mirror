@@ -1,10 +1,7 @@
+from tibia_mirror.core.keys import canonical_modifiers, combo_matches, combo_name, parse_key
 from tibia_mirror.core.timers import (
-    canonical_modifiers,
     clock,
-    combo_matches,
-    combo_name,
     parse_alert,
-    parse_key,
     pauses_from_json,
     pauses_of,
     pauses_to_json,
