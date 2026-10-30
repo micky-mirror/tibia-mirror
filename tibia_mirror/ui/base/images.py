@@ -2,11 +2,17 @@
 
 import tkinter as tk
 
-from tibia_mirror.ui.base.render import Pixels, outlined_pixels, rounded_pixels
+from tibia_mirror.ui.base.render import (
+    ButtonStyle,
+    Pixels,
+    button_pixels,
+    outlined_pixels,
+    rounded_pixels,
+)
 
 
-def photo(master: tk.Misc, rows: Pixels) -> tk.PhotoImage:
-    """A PhotoImage from pixel rows as produced by render.button_pixels."""
+def _photo(master: tk.Misc, rows: Pixels) -> tk.PhotoImage:
+    """A Tk image from pixel rows."""
     img = tk.PhotoImage(master=master, width=len(rows[0]), height=len(rows))
     img.put(" ".join("{" + " ".join(row) + "}" for row in rows))
     return img
@@ -19,7 +25,7 @@ def rounded_image(
 
     `background` is the colour behind the box: the smooth corners blend into it.
     """
-    return photo(master, rounded_pixels(width, height, radius, colour, background))
+    return _photo(master, rounded_pixels(width, height, radius, colour, background))
 
 
 def outlined_image(
@@ -36,4 +42,17 @@ def outlined_image(
 
     `background` is the colour behind the box: the smooth corners blend into it.
     """
-    return photo(master, outlined_pixels(width, height, radius, colour, border, background))
+    return _photo(master, outlined_pixels(width, height, radius, colour, border, background))
+
+
+def raised_image(
+    master: tk.Misc,
+    *,
+    width: int,
+    height: int,
+    style: ButtonStyle,
+    background: str,
+    is_pressed: bool = False,
+) -> tk.PhotoImage:
+    """A picture of a raised box with its soft shadow, sunk while pressed."""
+    return _photo(master, button_pixels(width, height, style, background, is_pressed))
