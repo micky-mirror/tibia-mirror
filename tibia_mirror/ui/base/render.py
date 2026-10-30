@@ -80,7 +80,7 @@ class Shadow:
     blur: float  # how far it fades out beyond the edge of the box
 
 
-def margins(style: RaisedStyle) -> Margins:
+def shadow_margins(style: RaisedStyle) -> Margins:
     blur = style.shadow_blur if style.shadow_alpha else 0
     offset = style.shadow_offset if style.shadow_alpha else 0
     return Margins(blur, max(0, blur - offset), blur, blur + offset)
@@ -122,7 +122,7 @@ def raised_pixels(
 
     Pressed sinks the body by PRESSED_SINK and flattens the shadow.
     """
-    margin = margins(style)
+    margin = shadow_margins(style)
     sink = PRESSED_SINK if is_pressed else 0
     left, top = margin.left, margin.top + sink
     body = Box(left, top, left + width, top + height, style.radius)

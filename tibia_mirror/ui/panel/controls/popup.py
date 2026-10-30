@@ -10,7 +10,7 @@ from dataclasses import replace
 from tibia_mirror.core.geometry import Point, clamp_box
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.render import margins
+from tibia_mirror.ui.base.render import shadow_margins
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.raised_button import RaisedButton
 from tibia_mirror.winapi import dwm, win32
@@ -60,7 +60,7 @@ class Popup(tk.Toplevel, ABC):
         The OK button says `ok_text`. A danger one is red, for a step that can't be undone.
         """
         # The button widgets are bigger than the buttons we see: they hold the shadows.
-        shadow = margins(theme.SECONDARY_BUTTON)
+        shadow = shadow_margins(theme.SECONDARY_BUTTON)
         row = tk.Frame(self, bg=theme.BG)
         row.pack(
             anchor="w",
@@ -78,7 +78,7 @@ class Popup(tk.Toplevel, ABC):
 
         `kind` is "secondary", "primary" or "danger".
         """
-        shadow = margins(theme.SECONDARY_BUTTON)
+        shadow = shadow_margins(theme.SECONDARY_BUTTON)
         width = (self._content_width - shadow.left - shadow.right) // 2
         fill, hover_fill, text_colour = {
             "secondary": (theme.SURFACE, theme.SURFACE_HI, theme.TEXT),

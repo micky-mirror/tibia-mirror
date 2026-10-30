@@ -117,7 +117,7 @@ class MirrorsPage(tk.Frame):
         )
         # The widget is bigger than the button we see: it has room for the shadow around it.
         # The spaces are made smaller by that room, so the button itself lands in line.
-        shadow = button.margins
+        shadow = button.shadow_margins
         button.pack(
             side="top",
             anchor="w",

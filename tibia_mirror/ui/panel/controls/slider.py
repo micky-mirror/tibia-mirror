@@ -6,7 +6,7 @@ from collections.abc import Callable
 from tibia_mirror.core.geometry import slider_value, slider_x
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import raised_image, rounded_image
-from tibia_mirror.ui.base.render import RaisedStyle, margins
+from tibia_mirror.ui.base.render import RaisedStyle, shadow_margins
 from tibia_mirror.ui.base.scale import px
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -153,7 +153,7 @@ class Slider:
 
     def _place_knob(self, knob_x: float) -> None:
         """Put the middle of the knob at `knob_x`. Its image is bigger, for the shadow."""
-        shadow_room = margins(self._get_knob_style(is_active=False))
+        shadow_room = shadow_margins(self._get_knob_style(is_active=False))
         half_knob = px(KNOB_SIZE) / 2
         image_left = round(knob_x - half_knob - shadow_room.left)
         image_top = round(self._middle_y - half_knob - shadow_room.top)

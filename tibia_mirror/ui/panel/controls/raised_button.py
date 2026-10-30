@@ -8,13 +8,13 @@ from dataclasses import replace
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import raised_image
-from tibia_mirror.ui.base.render import PRESSED_SINK, RaisedStyle, margins
+from tibia_mirror.ui.base.render import PRESSED_SINK, RaisedStyle, shadow_margins
 
 
 class RaisedButton(tk.Canvas):
     """A rounded button with a soft shadow, lighter while hovered and sunk while pressed.
 
-    The canvas is bigger than the button by `margins`, the room for the shadow around it.
+    The canvas is bigger than the button by `shadow_margins`, the room for the shadow around it.
     """
 
     def __init__(
@@ -31,11 +31,11 @@ class RaisedButton(tk.Canvas):
         text_colour: str,
         background: str,
     ) -> None:
-        self.margins = margins(style)  # room for the shadow on each side of the button
+        self.shadow_margins = shadow_margins(style)
         super().__init__(
             parent,
-            width=self.margins.left + width + self.margins.right,
-            height=self.margins.top + height + self.margins.bottom,
+            width=self.shadow_margins.left + width + self.shadow_margins.right,
+            height=self.shadow_margins.top + height + self.shadow_margins.bottom,
             bg=background,
             highlightthickness=0,
             bd=0,
@@ -135,7 +135,7 @@ class RaisedButton(tk.Canvas):
 
     def _get_text_position(self) -> tuple[float, float]:
         """The middle of the button, inside the room for the shadow."""
-        middle_x = self.margins.left + self._width / 2
-        middle_y = self.margins.top + self._height / 2
+        middle_x = self.shadow_margins.left + self._width / 2
+        middle_y = self.shadow_margins.top + self._height / 2
 
         return middle_x, middle_y

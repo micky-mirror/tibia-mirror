@@ -8,10 +8,10 @@ from tibia_mirror.ui.base.render import (
     Margins,
     RaisedStyle,
     hex_to_rgb,
-    margins,
     outlined_pixels,
     raised_pixels,
     rounded_pixels,
+    shadow_margins,
 )
 
 BG = "#1e1e2e"
@@ -25,11 +25,11 @@ def luminance(color):
 
 
 def test_no_shadow_means_no_margins():
-    assert margins(FLAT) == Margins(0, 0, 0, 0)
+    assert shadow_margins(FLAT) == Margins(0, 0, 0, 0)
 
 
 def test_shadow_margins_extend_further_below():
-    assert margins(SHADOWED) == Margins(left=8, top=5, right=8, bottom=11)
+    assert shadow_margins(SHADOWED) == Margins(left=8, top=5, right=8, bottom=11)
 
 
 BOX = Box(0, 0, 100, 40, radius=6)
@@ -78,7 +78,7 @@ def test_edges_are_antialiased():
 
 def test_shadow_darkens_below_but_not_above():
     rows = raised_pixels(40, 20, SHADOWED, BG)
-    m = margins(SHADOWED)
+    m = shadow_margins(SHADOWED)
     below = rows[m.top + 20 + 2][m.left + 20]
     above = rows[0][m.left + 20]
     assert luminance(below) < luminance(BG)
@@ -87,7 +87,7 @@ def test_shadow_darkens_below_but_not_above():
 
 
 def test_pressed_moves_body_down_one_pixel():
-    m = margins(SHADOWED)
+    m = shadow_margins(SHADOWED)
     normal = raised_pixels(40, 20, SHADOWED, BG)
     pressed = raised_pixels(40, 20, SHADOWED, BG, is_pressed=True)
     x = m.left + 20
