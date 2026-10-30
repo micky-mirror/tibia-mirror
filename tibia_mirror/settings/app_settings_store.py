@@ -10,13 +10,9 @@ import json
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Unpack
 
 from tibia_mirror.settings.app_settings import AppSettings, AppSettingsUpdate
-
-if TYPE_CHECKING:
-    # Only the type checker reads this line. The running app does not need the package.
-    from typing_extensions import Unpack
 
 
 class AppSettingsStore:
