@@ -54,60 +54,22 @@ POLISH = {
     "Waiting for Tibia...": "Czekam na Tibię...",
     "Tibia is minimized": "Tibia jest zminimalizowana",
     "Mirrors hidden ({key})": "Odbicia ukryte ({key})",
-    "This profile's mirrors appear once Tibia is running.": (
-        "Odbicia z tego profilu pojawią się po uruchomieniu Tibii."
-    ),
-    "This profile's mirrors appear once Tibia is restored.": (
-        "Odbicia z tego profilu pojawią się po przywróceniu okna Tibii."
+    "This profile's mirrors appear once Tibia is connected.": (
+        "Odbicia z tego profilu pojawią się po połączeniu z Tibią."
     ),
     # Mirrors page
     "Add region": "Dodaj region",
     "REGIONS": "REGIONY",
-    "Save": "Zapisz",
-    "Revert": "Przywróć",
-    "Changes are saved automatically": "Zmiany zapisują się automatycznie",
-    "Unsaved changes - press Save": "Niezapisane zmiany - kliknij Zapisz",
-    "All changes saved": "Wszystkie zmiany zapisane",
     "Click Add region, then drag a box over the part of the game to mirror.": (
         "Kliknij Dodaj region, a potem zaznacz fragment gry do odbicia."
     ),
     "New profile…": "Nowy profil…",
     "Duplicate…": "Duplikuj…",
     "Rename…": "Zmień nazwę…",
-    "Characters…": "Postacie…",
-    "Copy from…": "Kopiuj z…",
-    "Import…": "Importuj…",
-    "Export…": "Eksportuj…",
     "Delete profile": "Usuń profil",
-    # Profile per character, and copying from another profile
-    'Characters of "{name}"': "Postacie profilu „{name}”",
-    "Logging in with one of these characters opens this profile, "
-    "while Profile per character is on in Settings.": (
-        "Zalogowanie się jedną z tych postaci otwiera ten profil, "
-        "gdy w Ustawieniach włączony jest Profil dla postaci."
-    ),
-    "No characters yet.": "Nie ma jeszcze postaci.",
-    "Add": "Dodaj",
-    "Done": "Gotowe",
-    'Linked to "{profile}" - adding moves it here.': (
-        "Przypisana do „{profile}” - dodanie przeniesie ją tutaj."
-    ),
-    "Created for {character}": "Utworzono dla {character}",
-    "Opened for {character}": "Otwarto dla {character}",
-    "Copy from profile": "Kopiuj z profilu",
-    'Replaces the mirrors of "{name}" with those of the chosen profile. '
-    "Until you save, Revert brings them back.": (
-        "Zastępuje odbicia profilu „{name}” odbiciami wybranego profilu. "
-        "Dopóki nie zapiszesz, odzyskasz je przyciskiem Przywróć."
-    ),
-    "Replace": "Zastąp",
-    'Copied {regions} from "{name}"': "Skopiowano {regions} z „{name}”",
     # Region cards and mirrors
     "Remove region": "Usuń region",
-    "Remove": "Usuń",
     "Frame colour": "Kolor ramki",
-    "Edit region": "Edytuj region",
-    "Position, size and zoom.": "Położenie, rozmiar i powiększenie.",
     "Lock mirror": "Zablokuj odbicie",
     "Pins it in place. Clicks pass through it to the game.": (
         "Przypina je w miejscu. Kliknięcia przechodzą przez nie do gry."
@@ -124,36 +86,16 @@ POLISH = {
     # Dialogs
     "Cancel": "Anuluj",
     "OK": "OK",
-    "Discard": "Odrzuć",
     "Delete": "Usuń",
     "Name this region": "Nazwij ten region",
     "Rename region": "Zmień nazwę regionu",
     "New profile": "Nowy profil",
     "Duplicate profile": "Duplikuj profil",
     "Rename profile": "Zmień nazwę profilu",
-    "Unsaved changes": "Niezapisane zmiany",
-    'Region "{name}"': "Region „{name}”",
-    'Save changes to "{name}" before closing?': "Zapisać zmiany w „{name}” przed zamknięciem?",
-    'Save changes to "{name}" before switching?': (
-        "Zapisać zmiany w „{name}” przed przełączeniem?"
-    ),
     'Delete "{name}" and all its mirrors? This can\'t be undone.': (
         "Usunąć „{name}” i wszystkie jego odbicia? Tego nie da się cofnąć."
     ),
-    "Width": "Szerokość",
-    "Height": "Wysokość",
-    "Zoom %": "Powiększenie %",
-    "Game pixels. Up/Down change a value by 1, Shift by 10.": (
-        "Piksele gry. Strzałki zmieniają wartość o 1, z Shift o 10."
-    ),
-    "Apply size and zoom to all mirrors": "Zastosuj rozmiar i powiększenie do wszystkich odbić",
     "Select area again": "Zaznacz obszar ponownie",
-    "Fill in every value": "Uzupełnij wszystkie wartości",
-    "Width must be {lo} to {hi} pixels": "Szerokość musi wynosić od {lo} do {hi} pikseli",
-    "Height must be {lo} to {hi} pixels": "Wysokość musi wynosić od {lo} do {hi} pikseli",
-    "X must be 0 to {hi} for this width": "X musi wynosić od 0 do {hi} przy tej szerokości",
-    "Y must be 0 to {hi} for this height": "Y musi wynosić od 0 do {hi} przy tej wysokości",
-    "Zoom must be {lo} to {hi}%": "Powiększenie musi wynosić od {lo} do {hi}%",
     # Profile names
     "Enter a name": "Wpisz nazwę",
     "A name can't contain < > : \" / \\ | ? *": 'Nazwa nie może zawierać < > : " / \\ | ? *',
@@ -163,23 +105,12 @@ POLISH = {
     "Profile": "Profil",
     "Region": "Region",
     "copy": "kopia",
-    # Files
-    "Import profile": "Importuj profil",
-    "Export profile": "Eksportuj profil",
-    "Tibia Mirror profile": "Profil Tibia Mirror",
-    "All files": "Wszystkie pliki",
     # Status line
-    "Saved {regions}": "Zapisano {regions}",
     "Save failed": "Nie udało się zapisać",
     "Start Tibia first": "Najpierw uruchom Tibię",
     "Restore Tibia first": "Najpierw przywróć Tibię",
-    "Could not save settings": "Nie udało się zapisać ustawień",
-    "Not a readable profile file": "To nie jest poprawny plik profilu",
-    "Export failed": "Nie udało się wyeksportować",
-    'Exported "{name}"': "Wyeksportowano „{name}”",
     "Could not create profile": "Nie udało się utworzyć profilu",
     "Could not duplicate profile": "Nie udało się zduplikować profilu",
-    "Could not import profile": "Nie udało się zaimportować profilu",
     "Could not rename profile": "Nie udało się zmienić nazwy profilu",
     "Could not delete profile": "Nie udało się usunąć profilu",
     "Profile file is invalid": "Plik profilu jest uszkodzony",
@@ -194,22 +125,18 @@ POLISH = {
         "każda postać wznawia od miejsca, w którym się wylogowała."
     ),
     "Timer on": "Minutnik włączony",
-    "Alert after": "Alarm po",
+    "Notify after time": "Powiadom po czasie",
     "min": "min",
     "s": "s",
     "Count": "Liczenie",
     "Down": "W dół",
     "Up": "W górę",
-    "Mouse button": "Przycisk myszy",
     "Left": "Lewy",
     "Right": "Prawy",
-    "Both": "Oba",
     "Key": "Klawisz",
     "Click to set a key": "Kliknij, aby wybrać",
     "Press a key...": "Naciśnij klawisz...",
     "Sound": "Dźwięk",
-    "Asterisk": "Gwiazdka",
-    "Exclamation": "Wykrzyknik",
     "Notification": "Powiadomienie",
     "Critical stop": "Błąd krytyczny",
     "Beep": "Sygnał",
@@ -222,9 +149,6 @@ POLISH = {
     "Counts time since you click this region or press its key.": (
         "Odmierza czas od kliknięcia tego regionu lub naciśnięcia klawisza."
     ),
-    "{key} hides all mirrors (see Shortcuts). Pick another key.": (
-        "{key} ukrywa wszystkie odbicia (zobacz Skróty). Wybierz inny klawisz."
-    ),
     # Settings
     "GENERAL": "OGÓLNE",
     "PROFILES": "PROFILE",
@@ -232,16 +156,17 @@ POLISH = {
     "Logging in opens the character's profile, creating one the first time.": (
         "Po zalogowaniu otwiera profil postaci, a za pierwszym razem go tworzy."
     ),
-    "SAVING": "ZAPISYWANIE",
     "MIRRORS": "ODBICIA",
     "Language": "Język",
     "Theme": "Motyw",
     "Dark": "Ciemny",
     "Light": "Jasny",
+    "Restart needed": "Wymagany restart",
+    "Changes will take effect the next time you start Tibia Mirror.": (
+        "Zmiany zostaną zastosowane przy następnym uruchomieniu Tibia Mirror."
+    ),
     "Keep this panel on top": "Panel zawsze na wierzchu",
     "Stays above other windows.": "Pozostaje nad innymi oknami.",
-    "Save automatically": "Zapisuj automatycznie",
-    "Saves every change as you make it.": "Zapisuje każdą zmianę od razu.",
     "Opacity of new mirrors": "Krycie nowych odbić",
     "Each mirror can still be set on its card.": "Każde odbicie ustawisz też na jego karcie.",
     "Mirror frame": "Ramka odbicia",
@@ -254,12 +179,6 @@ POLISH = {
     "Press again to bring them back. Works while Tibia is active.": (
         "Naciśnij ponownie, aby je przywrócić. Działa, gdy Tibia jest aktywna."
     ),
-    '{key} already starts the timer of "{name}".': "{key} już uruchamia minutnik „{name}”.",
-    '{key} already starts the timer of "{name}" in profile "{profile}".': (
-        "{key} już uruchamia minutnik „{name}” w profilu „{profile}”."
-    ),
-    "Fade animations": "Animacje zanikania",
-    "Off: mirrors appear and hide instantly.": "Wyłączone: pojawiają się od razu.",
     "Tibia Mirror couldn't start. The details are in:\n{path}": (
         "Nie udało się uruchomić Tibia Mirror. Szczegóły są w pliku:\n{path}"
     ),
@@ -297,6 +216,12 @@ POLISH = {
     "Discord": "Discordzie",
     "Copy": "Kopiuj",
     "Copied": "Skopiowano",
+    "If Tibia runs as administrator, Tibia Mirror must run as administrator too. "
+    "Otherwise the features that react to your keys and clicks won't work.": (
+        "Jeśli Tibia została uruchomiona jako administrator, Tibia Mirror również "
+        "musi zostać uruchomiona w ten sam sposób. "
+        "Inaczej funkcje reagujące na klawisze i kliknięcia nie będą działać."
+    ),
     "A fan-made tool for the Tibia community. Tibia is a trademark of "
     "CipSoft GmbH, and this app is not affiliated with or endorsed by CipSoft.": (
         "Narzędzie stworzone przez fana dla społeczności Tibii. Tibia jest znakiem "
@@ -307,15 +232,9 @@ POLISH = {
 
 # Keyed by the English singular; (1, 2-4, 5+) forms.
 POLISH_PLURALS = {
-    "{n} region": ("{n} region", "{n} regiony", "{n} regionów"),
     "{n} mirror failed to load": (
         "Nie udało się wczytać {n} odbicia",
         "Nie udało się wczytać {n} odbić",
         "Nie udało się wczytać {n} odbić",
-    ),
-    "{n} mirror failed to reconnect": (
-        "Nie udało się ponownie podłączyć {n} odbicia",
-        "Nie udało się ponownie podłączyć {n} odbić",
-        "Nie udało się ponownie podłączyć {n} odbić",
     ),
 }

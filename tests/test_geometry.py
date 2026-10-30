@@ -1,7 +1,6 @@
 from tibia_mirror.core.geometry import (
     Rect,
     clamp_box,
-    clamp_rect,
     fit_panel_size,
     magnifier_source,
     nudged_point,
@@ -9,8 +8,6 @@ from tibia_mirror.core.geometry import (
     panel_geometry,
     place_beside,
     rect_from_drag,
-    region_error,
-    resize_around_center,
     scaled_size,
     scroll_fraction,
     scroll_thumb,
@@ -23,6 +20,14 @@ from tibia_mirror.core.geometry import (
 def test_rect_edges():
     r = Rect(10, 20, 30, 40)
     assert (r.right, r.bottom) == (40, 60)
+
+
+def test_grown_adds_the_margin_on_every_side():
+    assert Rect(10, 20, 100, 50).grown(2) == Rect(8, 18, 104, 54)
+
+
+def test_grown_by_zero_is_the_same_rect():
+    assert Rect(10, 20, 100, 50).grown(0) == Rect(10, 20, 100, 50)
 
 
 def test_rect_from_drag_any_direction():
@@ -125,30 +130,11 @@ def test_place_beside_respects_offset_bounds():
     assert place_beside(Rect(-100, 50, 80, 40), 60, 30, monitor, 12) == (-172, 50)
 
 
-def test_clamp_rect_moves_then_shrinks_into_the_area():
-    assert clamp_rect(Rect(95, -5, 10, 10), 100, 100) == Rect(90, 0, 10, 10)
-    assert clamp_rect(Rect(10, 10, 300, 20), 100, 100) == Rect(0, 10, 100, 20)
-
-
-def test_resize_around_center_keeps_the_centre_and_stays_inside():
-    assert resize_around_center(Rect(40, 40, 20, 20), 40, 10, 100, 100) == Rect(30, 45, 40, 10)
-    assert resize_around_center(Rect(0, 0, 10, 10), 30, 30, 100, 100) == Rect(0, 0, 30, 30)
-
-
 def test_clamp_box_moves_a_box_just_inside_bounds():
     bounds = Rect(0, 0, 1000, 800)
     assert clamp_box(500, 400, 100, 100, bounds) == (500, 400)
     assert clamp_box(950, -20, 100, 100, bounds) == (900, 0)
     assert clamp_box(-50, 790, 100, 100, bounds) == (0, 700)
-
-
-def test_region_error_names_the_field_to_fix():
-    assert region_error(10, 10, 100, 50, 800, 600, 5) is None
-    assert region_error(0, 0, 4, 50, 800, 600, 5)[2] == "w"
-    assert region_error(0, 0, 100, 601, 800, 600, 5)[2] == "h"
-    message, values, field = region_error(750, 0, 100, 50, 800, 600, 5)
-    assert (message.format(**values), field) == ("X must be 0 to 700 for this width", "x")
-    assert region_error(0, -1, 100, 50, 800, 600, 5)[2] == "y"
 
 
 def test_magnifier_source_centres_on_the_point_and_stays_inside():
@@ -179,15 +165,6 @@ def test_panel_opens_centred_and_fits_the_screen():
     assert panel_geometry((484, 960), 440, 48, Rect(0, 0, 800, 400)).startswith("484x440+")
     # A work area that starts lower (taskbar on top) moves the panel with it.
     assert panel_geometry((484, 960), 440, 48, Rect(0, 40, 1920, 1040)) == "484x960+718+56"
-
-
-def test_rect_contains_rect():
-    area = Rect(0, 0, 1920, 1040)
-    assert area.contains_rect(Rect(0, 0, 1920, 1040))
-    assert area.contains_rect(Rect(100, 50, 500, 900))
-    assert not area.contains_rect(Rect(-1, 50, 500, 900))  # past the left edge
-    assert not area.contains_rect(Rect(1500, 50, 500, 900))  # past the right edge
-    assert not area.contains_rect(Rect(100, 200, 500, 900))  # below the bottom
 
 
 def test_remembered_panel_size_fits_the_screen_but_not_below_the_minimum():

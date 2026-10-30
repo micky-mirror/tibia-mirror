@@ -1,162 +1,258 @@
-"""The control panel: the menu rail, connection status, the selected page and the footer.
-
-Adding a page means a NavItem in SECTIONS and an entry in ControlPanel._pages.
-"""
+"""The panel: everything inside the main window."""
 
 import tkinter as tk
 import tkinter.font as tkfont
-from datetime import date
+from collections.abc import Callable, Sequence
 
-from tibia_mirror.about import AUTHOR, TIP_CHARACTER, copyright_years
-from tibia_mirror.config import PANEL_SIZE
-from tibia_mirror.core.settings import Settings
+from tibia_mirror.app_parts.profile_manager import ProfileManager
+from tibia_mirror.config import MESSAGE_SHOW_MS, PANEL_SIZE
+from tibia_mirror.core.tibia.connection import CONNECTED, MINIMIZED, WAITING
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
-from tibia_mirror.ui.controls.widgets import CopyText
-from tibia_mirror.ui.panel.about_page import build_about_page
-from tibia_mirror.ui.panel.mirrors_page import MirrorsActions, MirrorsPage
-from tibia_mirror.ui.panel.nav import NavItem, NavRail
-from tibia_mirror.ui.panel.settings_page import OnChange, build_settings_page
-from tibia_mirror.ui.panel.shortcuts_page import build_shortcuts_page
+from tibia_mirror.ui.base.text import elide
+from tibia_mirror.ui.panel.footer import Footer
+from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.nav import NavRail
+from tibia_mirror.ui.panel.pages.about_page import AboutPage
+from tibia_mirror.ui.panel.pages.mirrors_page import MirrorsPage
+from tibia_mirror.ui.panel.pages.settings_page import SettingsPage
+from tibia_mirror.ui.panel.pages.shortcuts_page import ShortcutsPage
+from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 
-PAD = 20
-TIP_GAP = 10  # above and below the hairline between the footer's tip line and its credit
+# Sizes at 100% display scaling; px() scales them where they are used.
+SIDE_PAD = 20  # left and right of the content
+CONNECTION_TOP_PAD = 14  # above the connection line
+NOTE_GAP = 12  # between the connection text and the note about hidden mirrors
+MESSAGE_GAP = 12  # at least this much between the texts on the left and the message
+FOOTER_TOP_PAD = 10  # between the thin line and the footer
+FOOTER_BOTTOM_PAD = 12  # below the footer
+
+START_PAGE = "mirrors"  # the page that is open when the app starts
+
+# The texts of the connection line: state -> text in English.
+CONNECTION_TEXTS = {
+    WAITING: "Waiting for Tibia...",
+    MINIMIZED: "Tibia is minimized",
+    CONNECTED: "Tibia connected",
+}
+
+# The colours of the message line: tone -> theme colour name.
+MESSAGE_TONES = {"muted": "SUBTEXT", "ok": "GREEN", "error": "RED"}
 
 
 def content_width() -> int:
-    """The content column: fixed width, anchored left; a wider panel leaves space on the right."""
-    return px(PANEL_SIZE[0]) - px(NavRail.WIDTH) - 2 * px(PAD)
+    """The width of the content: the normal window width without the menu and the side space.
 
-
-# Labels are English here and translated when the rail draws them.
-SECTIONS = (
-    NavItem("mirrors", "Mirrors", "\ue8b9"),
-    NavItem("shortcuts", "Shortcuts", "\ue765"),
-    NavItem("about", "About", "\ue946", pinned_bottom=True),
-    NavItem("settings", "Settings", "\ue713", pinned_bottom=True),
-)
-
-
-class ControlPanel:
-    """Pure view: every control forwards to a callback from the App.
-
-    The App drives `mirrors` (the Mirrors page) directly. destroy() removes it all,
-    so the App can rebuild it in a new theme or language on the same `page`.
+    It is fixed. A wider window leaves empty space on the right.
     """
+    return px(PANEL_SIZE[0]) - px(NavRail.WIDTH) - 2 * px(SIDE_PAD)
+
+
+class Panel(tk.Frame):
+    """Everything inside the main window."""
 
     def __init__(
         self,
-        root: tk.Misc,
-        settings: Settings,
-        mirrors_actions: MirrorsActions,
-        on_setting: OnChange,
-        page: str = SECTIONS[0].key,
+        window: tk.Misc,
+        settings: AppSettingsStore,
+        profile_manager: ProfileManager,
+        connection_state: str,
+        profile_info: ProfileInfo,
+        on_profile_selected: Callable[[str], None],
+        on_new_profile: Callable[[str], None],
+        on_duplicate_profile: Callable[[str], None],
+        on_rename_profile: Callable[[str], None],
+        on_delete_profile: Callable[[], None],
+        mirrors: Sequence[MirrorInfo] | None,
+        on_mirror_changed: Callable[[MirrorInfo], None],
+        on_mirror_removed: Callable[[str], None],
+        on_select_area: Callable[[str | None], None],
     ) -> None:
-        width, pad = content_width(), px(PAD)
-        self._frame = tk.Frame(root, bg=theme.BG)
-        self._frame.pack(fill="both", expand=True)
-        NavRail(self._frame, SECTIONS, page, self._show_page).pack(side="left", fill="y")
-        body = tk.Frame(self._frame, bg=theme.BG)
-        body.pack(side="left", fill="both", expand=True)
+        super().__init__(window, bg=theme.BG)
+        self._settings = settings
+        self._profile_manager = profile_manager
+        self._connection_state = connection_state  # the state the connection line shows
+        self._profile_info = profile_info
+        self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
+        self._on_new_profile = on_new_profile  # gets the name typed for a new profile
+        self._on_duplicate_profile = on_duplicate_profile  # gets the name typed for the copy
+        self._on_rename_profile = on_rename_profile  # gets the new name typed for the profile
+        self._on_delete_profile = on_delete_profile  # called when the user confirms the delete
+        self._mirrors = mirrors
+        self._on_mirror_changed = on_mirror_changed  # gets the new info after a card changed it
+        self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
+        # gets the id of the mirror whose area is selected again, None for a new mirror
+        self._on_select_area = on_select_area
+        self._open_page = START_PAGE  # the key of the page that is shown
+        self._add_menu()
+        self._add_content()
+        self._add_top_line()
+        self._add_footer()
+        self._add_pages()
 
-        # No title here: the window's title bar already says "Tibia Mirror".
-        status = tk.Frame(body, bg=theme.BG)
-        status.pack(anchor="w", padx=pad, pady=(px(14), 0))
-        self._connection = tk.Label(status, bg=theme.BG, font=theme.FONT)
+    def _add_menu(self) -> None:
+        NavRail(self, self._open_page, self._show_page).pack(side="left", fill="y")
+
+    def _add_content(self) -> None:
+        """The area to the right of the menu. It takes all the space the menu leaves."""
+        self._content = tk.Frame(self, bg=theme.BG)
+        self._content.pack(side="left", fill="both", expand=True)
+
+    def _add_top_line(self) -> None:
+        """The line at the top: the connection on the left, a message on the right."""
+        top_line = tk.Frame(self._content, bg=theme.BG)
+        top_line.pack(
+            side="top",
+            fill="x",
+            padx=px(SIDE_PAD),
+            pady=(px(CONNECTION_TOP_PAD), 0),
+        )
+        self._add_connection_text(top_line)
+        self._add_hidden_note(top_line)
+        self._add_message(top_line)
+
+    def _add_connection_text(self, top_line: tk.Frame) -> None:
+        """The text that says if the app has found Tibia."""
+        self._connection = tk.Label(top_line, bg=theme.BG, font=theme.FONT)
         self._connection.pack(side="left")
-        self._all_hidden = tk.Label(status, bg=theme.BG, fg=theme.YELLOW, font=theme.FONT)
+        self.set_connection_state(self._connection_state)
 
-        # Packed before the pages, so it stays at the bottom of every one
-        # (bottom-side packing stacks upwards).
-        footer = tk.Frame(body, bg=theme.BG)
-        footer.pack(side="bottom", anchor="w", padx=pad, pady=(px(10), px(12)))
-        tk.Frame(body, bg=theme.SURFACE_HI, height=px(1)).pack(side="bottom", fill="x")
-        if TIP_CHARACTER is not None:
-            self._build_tip_line(footer, TIP_CHARACTER, width)
-            # A hairline, with room around it, between the tip and the credit.
-            tk.Frame(footer, bg=theme.SURFACE_HI, height=px(1), width=width).pack(
-                anchor="w", pady=px(TIP_GAP)
-            )
-        for text in (
-            tr("Created by {author}", author=AUTHOR),
-            # The license's name is never translated.
-            tr("© {years} · PolyForm Strict License", years=copyright_years(date.today().year)),
-        ):
-            tk.Label(footer, text=text, bg=theme.BG, fg=theme.SUBTEXT, font=theme.FONT_SMALL).pack(
-                anchor="w"
-            )
+    def _add_hidden_note(self, top_line: tk.Frame) -> None:
+        """A yellow note after the connection text. Shown only while the mirrors are hidden."""
+        self._hidden_note = tk.Label(top_line, bg=theme.BG, fg=theme.YELLOW, font=theme.FONT)
 
-        self.mirrors = MirrorsPage(body, mirrors_actions, width=width, pad=pad)
-        self._pages = {
-            "mirrors": self.mirrors,
-            "shortcuts": build_shortcuts_page(
-                body, settings, width=width, pad=pad, on_change=on_setting
-            ),
-            "settings": build_settings_page(
-                body, settings, width=width, pad=pad, on_change=on_setting
-            ),
-            "about": build_about_page(body, width=width, pad=pad),
-        }
-        self.page = page
-        self._pages[page].pack(fill="both", expand=True)
-        self.set_connection("waiting")
+    def _add_message(self, top_line: tk.Frame) -> None:
+        """A short message for the user, on the right. Empty until set_message() is called."""
+        self._message = tk.Label(top_line, bg=theme.BG, font=theme.FONT)
+        self._message.place(relx=1.0, rely=0.5, anchor="e")
+        self._message_font = tkfont.Font(font=theme.FONT)
+        self._message_text = ""  # the whole text, before it is cut short to fit
+        self._message_tone = "muted"
+        self._hide_message_job: str | None = None  # the waiting hide, if any
 
-    @staticmethod
-    def _build_tip_line(footer: tk.Frame, character: str, width: int) -> None:
-        """The tip sentence in short, on two lines: coins and name in gold, the name copyable.
+    def set_connection_state(self, state: str) -> None:
+        """Set Tibia connection state."""
+        self._connection_state = state
+        is_connected: bool = state == CONNECTED
 
-        A name too long for the line is cut short, but still copied in full.
+        text = tr(CONNECTION_TEXTS[state])
+        colour = theme.GREEN if is_connected else theme.SUBTEXT
+
+        self._connection.configure(text="● " + text, fg=colour)
+
+    def set_profile_info(self, profile_info: ProfileInfo) -> None:
+        """Show another active profile on the Mirrors page."""
+        self._mirrors_page.set_profile_info(profile_info)
+
+    def set_mirrors(self, mirrors: Sequence[MirrorInfo] | None) -> None:
+        """Show these mirrors on the Mirrors page."""
+        self._mirrors_page.set_mirrors(mirrors)
+
+    def set_message(self, text: str, tone: str = "muted", *, is_lasting: bool = False) -> None:
+        """Show a short message for the user. An empty text hides it.
+
+        It hides after MESSAGE_SHOW_MS, unless it is lasting. A new message replaces it.
         """
-        tk.Label(
-            footer, text=tr("Enjoying it?"), bg=theme.BG, fg=theme.SUBTEXT, font=theme.FONT_SMALL
-        ).pack(anchor="w")
-        inset = 3  # in line with the label above (a tk.Label's border and padding, never scaled)
-        row = tk.Frame(footer, bg=theme.BG)
-        row.pack(anchor="w", padx=(inset, 0))
-        before, after = tr("Tip {coins} to").split("{coins}")
-        font = tkfont.Font(font=theme.FONT_SMALL)
-        used = inset
-        for text, fg in (
-            (before, theme.SUBTEXT),
-            (tr("a few Tibia Coins"), theme.GOLD),
-            (after + " ", theme.SUBTEXT),
-        ):
-            tk.Label(row, text=text, bg=theme.BG, fg=fg, font=theme.FONT_SMALL, bd=0, padx=0).pack(
-                side="left"
-            )
-            used += font.measure(text)
-        CopyText(
-            row,
-            character,
-            background=theme.BG,
-            fg=theme.GOLD,
-            small=True,
-            inset=0,
-            max_width=width - used,
-        ).pack(side="left")
+        # the new message gets its own time, so the old wait is thrown away
+        if self._hide_message_job is not None:
+            self.after_cancel(self._hide_message_job)
+            self._hide_message_job = None
 
-    def destroy(self) -> None:
-        self._frame.destroy()
+        self._message_text = text
+        self._message_tone = tone
+        self._draw_message()
 
-    def _show_page(self, key: str) -> None:
-        self._pages[self.page].pack_forget()
-        self.page = key
-        self._pages[key].pack(fill="both", expand=True)
+        if text and not is_lasting:
+            self._hide_message_job = self.after(MESSAGE_SHOW_MS, self._hide_message)
 
-    def set_connection(self, state: str) -> None:
-        """Show the state: "waiting" (no Tibia yet), "minimized" or "connected"."""
-        text, color = {
-            "waiting": (tr("Waiting for Tibia..."), theme.SUBTEXT),
-            "minimized": (tr("Tibia is minimized"), theme.SUBTEXT),
-            "connected": (tr("Tibia connected"), theme.GREEN),
-        }[state]
-        self._connection.config(text="● " + text, fg=color)
+    def _hide_message(self) -> None:
+        self._hide_message_job = None
+        self.set_message("")
 
     def set_all_hidden(self, key_name: str | None) -> None:
-        """Say the hide-all key (`key_name`, e.g. "F12") has hidden every mirror; None clears it."""
+        """Say that the hide-all key `key_name` hides every mirror. None takes the note away."""
         if key_name is None:
-            self._all_hidden.pack_forget()
-            return
-        self._all_hidden.config(text=tr("Mirrors hidden ({key})", key=key_name))
-        self._all_hidden.pack(side="left", padx=(px(12), 0))
+            self._hidden_note.pack_forget()
+        else:
+            self._hidden_note.configure(text=tr("Mirrors hidden ({key})", key=key_name))
+            self._hidden_note.pack(side="left", padx=(px(NOTE_GAP), 0))
+
+        # the message gets the space that is left
+        self._draw_message()
+
+    def _draw_message(self) -> None:
+        """The message, cut short with "…" when it does not fit after the texts on the left."""
+        free_width = content_width() - self._get_left_width() - px(MESSAGE_GAP)
+        text = elide(self._message_text, self._message_font, free_width)
+        colour = getattr(theme, MESSAGE_TONES[self._message_tone])
+
+        self._message.configure(text=text, fg=colour)
+
+    def _get_left_width(self) -> int:
+        """The width of the connection text, and of the note about hidden mirrors."""
+        left_width = self._connection.winfo_reqwidth()
+
+        # the note is packed only while the mirrors are hidden
+        if self._hidden_note.winfo_manager():
+            left_width += px(NOTE_GAP) + self._hidden_note.winfo_reqwidth()
+
+        return left_width
+
+    def _add_footer(self) -> None:
+        """The footer at the bottom, under a thin line."""
+        footer = Footer(self._content, content_width())
+        footer.pack(
+            side="bottom",
+            anchor="w",
+            padx=px(SIDE_PAD),
+            pady=(px(FOOTER_TOP_PAD), px(FOOTER_BOTTOM_PAD)),
+        )
+        # side="bottom" stacks upwards, so the thin line lands above the footer.
+        thin_line = tk.Frame(self._content, bg=theme.SURFACE_HI, height=px(1))
+        thin_line.pack(side="bottom", fill="x")
+
+    def _add_pages(self) -> None:
+        """Create every page and show the open one.
+
+        The keys are the keys of the menu entries.
+        """
+        self._mirrors_page = MirrorsPage(
+            self._content,
+            content_width(),
+            px(SIDE_PAD),
+            self._profile_info,
+            self._on_profile_selected,
+            self._on_new_profile,
+            self._on_duplicate_profile,
+            self._on_rename_profile,
+            self._on_delete_profile,
+            self._mirrors,
+            self._on_mirror_changed,
+            self._on_mirror_removed,
+            self._on_select_area,
+        )
+        self._pages: dict[str, tk.Frame] = {
+            "mirrors": self._mirrors_page,
+            "shortcuts": ShortcutsPage(
+                self._content,
+                content_width(),
+                px(SIDE_PAD),
+                self._settings,
+                self._profile_manager,
+            ),
+            "about": AboutPage(self._content, content_width(), px(SIDE_PAD)),
+            "settings": SettingsPage(self._content, content_width(), px(SIDE_PAD), self._settings),
+        }
+        self._pack_page(self._open_page)
+
+    def _show_page(self, key: str) -> None:
+        """Show the page `key` in place of the open one. The menu calls this."""
+        self._pages[self._open_page].pack_forget()  # hide currently displayed page
+        self._open_page = key  # assign selected page
+        self._pack_page(key)  # open selected page
+
+    def _pack_page(self, key: str) -> None:
+        # Packed last, so the page gets the space between the connection line and the footer.
+        self._pages[key].pack(side="top", fill="both", expand=True)

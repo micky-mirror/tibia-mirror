@@ -5,6 +5,7 @@ import string
 import pytest
 
 from tibia_mirror import i18n
+from tibia_mirror.core.mirrors.mirror_timer import SOUNDS
 from tibia_mirror.i18n import POLISH, POLISH_PLURALS, tr, tr_n
 
 SOURCE = pathlib.Path(__file__).parent.parent / "tibia_mirror"
@@ -24,8 +25,8 @@ def test_english_is_the_text_itself_with_fields_filled_in():
 
 def test_polish_and_the_fallback_to_english():
     i18n.use("pl")
-    assert tr("Save") == "Zapisz"
-    assert tr('Exported "{name}"', name="Knight") == "Wyeksportowano „Knight”"
+    assert tr("Cancel") == "Anuluj"
+    assert tr('Timer for "{name}"', name="Minimap") == "Minutnik dla „Minimap”"
     assert tr("Not in any catalog") == "Not in any catalog"
 
 
@@ -34,7 +35,9 @@ def test_unknown_language_falls_back_to_english():
     assert i18n.current() == "en"
 
 
-def test_plurals():
+def test_plurals(monkeypatch):
+    # the three Polish forms of a text of this test, so it does not depend on the app's texts
+    monkeypatch.setitem(POLISH_PLURALS, "{n} region", ("{n} region", "{n} regiony", "{n} regionów"))
     i18n.use("en")
     assert [tr_n(n, "{n} region", "{n} regions") for n in (1, 2)] == ["1 region", "2 regions"]
     i18n.use("pl")
@@ -85,7 +88,8 @@ def test_every_text_in_the_code_has_a_polish_translation():
     assert missing == []
 
 
-def test_sound_names_are_translated():
-    from tibia_mirror.ui.controls.dialogs import SOUND_LABELS
+def test_every_sound_of_the_timer_dialog_has_a_translated_label():
+    from tibia_mirror.ui.panel.mirrors.timer_dialog import SOUND_LABELS
 
+    assert set(SOUND_LABELS) == set(SOUNDS)
     assert all(label in POLISH for label in SOUND_LABELS.values())

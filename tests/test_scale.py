@@ -58,29 +58,19 @@ PIXEL_KEYWORDS = {
 }
 # Calls whose positional arguments are pixel sizes or coordinates (how many, None: all).
 PIXEL_POSITIONALS = {
-    "button_pixels": 2,
+    "raised_pixels": 2,
     "outlined_pixels": 3,
+    "rounded_pixels": 3,
     **dict.fromkeys(("create_line", "create_text", "create_image", "create_window"), None),
     **dict.fromkeys(("create_rectangle", "create_oval", "coords"), None),
 }
 # Sizes that stay the same at any display scaling, on purpose: (file, code) -> why.
 UNSCALED = {
-    ("dialogs.py", "padx=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
-    ("dialogs.py", "pady=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
-    ("tooltip.py", "padx=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
-    ("tooltip.py", "pady=dwm.POPUP_FRAME"): "Windows 10's 1px popup border",
-    ("loupe.py", "width=self._width - 2"): "the loupe's own 1px frame",
-    ("loupe.py", "height=self._height - 2"): "the loupe's own 1px frame",
-    ("loupe.py", "padx=1"): "the loupe's own 1px frame",
-    ("loupe.py", "pady=1"): "the loupe's own 1px frame",
-    ("loupe.py", "self._width // 2 - 1"): "the loupe's own 1px frame",
-    ("loupe.py", "self._height - 2 - readout // 2 - px(self.READOUT_LIFT)"): "its 1px frame",
-    ("menu.py", "row_height - 2"): "the hover chip leaves 1px above and below",
-    ("menu.py", "row[0] + 1"): "the hover chip leaves 1px above and below",
-    ("widgets.py", "y + (1 if down else 0)"): "a pressed button sinks 1px, like its image",
-    ("about_page.py", "height=1"): "a placeholder: the box is sized once its text is laid out",
-    ("settings_page.py", "height=1"): "a placeholder: the card is sized once its rows are drawn",
-    ("widgets.py", "height=1"): "a placeholder: the check box is sized to its label",
+    ("rich_paragraph.py", "height=1"): "a placeholder: the frame is sized to its text",
+}
+# Constants that are never scaled, on purpose: name -> why. They need no px() anywhere.
+UNSCALED_NAMES = {
+    "LABEL_INSET": "where a tk.Label starts its text; Tk never scales it",
 }
 
 
@@ -100,7 +90,7 @@ def unscaled_parts(node, parent=None):
         return [node] if number and node.value != 0 and not factor else []
     name = getattr(node, "attr", None) or getattr(node, "id", None)
     if isinstance(name, str) and name.isupper() and len(name) > 1:
-        return [node]
+        return [] if name in UNSCALED_NAMES else [node]
     if isinstance(node, ast.Attribute):
         return []
     if isinstance(node, ast.Subscript):

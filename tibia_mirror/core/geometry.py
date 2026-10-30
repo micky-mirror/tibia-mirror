@@ -26,12 +26,12 @@ class Rect:
     def contains(self, x: int, y: int) -> bool:
         return self.x <= x < self.right and self.y <= y < self.bottom
 
-    def contains_rect(self, other: "Rect") -> bool:
-        return (
-            self.x <= other.x
-            and other.right <= self.right
-            and self.y <= other.y
-            and other.bottom <= self.bottom
+    def grown(self, margin: int) -> "Rect":
+        return Rect(
+            self.x - margin,
+            self.y - margin,
+            self.w + 2 * margin,
+            self.h + 2 * margin,
         )
 
 
@@ -83,42 +83,12 @@ def overlay_to_client(selection: Rect, monitor_origin: Point, client_origin: Poi
     )
 
 
-def clamp_rect(rect: Rect, width: int, height: int) -> Rect:
-    """`rect` shrunk to fit a width x height area if it must be, then moved inside it."""
-    w, h = min(rect.w, width), min(rect.h, height)
-    return Rect(min(max(0, rect.x), width - w), min(max(0, rect.y), height - h), w, h)
-
-
-def resize_around_center(rect: Rect, w: int, h: int, width: int, height: int) -> Rect:
-    """A w x h rect with `rect`'s centre, kept inside a width x height area."""
-    center_x, center_y = rect.x + rect.w / 2, rect.y + rect.h / 2
-    return clamp_rect(Rect(round(center_x - w / 2), round(center_y - h / 2), w, h), width, height)
-
-
 def clamp_box(x: int, y: int, w: int, h: int, bounds: Rect) -> Point:
     """Top-left of a w x h box at (x, y), moved as little as needed to lie inside `bounds`."""
     return (
         min(max(x, bounds.x), max(bounds.x, bounds.right - w)),
         min(max(y, bounds.y), max(bounds.y, bounds.bottom - h)),
     )
-
-
-def region_error(
-    x: int, y: int, w: int, h: int, width: int, height: int, minimum: int
-) -> tuple[str, dict[str, int], str] | None:
-    """Why a region doesn't fit the client area, or None.
-
-    Returns (English message with {fields}, their values, the field to fix).
-    """
-    if not minimum <= w <= width:
-        return "Width must be {lo} to {hi} pixels", {"lo": minimum, "hi": width}, "w"
-    if not minimum <= h <= height:
-        return "Height must be {lo} to {hi} pixels", {"lo": minimum, "hi": height}, "h"
-    if not 0 <= x <= width - w:
-        return "X must be 0 to {hi} for this width", {"hi": width - w}, "x"
-    if not 0 <= y <= height - h:
-        return "Y must be 0 to {hi} for this height", {"hi": height - h}, "y"
-    return None
 
 
 def magnifier_source(x: int, y: int, span: int, width: int, height: int) -> Rect:

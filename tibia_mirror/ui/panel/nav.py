@@ -1,148 +1,173 @@
-"""The navigation rail down the left edge of the control panel."""
+"""The menu on the left side of the panel."""
 
 from __future__ import annotations
 
 import tkinter as tk
-from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from collections.abc import Callable
 
 from tibia_mirror.i18n import tr
-from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.images import photo
-from tibia_mirror.ui.base.render import ButtonStyle, button_pixels
+from tibia_mirror.ui.base import icons, theme
+from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
 
-
-@dataclass(frozen=True)
-class NavItem:
-    key: str
-    label: str
-    glyph: str  # FONT_ICON code point
-    pinned_bottom: bool = False  # stacked up from the rail's bottom edge, like Settings
+# The menu entries: key -> (icon, label in English).
+ENTRIES = {
+    "mirrors": (icons.MIRRORS, "Mirrors"),
+    "shortcuts": (icons.SHORTCUTS, "Shortcuts"),
+    "about": (icons.ABOUT, "About"),
+    "settings": (icons.SETTINGS, "Settings"),
+}
 
 
 class NavRail(tk.Canvas):
-    """The menu down the panel's left edge: an icon over a label per section.
+    """The menu: for each page an icon with a label under it."""
 
-    Drawn on one canvas like RegionCard; pinned entries stack up from the bottom.
-    A click selects an entry and calls on_select(key).
-    """
+    # Sizes at 100% display scaling; px() scales them where they are used.
+    WIDTH = 100
+    TOP_PAD = 16  # above the entry
+    ICON_HEIGHT = 30
+    PILL_WIDTH = 48  # the rounded shape behind an icon; its height is ICON_HEIGHT
+    LABEL_GAP = 4  # between the icon and the label
+    ENTRY_HEIGHT = 68  # from the top of one entry to the top of the next
+    BOTTOM_PAD = 10  # below the last entry
 
-    # Sizes at 100% display scaling, scaled with px() where used.
-    WIDTH = 100  # room around "Ustawienia", the longest label
-    TOP_PAD = 16  # above the first item
-    BOTTOM_PAD = 10  # below the last one
-    ITEM_HEIGHT = 68
-    PILL_WIDTH = 48
-    PILL_HEIGHT = 30
-    LABEL_GAP = 4
-
-    def __init__(
-        self,
-        parent: tk.Misc,
-        items: Sequence[NavItem],
-        selected: str,
-        on_select: Callable[[str], None],
-    ) -> None:
+    def __init__(self, parent: tk.Misc, selected: str, on_select: Callable[[str], None]) -> None:
+        # No focus ring and no border: Tk adds both to a canvas.
         super().__init__(parent, width=px(self.WIDTH), bg=theme.MANTLE, highlightthickness=0, bd=0)
-        self._items = items
-        self._selected = selected
-        self._hovered: str | None = None
-        self._pressed: str | None = None
-        self._on_select = on_select
+        self._selected = selected  # the key of the selected entry
+        self._on_select = on_select  # called with the key when the user selects another entry
+        self._hovered: str | None = None  # the key of the entry under the pointer
+        self._pressed: str | None = None  # the key of the entry the button went down on
+        self._entry_tops: dict[str, int] = {}  # key -> the top edge of the entry
+        self._selected_pill = self._get_pill_image(theme.ACCENT_TINT)
+        self._hovered_pill = self._get_pill_image(theme.SURFACE)
+        self._bind_events()
 
-        pill_height = px(self.PILL_HEIGHT)
-        self._pills = {
-            fill: photo(
-                self,
-                button_pixels(
-                    px(self.PILL_WIDTH),
-                    pill_height,
-                    ButtonStyle(fill=fill, radius=pill_height // 2),
-                    theme.MANTLE,
-                ),
-            )
-            for fill in (theme.SURFACE, theme.ACCENT_TINT)
+    def _bind_events(self) -> None:
+        self.bind("<Configure>", self._on_resize)
+        # <Enter> too: the pointer can come in and stop, with no <Motion> after it.
+        self.bind("<Enter>", self._on_mouse_move)
+        self.bind("<Motion>", self._on_mouse_move)
+        self.bind("<Leave>", self._on_mouse_leave)
+        self.bind("<ButtonPress-1>", self._on_mouse_down)
+        self.bind("<ButtonRelease-1>", self._on_mouse_up)
+
+    def _on_resize(self, event: tk.Event[tk.Canvas]) -> None:
+        """Tk calls this when the menu appears and when its size changes."""
+        self._draw(event.height)
+
+    def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered_entry(self._get_entry_at(event.y))
+
+    def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
+        self._set_hovered_entry(None)
+
+    def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
+        self._pressed = self._get_entry_at(event.y)
+
+    def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
+        """Select the entry if the button went down and up on it, like a normal button."""
+        # after a drag the button can go up outside the menu
+        is_inside: bool = 0 <= event.x < self.winfo_width()
+        key = self._get_entry_at(event.y)
+        if is_inside and key is not None and key == self._pressed:
+            self._select(key)
+        self._pressed = None
+
+    def _get_pill_image(self, colour: str) -> tk.PhotoImage:
+        """The rounded shape behind an icon, as an image in the given colour."""
+        height = px(self.ICON_HEIGHT)
+        return rounded_image(
+            self,
+            width=px(self.PILL_WIDTH),
+            height=height,
+            radius=height // 2,
+            colour=colour,
+            background=theme.MANTLE,  # the menu's background: the smooth edges blend into it
+        )
+
+    def _draw(self, height: int) -> None:
+        """Draw the entries: two at the top edge and two at the bottom edge."""
+        self.delete("all")
+        top = px(self.TOP_PAD)
+        bottom = height - px(self.BOTTOM_PAD)
+        entry_height = px(self.ENTRY_HEIGHT)
+        self._entry_tops = {
+            "mirrors": top,
+            "shortcuts": top + entry_height,
+            "about": bottom - 2 * entry_height,
+            "settings": bottom - entry_height,
         }
-        center_x = px(self.WIDTH) // 2
-        self._drawn: list[tuple[int, int, int]] = []  # (pill, glyph, label) items per entry
-        for item in items:
-            self._drawn.append(
-                (
-                    self.create_image(center_x, 0, state="hidden"),
-                    self.create_text(center_x, 0, text=item.glyph, font=theme.FONT_ICON_LARGE),
-                    self.create_text(
-                        center_x, 0, text=tr(item.label), anchor="n", font=theme.FONT_CAPTION
-                    ),
-                )
-            )
-        self._tops = [0] * len(items)
-        self._layout(0)
-        self._draw()
-        self.bind("<Configure>", lambda e: self._layout(e.height))
+        for key, entry_top in self._entry_tops.items():
+            self._draw_entry(key, entry_top)
 
-        # <Enter> too: the pointer may land on an entry and rest there with no <Motion>.
-        for sequence in ("<Enter>", "<Motion>"):
-            self.bind(sequence, lambda e: self._set_hovered(self._key_at(e)))
-        self.bind("<Leave>", lambda e: self._set_hovered(None))
-        self.bind("<ButtonPress-1>", self._press)
-        self.bind("<ButtonRelease-1>", self._release)
+    def _get_entry_look(self, key: str) -> tuple[tk.PhotoImage | None, str, str]:
+        """How the entry looks now: (rounded shape or None, icon colour, label colour)."""
+        if key == self._selected:
+            return self._selected_pill, theme.ACCENT, theme.TEXT
+        elif key == self._hovered:
+            return self._hovered_pill, theme.TEXT, theme.TEXT
+        else:
+            return None, theme.SUBTEXT, theme.SUBTEXT
 
-    def _layout(self, height: int) -> None:
-        top = [i for i in self._items if not i.pinned_bottom]
-        bottom = [i for i in self._items if i.pinned_bottom]
-        center_x = px(self.WIDTH) // 2
-        item_height, half_pill = px(self.ITEM_HEIGHT), px(self.PILL_HEIGHT) // 2
-        for n, item in enumerate(self._items):
-            if item.pinned_bottom:
-                below = len(bottom) - bottom.index(item)
-                y = height - px(self.BOTTOM_PAD) - below * item_height
-            else:
-                y = px(self.TOP_PAD) + top.index(item) * item_height
-            self._tops[n] = y
-            pill_y = y + half_pill
-            pill, glyph, label = self._drawn[n]
-            self.coords(pill, center_x, pill_y)
-            self.coords(glyph, center_x, pill_y)
-            self.coords(label, center_x, pill_y + half_pill + px(self.LABEL_GAP))
+    def _draw_entry(self, key: str, top: int) -> None:
+        """Draw one entry of ENTRIES. `top` is the entry's top edge."""
+        icon, label = ENTRIES[key]
+        pill, icon_colour, label_colour = self._get_entry_look(key)
+        # start icon positions
+        position_x = px(self.WIDTH) // 2
+        position_y = top + px(self.ICON_HEIGHT) // 2
+        # label position from top
+        label_y = position_y + px(self.ICON_HEIGHT) // 2 + px(self.LABEL_GAP)
+        # draw the rounded shape behind the icon
+        if pill is not None:
+            self.create_image(position_x, position_y, image=pill)
+        # draw icon
+        self.create_text(
+            position_x,
+            position_y,
+            text=icon,
+            font=theme.FONT_ICON_LARGE,
+            fill=icon_colour,
+        )
+        # draw text
+        self.create_text(
+            position_x,
+            label_y,
+            text=tr(label),
+            anchor="n",
+            font=theme.FONT_CAPTION,
+            fill=label_colour,
+        )
 
-    def _key_at(self, e: tk.Event[tk.Canvas]) -> str | None:
-        if not 0 <= e.x < px(self.WIDTH):
-            return None
-        for item, top in zip(self._items, self._tops, strict=True):
-            if top <= e.y < top + px(self.ITEM_HEIGHT):
-                return item.key
+    def _get_entry_at(self, position_y: int) -> str | None:
+        """The key of the entry at `position_y`, or None for the empty space.
+
+        `position_y` is the mouse "y" position on the menu.
+        An entry reacts in a band: the full width of the menu, ENTRY_HEIGHT high.
+        """
+        for key, top in self._entry_tops.items():
+            if top <= position_y < top + px(self.ENTRY_HEIGHT):
+                return key
         return None
 
-    def _draw(self) -> None:
-        for item, (pill, glyph, label) in zip(self._items, self._drawn, strict=True):
-            if item.key == self._selected:
-                image, glyph_fill, label_fill = (
-                    self._pills[theme.ACCENT_TINT],
-                    theme.ACCENT,
-                    theme.TEXT,
-                )
-            elif item.key == self._hovered:
-                image, glyph_fill, label_fill = self._pills[theme.SURFACE], theme.TEXT, theme.TEXT
-            else:
-                image, glyph_fill, label_fill = None, theme.SUBTEXT, theme.SUBTEXT
-            self.itemconfigure(pill, image=image or "", state="normal" if image else "hidden")
-            self.itemconfigure(glyph, fill=glyph_fill)
-            self.itemconfigure(label, fill=label_fill)
-        clickable = self._hovered not in (None, self._selected)
-        self.configure(cursor="hand2" if clickable else "")
+    def _set_hovered_entry(self, key: str | None) -> None:
+        if key == self._hovered:
+            return
+        self._hovered = key
+        self._update_pointer()
+        self._draw(self.winfo_height())
 
-    def _set_hovered(self, key: str | None) -> None:
-        if key != self._hovered:
-            self._hovered = key
-            self._draw()
+    def _select(self, key: str) -> None:
+        if key == self._selected:
+            return
+        self._selected = key
+        self._update_pointer()
+        self._draw(self.winfo_height())
+        self._on_select(key)
 
-    def _press(self, e: tk.Event[tk.Canvas]) -> None:
-        self._pressed = self._key_at(e)
-
-    def _release(self, e: tk.Event[tk.Canvas]) -> None:
-        key, self._pressed = self._pressed, None
-        if key is not None and key == self._key_at(e) and key != self._selected:
-            self._selected = key
-            self._draw()
-            self._on_select(key)
+    def _update_pointer(self) -> None:
+        """Show a hand over an entry that can be clicked."""
+        # the selected entry is already open, so it is not clickable
+        is_clickable: bool = self._hovered is not None and self._hovered != self._selected
+        self.configure(cursor="hand2" if is_clickable else "")

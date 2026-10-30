@@ -1,6 +1,7 @@
-import faulthandler
+"""The error log: each error is written to a file, with its time and traceback."""
+
+import re
 import sys
-import threading
 
 import pytest
 
@@ -8,69 +9,54 @@ from tibia_mirror import errors
 
 
 @pytest.fixture
-def log(tmp_path):
-    """Start the error log in a temp folder, and undo everything start() changed."""
-    path = tmp_path / "data" / "error.log"
-
-    def start(max_bytes=10_000):
-        errors.start(path, max_bytes)
-        return path
-
-    yield start
-    faulthandler.disable()
+def log_file(tmp_path):
+    """The error log in a new folder. What start() changed is undone after the test."""
+    yield tmp_path / "data" / "error.log"
+    for handler in list(errors._logger.handlers):
+        handler.close()
+        errors._logger.removeHandler(handler)
     sys.excepthook = sys.__excepthook__
-    threading.excepthook = threading.__excepthook__
-    if errors._log is not None:
-        errors._log.close()
-        errors._log = None
 
 
 def raised(message):
+    """An error as Python reports it: its type, the error itself and its traceback."""
     try:
         raise ValueError(message)
-    except ValueError as e:
-        return type(e), e, e.__traceback__
+    except ValueError as error:
+        return type(error), error, error.__traceback__
 
 
-def test_writes_the_time_and_traceback(log):
-    path = log()
+def test_no_file_is_made_before_the_first_error(log_file):
+    errors.start(log_file, 10_000)
+
+    assert not log_file.exists()
+
+
+def test_an_error_is_written_with_its_time_and_traceback(log_file):
+    errors.start(log_file, 10_000)
+
     errors.log_exception(*raised("boom"))
-    text = path.read_text(encoding="utf-8")
-    assert text.startswith("--- ")
+
+    text = log_file.read_text(encoding="utf-8")
+    assert re.match(r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d Error\n", text)
     assert "Traceback (most recent call last)" in text
     assert "ValueError: boom" in text
 
 
-def test_uncaught_exceptions_go_to_the_log(log):
-    path = log()
+def test_an_error_that_nothing_catches_is_written(log_file):
+    errors.start(log_file, 10_000)
+
     sys.excepthook(*raised("uncaught"))
-    assert "ValueError: uncaught" in path.read_text(encoding="utf-8")
+
+    assert "ValueError: uncaught" in log_file.read_text(encoding="utf-8")
 
 
-def test_errors_past_the_limit_are_dropped_with_one_note(log):
-    path = log(max_bytes=2_000)
-    for n in range(50):
-        errors.log_exception(*raised(f"error {n}"))
-    text = path.read_text(encoding="utf-8")
-    assert "error 0" in text
-    assert "error 49" not in text
-    assert text.count("Log full") == 1
-    assert len(text.encode()) < 4_000
+def test_a_full_log_moves_to_a_second_file(log_file):
+    errors.start(log_file, 2_000)
 
+    for number in range(40):
+        errors.log_exception(*raised(f"error {number}"))
 
-def test_trim_keeps_the_newest_half_from_a_line_start(tmp_path):
-    path = tmp_path / "error.log"
-    path.write_bytes(b"".join(b"line %03d\n" % n for n in range(200)))  # 1800 bytes
-    errors.trim(path, 1_000)
-    data = path.read_bytes()
-    assert len(data) <= 500
-    assert data.startswith(b"line ")
-    assert data.endswith(b"line 199\n")
-
-
-def test_trim_leaves_a_small_log_alone(tmp_path):
-    path = tmp_path / "error.log"
-    path.write_bytes(b"line\n")
-    errors.trim(path, 1_000)
-    assert path.read_bytes() == b"line\n"
-    errors.trim(tmp_path / "missing.log", 1_000)  # no log yet: nothing to do
+    assert log_file.with_name("error.log.1").exists()
+    assert "error 39" in log_file.read_text(encoding="utf-8")
+    assert log_file.stat().st_size <= 2_000

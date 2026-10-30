@@ -1,0 +1,113 @@
+"""The settings of a mirror's timer."""
+
+import tkinter as tk
+from collections.abc import Callable
+from dataclasses import replace
+
+from tibia_mirror.core.mirrors.mirror_timer import SOUNDS, MirrorTimer
+from tibia_mirror.i18n import tr
+from tibia_mirror.ui.base.scale import px
+from tibia_mirror.ui.panel.controls.dropdown_menu import MenuOption
+from tibia_mirror.ui.panel.controls.popup import PAD, Popup
+from tibia_mirror.ui.panel.rows.choice_row import ChoiceRow
+from tibia_mirror.ui.panel.rows.dropdown_row import DropdownRow
+from tibia_mirror.ui.panel.rows.key_row import KeyRow
+from tibia_mirror.ui.panel.rows.row_card import RowCard
+from tibia_mirror.ui.panel.rows.time_row import TimeRow
+from tibia_mirror.ui.panel.rows.toggle_row import ToggleRow
+from tibia_mirror.winapi import sounds
+
+# what the user sees for each sound, translated with tr()
+SOUND_LABELS = {
+    "notification": "Notification",
+    "critical": "Critical stop",
+    "beep": "Beep",
+    "none": "No sound",
+}
+
+
+class TimerDialog(Popup):
+    """Asks how the timer of one mirror works."""
+
+    def __init__(
+        self,
+        window: tk.Misc,
+        name: str,
+        timer: MirrorTimer,
+        on_ok: Callable[[MirrorTimer], None],
+    ) -> None:
+        super().__init__(window, tr('Timer for "{name}"', name=name))
+        self._timer = timer  # with the changes made in the dialog
+        self._on_ok = on_ok
+
+        self._add_timer_card()
+        self._add_buttons(tr("OK"))
+        self._open()
+
+    def _add_timer_card(self) -> None:
+        """The rows of the timer, on a card like the ones of the Settings page."""
+        timer_on_row = ToggleRow(
+            tr("Timer on"),
+            tr("Counts time since you click this region or press its key."),
+            is_on=self._timer.is_on,
+            on_change=lambda is_on: self._keep_timer(replace(self._timer, is_on=is_on)),
+        )
+        pause_row = ToggleRow(
+            tr("Pause while logged out"),
+            tr(
+                "For timers that only count while your character is online: "
+                "each character continues from where it logged out."
+            ),
+            is_on=self._timer.is_paused_offline,
+            on_change=lambda is_on: self._keep_timer(replace(self._timer, is_paused_offline=is_on)),
+        )
+        # the dialog asks this row for its time on OK: a time can be half written before that
+        self._alert_row = TimeRow(
+            tr("Notify after time"),
+            tr("The alert time must be 0:01 to 59:59."),
+            self._timer.alert_seconds,
+        )
+        sound_row = DropdownRow(
+            tr("Sound"),
+            [MenuOption(sound, tr(SOUND_LABELS[sound])) for sound in SOUNDS],
+            self._timer.sound,
+            on_change=self._on_sound_changed,
+        )
+        direction_row = ChoiceRow(
+            tr("Count"),
+            (("down", tr("Down")), ("up", tr("Up"))),
+            self._timer.direction,
+            on_change=lambda direction: self._keep_timer(replace(self._timer, direction=direction)),
+        )
+        key_row = KeyRow(
+            tr("Key"),
+            tr("A click on this region in the game, or the key, starts it again."),
+            key=self._timer.key,
+            on_change=lambda key: self._keep_timer(replace(self._timer, key=key)),
+        )
+
+        card = RowCard(
+            self,
+            self._content_width,
+            [timer_on_row, pause_row, self._alert_row, sound_row, direction_row, key_row],
+        )
+        card.pack(anchor="w", padx=px(PAD))
+
+    def _keep_timer(self, timer: MirrorTimer) -> None:
+        """Keep the timer with a change made in a row, until OK."""
+        self._timer = timer
+
+    def _on_sound_changed(self, sound: str) -> None:
+        self._keep_timer(replace(self._timer, sound=sound))
+        sounds.play(sound)
+
+    def _confirm(self) -> None:
+        """Close, and hand the timer to the card. A wrong alert time keeps the dialog open."""
+        alert_seconds = self._alert_row.get_seconds()
+
+        if alert_seconds is None:
+            self._alert_row.set_error(True)
+            return
+
+        self.destroy()
+        self._on_ok(replace(self._timer, alert_seconds=alert_seconds))

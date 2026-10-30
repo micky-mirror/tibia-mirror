@@ -23,16 +23,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/in_game.jpg" width="820" alt="Tibia with Tibia Mirror running: a copy of the minimap in the top-right corner and small framed copies of the amulet, ring, potions and spells below the character">
-  <br>
-  <sub>Mirrors in the game: the minimap and a few basic spell icons, each in a framed window you can place anywhere and tailor to your needs: size, opacity, frame colour, timer and more.<br>
-  Photo taken with a phone: on your own screen, the mirrors look as sharp and smooth as the game itself.</sub>
-</p>
-
-<p align="center">
-  <img src="docs/images/mirror_1.jpg" height="640" alt="The Mirrors page: a profile with five regions, each with its colour, size, timer, visibility, lock and opacity">
+  <img src="docs/images/mirror_1.jpg" height="640" alt="The Mirrors page: a profile with its regions, each with its colour, size, timer, visibility, lock and opacity">
   &nbsp;
-  <img src="docs/images/mirror_2.jpg" height="640" alt="The Settings page: language, theme, profiles, saving and mirror options">
+  <img src="docs/images/mirror_2.jpg" height="640" alt="The Settings page: language, theme, keeping the panel on top, profile per character and mirror options">
 </p>
 
 ---
@@ -44,7 +37,7 @@
 > - It never clicks, types or moves the mouse for you, and never changes Tibia's window.
 > - Nothing is sent anywhere.
 
-## 🚀 Quick start
+## Quick start
 
 Tibia Mirror runs on **Windows 11**, where it is tested.
 
@@ -53,17 +46,21 @@ Tibia Mirror runs on **Windows 11**, where it is tested.
 3. Double-click `Tibia Mirror.exe`.
 4. Click **Add region**, drag a box over the part of the game you want, and name it.
 5. Drag the new mirror wherever you like.
-6. Press **Save**, or turn on **Save automatically** in Settings.
 
 > [!TIP]
 > The first time, Windows may say "Windows protected your PC", because the file isn't signed.
 > Click **More info**, then **Run anyway**.
 
+> [!NOTE]
+> If Tibia runs as administrator, Tibia Mirror must run as administrator too.
+> Otherwise the features that react to your keys and clicks won't work.
+
 The app finds Tibia by itself: the panel shows "Waiting for Tibia..." until it's running, and reconnects if Tibia restarts.
 Only one copy of the app runs at a time: starting it again brings the open panel to the front.
-The panel opens where you left it, at the same size (centred if that spot is no longer on a screen).
+The panel opens where you left it, at the same size (smaller if it no longer fits the screen).
+Every change is saved right away.
 
-## 🪟 Mirrors
+## Mirrors
 
 ### Adding a region
 
@@ -74,8 +71,8 @@ The panel opens where you left it, at the same size (centred if that spot is no 
 A mirror of that region appears right next to it, ready to be dragged into place.
 
 > [!TIP]
-> While you select, a magnifier beside the pointer shows the game enlarged, with the exact pixel framed.
-> The arrow keys <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> shift the selected point by 1 pixel (<kbd>Shift</kbd>: 10), even while the mouse button is held.
+> While you select, a magnifier beside the pointer shows the game enlarged, with the exact pixel framed and the size of your box below it.
+> The arrow keys <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> shift the selected point by 1 pixel, even while the mouse button is held.
 > The mouse pointer itself never moves.
 > <kbd>Esc</kbd> cancels.
 
@@ -88,16 +85,14 @@ Hover any icon on it for a short explanation.
 
 | On the card | What it does |
 |---|---|
-| 🎨 Colour dot | Pick the frame colour, to tell similar mirrors apart |
+| Colour dot | Pick the frame colour, to tell similar mirrors apart |
 | Name | Double-click to rename |
-| Size, e.g. `77×83` | Edit position, size and zoom exactly (see below) |
-| ⏱️ Stopwatch | Set up a timer (blue while on) |
-| 👁️ Eye | Show or hide this mirror (a hidden one stays in the list, dimmed) |
-| 🔒 Padlock | Lock it: it can't be moved and clicks go through it to the game |
+| Size, e.g. `77×83` | Select its area again (see below) |
+| Stopwatch | Set up a timer (blue while on) |
+| Eye | Show or hide this mirror (a hidden one stays in the list, with its name in grey) |
+| Padlock | Lock it: it can't be moved and clicks go through it to the game |
 | ✕ | Remove it |
 | Slider | Opacity, from 10% to 100% |
-
-Hovering a card also shows its mirror at full opacity with a wider frame, so you can find it, even while mirrors are hidden.
 
 ### Working with a mirror
 
@@ -105,42 +100,39 @@ Hovering a card also shows its mirror at full opacity with a wider frame, so you
 |---|---|
 | Move it | Left-drag it |
 | Resize it | Drag its bottom-right corner (the cursor changes there); proportions are kept |
-| Remove it | Right-click it (when unlocked) and choose **Remove**, or click ✕ on its card |
+| Remove it | Click ✕ on its card |
 
 New mirrors start at actual size and 50% opacity, with a thin grey frame.
 Zoom goes from 25% to 400%.
 
-**Frame colours**: the picker has soft shades, deep ones and white; arrow keys and <kbd>Enter</kbd> work too.
+**Frame colours**: the picker has soft, deep, neon and dark shades, with white, silver and black.
 Coloured frames are a bit thicker and always show.
 Only the frame is coloured, unless **Tint with frame colour** is on in Settings.
 
-### Editing a region exactly
+### Selecting the area again
 
-Click the size on a card to open the Region dialog:
+Click the size on a card to select that mirror's area again.
+It works like adding a region: drag a box over the game, with the same magnifier and keys.
+The mirror keeps its name, opacity, timer and place; only the part of the game it shows changes.
 
-- Set X, Y, width and height in game pixels, and the zoom.
-  The mirror shows each change live; **Cancel** puts everything back.
-- <kbd>↑</kbd> / <kbd>↓</kbd> in a field changes it by 1 (<kbd>Shift</kbd>: 10).
-- **Apply size and zoom to all mirrors** gives every mirror the same shape (each keeps its centre).
-- **Select area again** lets you drag out a new area, keeping the mirror's name, opacity and position.
-
-## ⏱️ Timers
+## Timers
 
 Click the stopwatch on a card to give that mirror a timer.
 
 <p align="center">
-  <img src="docs/images/mirror_3.jpg" height="315" alt="The Timer dialog: alert time, count direction, mouse button, key, sound and pause while logged out">
+  <img src="docs/images/mirror_3.jpg" height="315" alt="The Timer dialog: timer on, pause while logged out, alert time, sound, count direction and key">
 </p>
 
 | | How it works |
 |---|---|
-| **Start** | Click the region in the game (left, right or either button, as you choose), or press the mirror's key. The next click or key press restarts it. |
+| **Start** | Left-click the region in the game, or press the mirror's key. The next click or key press restarts it. |
 | **Time** | Counts down (or up) to an alert time from 0:01 to 59:59, on a small badge just below the mirror. |
-| **Time's up** | Plays the sound you picked (or none) and stays on its final value in red. |
-| **Key** | Can include <kbd>Ctrl</kbd>, <kbd>Shift</kbd> and <kbd>Alt</kbd>, like <kbd>Shift</kbd>+<kbd>F9</kbd>. It must match exactly, so <kbd>F9</kbd> alone doesn't start a <kbd>Shift</kbd>+<kbd>F9</kbd> timer. |
+| **Time's up** | Plays the sound you picked (or none) and stays on its final value in red. A hidden mirror makes no sound. |
+| **Key** | Can include <kbd>Ctrl</kbd>, <kbd>Shift</kbd> and <kbd>Alt</kbd>, like <kbd>Shift</kbd>+<kbd>F9</kbd>. It must match exactly, so <kbd>F9</kbd> alone doesn't start a <kbd>Shift</kbd>+<kbd>F9</kbd> timer. If another timer or the hide-all key has it, it moves to this timer. |
 
 Clicks only count when they land on Tibia, and keys only while Tibia is the active window.
 Timers keep running while a mirror is hidden, and start fresh when the app restarts.
+Changing a timer's settings stops it, so it starts over.
 
 > [!IMPORTANT]
 > The app only reminds you: it never presses a key or clicks for you when a timer ends.
@@ -164,16 +156,18 @@ With it on:
 Press the hide-all key (set it on the **Shortcuts** page) while Tibia is active, and again to bring them back.
 Mirrors hidden with their eye stay hidden.
 While they're hidden, the top of the panel says so, e.g. "Mirrors hidden (Ctrl+H)".
+Clearing the key on the **Shortcuts** page brings them back.
 
 ### When mirrors show
 
-- Mirrors show while Tibia is in front, and fade out when you switch to another app.
+- Mirrors show while Tibia is in front, and hide when you switch to another app or minimize Tibia.
 - In the panel they stay as they were: visible if you came from Tibia, hidden if you came from, say, a browser.
 - They follow the Tibia window when it moves.
-- Each game window size (e.g. windowed and fullscreen) has its own layout.
-  The first time at a new size, the app makes a proportional guess; adjust it once and it's remembered.
+- Each mirror belongs to the game window size it was added at, e.g. windowed or fullscreen.
+  At another size it hides, together with its card, and comes back when Tibia has that size again.
+  To have mirrors at both sizes, add them at each size.
 
-## 📁 Profiles
+## Profiles
 
 A profile is a named set of mirrors: one per character, or one for hunting and one for PvP.
 Click the box at the top of the Mirrors page to switch profiles or manage them.
@@ -181,36 +175,30 @@ Click the box at the top of the Mirrors page to switch profiles or manage them.
 | Menu item | What it does |
 |---|---|
 | New profile | Starts empty |
-| Duplicate | Copies what's on screen, unsaved changes included, and switches to it |
+| Duplicate | Copies the active profile and switches to it |
 | Rename | Renames the active profile |
-| Characters | The characters whose login opens this profile (see below) |
-| Copy from | Replaces this profile's mirrors with another's; **Revert** undoes it until you save (Tibia must be running) |
-| Import / Export | Load or save a profile as a file: the easy way to move your mirrors to another PC |
 | Delete profile | Asks first; the last profile can't be deleted |
+
+To move your mirrors to another PC, copy their profile files (see [Your data](#your-data)).
 
 ### Profile per character
 
 Turn on **Profile per character** in Settings, and logging in opens the character's own profile.
 The app only reads the character's name from Tibia's window title ("Tibia - Knight Name").
 
-- A character's first login creates a profile for it: a copy of the active one, named after the character.
-  An existing profile with that name, not used by another character, is used instead.
-- Rename it as you like (e.g. "EK"): the character stays linked.
-- Several characters can share a profile: add their exact names under **Characters**.
-- With unsaved changes you're asked first; **Cancel** keeps the current profile.
+- The profile with the character's name opens, whatever its letter case.
+- A character's first login creates that profile: a copy of the active one.
+- Keep the character's name on its profile: after a rename, the next login creates a new copy.
+- Turning the setting on while you're logged in opens the profile right away.
 - Logging out leaves the current profile open.
 
-## 💾 Saving
+## Saving
 
-Changes to mirrors are kept in the active profile when you press **Save**; **Revert** throws them away.
-The line under the buttons says whether anything is unsaved.
-Switching profiles or closing the app asks first if there are unsaved changes.
+Every change is saved right away, to the active profile or to the settings.
 
-With **Save automatically** on, every change is saved right away and the buttons disappear.
+## Settings
 
-## ⚙️ Settings
-
-Settings apply immediately.
+Settings apply immediately, except **Language** and **Theme**: they are used after a restart, and the app asks before saving them.
 
 | Setting | What it does | Default |
 |---|---|---|
@@ -218,26 +206,24 @@ Settings apply immediately.
 | Theme | Dark or light | Dark |
 | Keep this panel on top | The panel stays above other windows | Off |
 | Profile per character | Logging in opens the character's profile | Off |
-| Save automatically | Saves every change as you make it | Off |
 | Opacity of new mirrors | Starting opacity of new mirrors | 50% |
 | Mirror frame | Thin grey outline around mirrors without a colour | On |
 | Tint with frame colour | Coloured mirrors are also shaded with their colour | Off |
 | Rounded corners | Windows 11's rounded corners (clips a few pixels, adds a faint shadow) | Off |
-| Fade animations | Mirrors fade in and out instead of appearing instantly | On |
 
-## ⌨️ Shortcuts
+## Shortcuts
 
 | Shortcut | What it does | Default |
 |---|---|---|
 | Hide all mirrors | Hides every mirror, and brings them back | None |
 
 Click the field and press the keys together; ✕ clears it.
-A key already used by a timer can't be chosen.
+If a timer has that key, it moves here and the timer loses it.
 
 > [!TIP]
 > Tibia receives the key too, so pick one it doesn't use.
 
-## 🗂️ Your data
+## Your data
 
 Profiles, settings and the error log are in `%APPDATA%\Tibia Mirror`.
 Updating the `.exe` keeps them.
@@ -246,7 +232,7 @@ Each profile is a plain JSON file, safe to edit or share.
 If something goes wrong, the details are in `error.log` there: errors only, never what you click or type.
 If the app can't start at all, a message says so and names this file.
 
-## 📜 License
+## License
 
 Tibia Mirror is free to use, and its code is public to read, under the [PolyForm Strict License 1.0.0](LICENSE.md).
 
@@ -261,7 +247,7 @@ The streaming permission, and the licenses of the open-source software inside th
 ---
 
 <details>
-<summary><b>🛠️ For developers</b></summary>
+<summary><b>For developers</b></summary>
 
 ### Running from source
 
@@ -299,44 +285,58 @@ The version comes from `tibia_mirror/__init__.py`; keep `pyproject.toml` in step
 ### Project layout
 
 ```
-main.py                 entry point
-Tibia Mirror.spec       the .exe build (PyInstaller)
+main.py                      entry point
+Tibia Mirror.spec            the .exe build (PyInstaller)
 tibia_mirror/
-  app.py                App: owns runtime state, wires windows together
-  config.py             paths, sizes, poll intervals
-  i18n.py               English and Polish text
-  about.py              author, contact, tip character, copyright years
-  errors.py             the error log
-  core/                 pure logic: no Windows or Tk code
-    geometry.py         pure coordinate math
-    regions.py          saved regions and JSON persistence
-    profiles.py         profiles: one saved set of regions per file
-    settings.py         app settings and settings.json
-    characters.py       linking characters to profiles
-    timers.py           timer settings and what the badge shows
-    visibility.py       when mirrors are shown
-    handles.py          the Hwnd name for window handles
-  winapi/               everything that calls Windows
-    win32.py            ctypes bindings and window helpers
-    dwm.py              DWM thumbnail wrapper (the core mechanism)
-    tibia.py            finding the Tibia client window
-    rawinput.py         being told of clicks and key presses (Raw Input)
-    instance.py         one copy at a time
-    sounds.py           timer alert sounds
-  services/             the pieces of the running app that App wires together
-    active_profile.py   the profile that is open now
-    game.py             the Tibia window and its client area
-    mirrors.py          the mirror windows on screen
-    running_timers.py   the timers that are running, and who is logged in
-    settings_store.py   the settings of the app and their file
-  assets/icon.ico       the app icon
-  ui/                   everything drawn with Tk
-    base/               themes, display scaling, shape rendering, helpers
-    controls/           custom widgets, menus, slider, tooltips, dialogs
-    overlay/            mirror window, timer badge, selection overlay, magnifier
-    panel/              control panel, its menu rail and pages
-tests/                  unit tests for the non-GUI modules
-docs/                   architecture, images
+  app.py                     App: starts its parts and connects them
+  config.py                  paths, sizes, poll intervals
+  i18n.py                    English and Polish text
+  about.py                   author, contact, tip character, copyright years
+  errors.py                  the error log
+  app_parts/                 the parts App is built from
+    app_window.py            the main window
+    tibia_connection.py      finding Tibia, its window and who is logged in
+    front_window_tracker.py  the window the user works in
+    profile_manager.py       the profiles, and the one that is open
+    mirror_manager.py        the mirror windows on screen
+    timer_manager.py         the timers that count, and their paused progress
+    input_watcher.py         the clicks and key presses, passed on to App
+    settings_writer.py       writing settings.json
+  core/                      pure logic: no Windows or Tk code
+    geometry.py              pure coordinate math
+    handles.py               the Hwnd name for window handles
+    keys.py                  key combinations
+    tibia/                   what the app knows about Tibia
+      game_window.py         the Tibia window as the app sees it
+      connection.py          the states of the connection to Tibia
+      characters.py          the character in Tibia's window title
+    mirrors/                 the mirrors: settings, timers and look
+      mirror_settings.py     the settings of one mirror
+      mirror_timer.py        the timer of one mirror and what its badge shows
+      mirror_look.py         how every mirror is drawn
+      regions.py             layouts, window sizes, ids and default names
+      timers.py              clock text, alert times and paused progress per character
+    profiles/                the profiles and their names
+      profile.py             one profile, as it is saved in its file
+      profile_names.py       the rules for profile names
+  settings/                  the settings of the app
+    app_settings.py          the settings, as they are saved in settings.json
+    app_settings_store.py    the settings while the app runs
+  winapi/                    everything that calls Windows
+    win32.py                 ctypes bindings and window helpers
+    dwm.py                   DWM thumbnail wrapper (the core mechanism)
+    tibia.py                 finding the Tibia client window
+    rawinput.py              the hidden window that hears clicks and keys (Raw Input)
+    instance.py              one copy at a time
+    sounds.py                timer alert sounds
+  assets/icon.ico            the app icon
+  ui/                        everything drawn with Tk
+    base/                    themes, display scaling, shape rendering, helpers
+    overlay/                 mirror window and frame, timer badge, selection overlay, magnifier
+    panel/                   the panel: menu rail, pages, mirror cards, profile menu, card rows
+      controls/              popups, dropdowns, slider, tooltips and other widgets
+tests/                       unit tests for the non-GUI modules
+docs/                        architecture, images
 ```
 
 ### Documentation

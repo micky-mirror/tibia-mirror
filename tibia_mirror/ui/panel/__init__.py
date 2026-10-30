@@ -1,1 +1,1 @@
-"""The control panel: its menu rail and the Mirrors, Settings, Shortcuts and About pages."""
+"""The panel in the main window, with its pages and the parts they are built from."""

@@ -1,21 +1,23 @@
+import hashlib
+import math
+
+import pytest
+
 from tibia_mirror.ui.base.render import (
-    ButtonStyle,
+    Box,
     Margins,
-    button_pixels,
-    coverage,
+    RaisedStyle,
     hex_to_rgb,
-    margins,
-    mix,
     outlined_pixels,
-    rgb_to_hex,
-    rounded_rect_distance,
-    shadow_opacity,
+    raised_pixels,
+    rounded_pixels,
+    shadow_margins,
 )
 
 BG = "#1e1e2e"
 FILL = "#89b4fa"
-FLAT = ButtonStyle(fill=FILL, radius=6)
-SHADOWED = ButtonStyle(fill=FILL, radius=6, shadow_alpha=0.5, shadow_offset=3, shadow_blur=8)
+FLAT = RaisedStyle(fill=FILL, radius=6)
+SHADOWED = RaisedStyle(fill=FILL, radius=6, shadow_alpha=0.5, shadow_offset=3, shadow_blur=8)
 
 
 def luminance(color):
@@ -23,41 +25,60 @@ def luminance(color):
 
 
 def test_no_shadow_means_no_margins():
-    assert margins(FLAT) == Margins(0, 0, 0, 0)
+    assert shadow_margins(FLAT) == Margins(0, 0, 0, 0)
 
 
 def test_shadow_margins_extend_further_below():
-    assert margins(SHADOWED) == Margins(left=8, top=5, right=8, bottom=11)
+    assert shadow_margins(SHADOWED) == Margins(left=8, top=5, right=8, bottom=11)
 
 
-def test_distance_sign():
-    assert rounded_rect_distance(50, 20, 0, 0, 100, 40, 6) < 0  # centre
-    assert rounded_rect_distance(150, 20, 0, 0, 100, 40, 6) > 0  # far right
-    assert abs(rounded_rect_distance(100, 20, 0, 0, 100, 40, 6)) < 1e-9  # on the edge
+BOX = Box(0, 0, 100, 40, radius=6)
+
+
+def test_box_distance_is_below_zero_inside_and_above_zero_outside():
+    assert BOX.distance(50, 20) < 0  # the middle
+    assert BOX.distance(150, 20) > 0  # far to the right
+    assert BOX.distance(100, 20) == pytest.approx(0)  # on the right edge
+
+
+def test_box_distance_follows_the_rounded_corner():
+    # the corner point of the frame lies outside the curve, by the diagonal minus the radius
+    assert BOX.distance(0, 0) == pytest.approx(6 * math.sqrt(2) - 6)
+
+
+def test_straight_rows_start_below_the_rounded_corners():
+    assert not BOX.is_straight_row(5.5)  # the last row of the top corners
+    assert BOX.is_straight_row(6.5)
+    assert BOX.is_straight_row(33.5)
+    assert not BOX.is_straight_row(34.5)  # the first row of the bottom corners
+
+
+def test_moved_down_keeps_the_size():
+    assert BOX.moved_down(3) == Box(0, 3, 100, 43, radius=6)
 
 
 def test_image_size_includes_margins():
-    rows = button_pixels(40, 20, SHADOWED, BG)
+    rows = raised_pixels(40, 20, SHADOWED, BG)
     assert len(rows) == 5 + 20 + 11
     assert all(len(r) == 8 + 40 + 8 for r in rows)
 
 
 def test_centre_is_fill_and_corners_are_rounded_away():
-    rows = button_pixels(40, 20, FLAT, BG)
+    rows = raised_pixels(40, 20, FLAT, BG)
     assert rows[10][20] == FILL
     assert rows[0][0] == BG  # outside the rounded corner
     assert rows[0][20] == FILL  # straight top edge is fully covered
 
 
 def test_edges_are_antialiased():
-    rows = button_pixels(40, 20, FLAT, BG)
+    rows = raised_pixels(40, 20, FLAT, BG)
     corner_band = {rows[1][1], rows[0][2], rows[2][0]}
     assert corner_band - {BG, FILL}, "expected blended pixels along the rounded corner"
 
 
 def test_shadow_darkens_below_but_not_above():
-    rows = button_pixels(40, 20, SHADOWED, BG)
-    m = margins(SHADOWED)
+    rows = raised_pixels(40, 20, SHADOWED, BG)
+    m = shadow_margins(SHADOWED)
     below = rows[m.top + 20 + 2][m.left + 20]
     above = rows[0][m.left + 20]
     assert luminance(below) < luminance(BG)
@@ -66,9 +87,9 @@ def test_shadow_darkens_below_but_not_above():
 
 
 def test_pressed_moves_body_down_one_pixel():
-    m = margins(SHADOWED)
-    normal = button_pixels(40, 20, SHADOWED, BG)
-    pressed = button_pixels(40, 20, SHADOWED, BG, pressed=True)
+    m = shadow_margins(SHADOWED)
+    normal = raised_pixels(40, 20, SHADOWED, BG)
+    pressed = raised_pixels(40, 20, SHADOWED, BG, is_pressed=True)
     x = m.left + 20
     assert normal[m.top][x] == FILL
     assert pressed[m.top][x] != FILL
@@ -91,88 +112,55 @@ def test_outlined_box_corners_stay_background_outside_the_curve():
         assert rows[y][x] == BG
 
 
-def every_pixel_button(width, height, style, background, pressed=False):
-    """button_pixels without reusing rows: each pixel computed on its own."""
-    m = margins(style)
-    sink = 1 if pressed else 0
-    x0, y0 = m.left, m.top + sink
-    x1, y1 = x0 + width, y0 + height
-    drop = (style.shadow_offset // 2 if pressed else style.shadow_offset) - sink
-    alpha = style.shadow_alpha * (0.6 if pressed else 1.0)
-    rows = []
-    for y in range(m.top + height + m.bottom):
-        row = []
-        for x in range(m.left + width + m.right):
-            cx, cy = x + 0.5, y + 0.5
-            color = hex_to_rgb(background)
-            if alpha:
-                shadow_box = (x0, y0 + drop, x1, y1 + drop)
-                to_shadow = rounded_rect_distance(cx, cy, *shadow_box, style.radius)
-                color = mix(color, (0, 0, 0), alpha * shadow_opacity(to_shadow, style.shadow_blur))
-            body = coverage(rounded_rect_distance(cx, cy, x0, y0, x1, y1, style.radius))
-            if body:
-                color = mix(color, hex_to_rgb(style.fill), body)
-            row.append(rgb_to_hex(color))
-        rows.append(tuple(row))
-    return tuple(rows)
+# Pinned before the rewrite of render.py: real looks of the app at 100% and 125%, and odd shapes.
+def fingerprint(rows):
+    """A short hash of every pixel: one changed pixel changes it."""
+    text = "\n".join(" ".join(row) for row in rows)
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
-def every_pixel_outlined(width, height, radius, fill, border, background):
-    """outlined_pixels without reusing rows."""
-    rows = []
-    for y in range(height):
-        row = []
-        for x in range(width):
-            cx, cy = x + 0.5, y + 0.5
-            outer = coverage(rounded_rect_distance(cx, cy, 0, 0, width, height, radius))
-            color = mix(hex_to_rgb(background), hex_to_rgb(border), outer)
-            inner_radius = max(0, radius - 1)
-            inner = coverage(
-                rounded_rect_distance(cx, cy, 1, 1, width - 1, height - 1, inner_radius)
-            )
-            row.append(rgb_to_hex(mix(color, hex_to_rgb(fill), inner)))
-        rows.append(tuple(row))
-    return tuple(rows)
+PRIMARY = RaisedStyle("#89b4fa", radius=10, shadow_alpha=0.55, shadow_offset=4, shadow_blur=10)
+SECONDARY_LIGHT = RaisedStyle(
+    "#ffffff", radius=10, shadow_alpha=0.2025, shadow_offset=3, shadow_blur=8
+)
+KNOB = RaisedStyle("#cdd6f4", radius=9, shadow_alpha=0.45, shadow_offset=1, shadow_blur=4)
+WIDE_SHADOW = RaisedStyle("#89b4fa", radius=15, shadow_alpha=0.55, shadow_offset=5, shadow_blur=13)
 
 
-def test_reused_middle_rows_match_computing_every_pixel():
-    styles = (
-        FLAT,
-        SHADOWED,
-        ButtonStyle(fill=FILL, radius=0),
-        ButtonStyle(fill=FILL, radius=15),  # a pill: no straight middle at all
-        ButtonStyle(fill=FILL, radius=10, shadow_alpha=0.55, shadow_offset=5, shadow_blur=13),
-    )
-    for style in styles:
-        for width, height in ((40, 30), (57, 83), (6, 3)):
-            for pressed in (False, True):
-                expected = every_pixel_button(width, height, style, BG, pressed)
-                assert button_pixels(width, height, style, BG, pressed) == expected
-    for width, height, radius in ((40, 36, 8), (45, 45, 10), (20, 5, 3), (30, 50, 0)):
-        expected = every_pixel_outlined(width, height, radius, "#313244", FILL, BG)
-        assert outlined_pixels(width, height, radius, "#313244", FILL, BG) == expected
+@pytest.mark.parametrize(
+    ("width", "height", "style", "background", "is_pressed", "expected"),
+    [
+        (120, 34, PRIMARY, "#1e1e2e", False, "49e6b02590f8b2f4"),
+        (120, 34, PRIMARY, "#1e1e2e", True, "0238f16824750017"),
+        (95, 38, SECONDARY_LIGHT, "#eff1f5", False, "95c071b86de41d58"),
+        (95, 38, SECONDARY_LIGHT, "#eff1f5", True, "2097618ceaffd099"),
+        (18, 18, KNOB, "#313244", False, "7b79cb1fd1714e1e"),
+        (57, 83, WIDE_SHADOW, "#1e1e2e", True, "55bbc6d75ef56cb2"),
+    ],
+)
+def test_raised_pixels_stay_the_same(width, height, style, background, is_pressed, expected):
+    assert fingerprint(raised_pixels(width, height, style, background, is_pressed)) == expected
 
 
-def test_custom_widgets_do_not_overwrite_tkinter_internals():
-    """E.g. `self._name` is Tk's own name for a widget; replacing it breaks destroy()."""
-    import ast
-    import pathlib
-    import tkinter as tk
+@pytest.mark.parametrize(
+    ("width", "height", "radius", "colour", "background", "expected"),
+    [
+        (8, 60, 4, "#45475a", "#1e1e2e", "916b2b88c47e7f95"),
+        (30, 5, 0, "#89b4fa", "#1e1e2e", "c20a55589bfe753b"),
+        (30, 12, 6, "#89b4fa", "#1e1e2e", "3b0390b36e1f1e42"),  # a pill: no straight rows
+    ],
+)
+def test_rounded_pixels_stay_the_same(width, height, radius, colour, background, expected):
+    assert fingerprint(rounded_pixels(width, height, radius, colour, background)) == expected
 
-    reserved = set(dir(tk.Canvas)) | set(dir(tk.Frame)) | {"_w", "_name", "children", "master"}
-    clashes = []
-    for path in (pathlib.Path(__file__).parent.parent / "tibia_mirror" / "ui").rglob("*.py"):
-        for cls in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
-            if not isinstance(cls, ast.ClassDef):
-                continue
-            if not {ast.unparse(b) for b in cls.bases} & {"tk.Canvas", "tk.Frame"}:
-                continue
-            for node in ast.walk(cls):
-                if (
-                    isinstance(node, ast.Attribute)
-                    and isinstance(node.ctx, ast.Store)
-                    and ast.unparse(node.value) == "self"
-                    and node.attr in reserved
-                ):
-                    clashes.append(f"{path.name}:{node.lineno} {cls.name}.{node.attr}")
-    assert clashes == []
+
+@pytest.mark.parametrize(
+    ("width", "height", "radius", "fill", "border", "background", "expected"),
+    [
+        (200, 30, 6, "#313244", "#89b4fa", "#1e1e2e", "48f471ff632e573e"),
+        (20, 20, 3, "#f38ba8", "#f38ba8", "#1e1e2e", "2dd49ba3a7363afd"),
+        (45, 45, 10, "#ffffff", "#bcc0cc", "#eff1f5", "153b38e046945a84"),
+    ],
+)
+def test_outlined_pixels_stay_the_same(width, height, radius, fill, border, background, expected):
+    assert fingerprint(outlined_pixels(width, height, radius, fill, border, background)) == expected

@@ -1,8 +1,8 @@
 import pytest
 
+from tibia_mirror.app_parts import tibia_connection as connection_module
+from tibia_mirror.app_parts.tibia_connection import Game
 from tibia_mirror.core.geometry import Rect
-from tibia_mirror.services import game as game_module
-from tibia_mirror.services.game import Game
 from tibia_mirror.winapi import win32
 
 HWND = 100
@@ -60,7 +60,7 @@ def test_current_client_remembers_the_area_while_minimized(game, window):
 
 def test_find_looks_for_tibia_until_it_is_running(monkeypatch):
     running = {"hwnd": None}
-    monkeypatch.setattr(game_module, "find_tibia_window", lambda: running["hwnd"])
+    monkeypatch.setattr(connection_module, "find_tibia_window", lambda: running["hwnd"])
     game = Game()
     assert game.find() is None
     running["hwnd"] = HWND
@@ -72,7 +72,7 @@ def test_find_keeps_the_window_it_already_has(game, monkeypatch):
     def search_again():
         raise AssertionError("searched although the window is known")
 
-    monkeypatch.setattr(game_module, "find_tibia_window", search_again)
+    monkeypatch.setattr(connection_module, "find_tibia_window", search_again)
     assert game.find() == HWND
 
 
@@ -95,55 +95,19 @@ def test_check_closed_forgets_a_window_that_is_gone(game, monkeypatch):
     assert not game.check_closed()
 
 
-def test_track_client_is_none_before_tibia_is_found(window):
-    assert Game().track_client() is None
-
-
-def test_track_client_reports_the_first_area_it_sees(game):
-    assert game.track_client() == (AREA, False)
-    assert game.client == AREA
-
-
-def test_track_client_is_none_when_nothing_changed(game):
-    game.track_client()
-    assert game.track_client() is None
-
-
-def test_track_client_reports_a_move(game, window):
-    game.track_client()
-    moved = Rect(50, 60, 800, 600)
-    window["client"] = moved
-    assert game.track_client() == (moved, False)
-    assert game.client == moved
-
-
-def test_track_client_reports_a_new_size(game, window):
-    game.track_client()
-    bigger = Rect(10, 20, 1920, 1080)
-    window["client"] = bigger
-    assert game.track_client() == (bigger, True)
-
-
-def test_track_client_keeps_the_area_while_minimized(game, window):
-    game.track_client()
-    window["minimized"] = True
-    assert game.track_client() is None
-    assert game.client == AREA
-
-
 def test_state_is_waiting_before_tibia_is_found():
-    assert Game().state() == "waiting"
+    assert Game().state == "waiting"
 
 
 def test_state_is_minimized_until_a_client_area_is_seen(game, window):
     window["minimized"] = True
     game.current_client()
-    assert game.state() == "minimized"
+    assert game.state == "minimized"
 
 
 def test_state_is_connected_once_a_client_area_is_seen(game):
     game.current_client()
-    assert game.state() == "connected"
+    assert game.state == "connected"
 
 
 def test_title_is_empty_before_tibia_is_found():

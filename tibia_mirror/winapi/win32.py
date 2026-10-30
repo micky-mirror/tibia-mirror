@@ -38,6 +38,12 @@ MB_ICONERROR = 0x10
 ERROR_ALREADY_EXISTS = 183
 WAIT_OBJECT_0 = 0
 ASFW_ANY = 0xFFFFFFFF
+# The key codes of each modifier: the one for both sides first, then the left and the right one.
+MODIFIER_KEYS = {
+    "ctrl": (0x11, 0xA2, 0xA3),
+    "shift": (0x10, 0xA0, 0xA1),
+    "alt": (0x12, 0xA4, 0xA5),
+}
 
 
 class RECT(ctypes.Structure):
@@ -66,14 +72,15 @@ WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 
 
 # Any: ctypes' foreign functions and C types have no useful static types.
-def _sig(function: Any, restype: Any, *argtypes: Any) -> None:  # noqa: ANN401
+def set_signature(function: Any, restype: Any, *argtypes: Any) -> None:  # noqa: ANN401
+    """Tell ctypes the result and argument types of a Windows function."""
     function.restype = restype
     function.argtypes = list(argtypes)
 
 
-_sig(user32.SetProcessDPIAware, wintypes.BOOL)
-_sig(shell32.SetCurrentProcessExplicitAppUserModelID, ctypes.HRESULT, wintypes.LPCWSTR)
-_sig(
+set_signature(user32.SetProcessDPIAware, wintypes.BOOL)
+set_signature(shell32.SetCurrentProcessExplicitAppUserModelID, ctypes.HRESULT, wintypes.LPCWSTR)
+set_signature(
     user32.MessageBoxW,
     ctypes.c_int,
     wintypes.HWND,
@@ -81,25 +88,27 @@ _sig(
     wintypes.LPCWSTR,
     wintypes.UINT,
 )
-_sig(user32.GetForegroundWindow, wintypes.HWND)
-_sig(user32.GetAncestor, wintypes.HWND, wintypes.HWND, wintypes.UINT)
-_sig(user32.MonitorFromWindow, wintypes.HMONITOR, wintypes.HWND, wintypes.DWORD)
-_sig(user32.MonitorFromPoint, wintypes.HMONITOR, POINT, wintypes.DWORD)
-_sig(user32.GetMonitorInfoW, wintypes.BOOL, wintypes.HMONITOR, ctypes.POINTER(MONITORINFO))
-_sig(user32.ClientToScreen, wintypes.BOOL, wintypes.HWND, ctypes.POINTER(POINT))
-_sig(user32.GetClientRect, wintypes.BOOL, wintypes.HWND, ctypes.POINTER(RECT))
-_sig(user32.GetCursorPos, wintypes.BOOL, ctypes.POINTER(POINT))
-_sig(user32.WindowFromPoint, wintypes.HWND, POINT)
-_sig(user32.MapVirtualKeyW, wintypes.UINT, wintypes.UINT, wintypes.UINT)
-_sig(user32.GetKeyState, ctypes.c_short, ctypes.c_int)
-_sig(user32.GetKeyNameTextW, ctypes.c_int, wintypes.LONG, wintypes.LPWSTR, ctypes.c_int)
-_sig(user32.EnumWindows, wintypes.BOOL, WNDENUMPROC, wintypes.LPARAM)
-_sig(user32.IsWindowVisible, wintypes.BOOL, wintypes.HWND)
-_sig(user32.GetWindowTextLengthW, ctypes.c_int, wintypes.HWND)
-_sig(user32.GetWindowTextW, ctypes.c_int, wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
-_sig(user32.GetWindowThreadProcessId, wintypes.DWORD, wintypes.HWND, ctypes.POINTER(wintypes.DWORD))
-_sig(kernel32.OpenProcess, wintypes.HANDLE, wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
-_sig(
+set_signature(user32.GetForegroundWindow, wintypes.HWND)
+set_signature(user32.GetAncestor, wintypes.HWND, wintypes.HWND, wintypes.UINT)
+set_signature(user32.MonitorFromWindow, wintypes.HMONITOR, wintypes.HWND, wintypes.DWORD)
+set_signature(user32.MonitorFromPoint, wintypes.HMONITOR, POINT, wintypes.DWORD)
+set_signature(user32.GetMonitorInfoW, wintypes.BOOL, wintypes.HMONITOR, ctypes.POINTER(MONITORINFO))
+set_signature(user32.ClientToScreen, wintypes.BOOL, wintypes.HWND, ctypes.POINTER(POINT))
+set_signature(user32.GetClientRect, wintypes.BOOL, wintypes.HWND, ctypes.POINTER(RECT))
+set_signature(user32.GetCursorPos, wintypes.BOOL, ctypes.POINTER(POINT))
+set_signature(user32.WindowFromPoint, wintypes.HWND, POINT)
+set_signature(user32.MapVirtualKeyW, wintypes.UINT, wintypes.UINT, wintypes.UINT)
+set_signature(user32.GetKeyState, ctypes.c_short, ctypes.c_int)
+set_signature(user32.GetKeyNameTextW, ctypes.c_int, wintypes.LONG, wintypes.LPWSTR, ctypes.c_int)
+set_signature(user32.EnumWindows, wintypes.BOOL, WNDENUMPROC, wintypes.LPARAM)
+set_signature(user32.IsWindowVisible, wintypes.BOOL, wintypes.HWND)
+set_signature(user32.GetWindowTextLengthW, ctypes.c_int, wintypes.HWND)
+set_signature(user32.GetWindowTextW, ctypes.c_int, wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
+set_signature(
+    user32.GetWindowThreadProcessId, wintypes.DWORD, wintypes.HWND, ctypes.POINTER(wintypes.DWORD)
+)
+set_signature(kernel32.OpenProcess, wintypes.HANDLE, wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+set_signature(
     kernel32.QueryFullProcessImageNameW,
     wintypes.BOOL,
     wintypes.HANDLE,
@@ -107,15 +116,17 @@ _sig(
     wintypes.LPWSTR,
     ctypes.POINTER(wintypes.DWORD),
 )
-_sig(kernel32.CloseHandle, wintypes.BOOL, wintypes.HANDLE)
-_sig(user32.GetClassNameW, ctypes.c_int, wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
-_sig(user32.IsIconic, wintypes.BOOL, wintypes.HWND)
-_sig(user32.IsWindow, wintypes.BOOL, wintypes.HWND)
-_sig(user32.ShowWindow, wintypes.BOOL, wintypes.HWND, ctypes.c_int)
-_sig(user32.SetForegroundWindow, wintypes.BOOL, wintypes.HWND)
-_sig(user32.AllowSetForegroundWindow, wintypes.BOOL, wintypes.DWORD)
-_sig(kernel32_le.CreateMutexW, wintypes.HANDLE, wintypes.LPVOID, wintypes.BOOL, wintypes.LPCWSTR)
-_sig(
+set_signature(kernel32.CloseHandle, wintypes.BOOL, wintypes.HANDLE)
+set_signature(user32.GetClassNameW, ctypes.c_int, wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
+set_signature(user32.IsIconic, wintypes.BOOL, wintypes.HWND)
+set_signature(user32.IsWindow, wintypes.BOOL, wintypes.HWND)
+set_signature(user32.ShowWindow, wintypes.BOOL, wintypes.HWND, ctypes.c_int)
+set_signature(user32.SetForegroundWindow, wintypes.BOOL, wintypes.HWND)
+set_signature(user32.AllowSetForegroundWindow, wintypes.BOOL, wintypes.DWORD)
+set_signature(
+    kernel32_le.CreateMutexW, wintypes.HANDLE, wintypes.LPVOID, wintypes.BOOL, wintypes.LPCWSTR
+)
+set_signature(
     kernel32.CreateEventW,
     wintypes.HANDLE,
     wintypes.LPVOID,
@@ -123,9 +134,9 @@ _sig(
     wintypes.BOOL,
     wintypes.LPCWSTR,
 )
-_sig(kernel32.SetEvent, wintypes.BOOL, wintypes.HANDLE)
-_sig(kernel32.WaitForSingleObject, wintypes.DWORD, wintypes.HANDLE, wintypes.DWORD)
-_sig(
+set_signature(kernel32.SetEvent, wintypes.BOOL, wintypes.HANDLE)
+set_signature(kernel32.WaitForSingleObject, wintypes.DWORD, wintypes.HANDLE, wintypes.DWORD)
+set_signature(
     user32.SetWindowPos,
     wintypes.BOOL,
     wintypes.HWND,
@@ -136,17 +147,17 @@ _sig(
     ctypes.c_int,
     wintypes.UINT,
 )
-_sig(user32.GetWindowLongW, wintypes.LONG, wintypes.HWND, ctypes.c_int)
-_sig(user32.GetDpiForWindow, wintypes.UINT, wintypes.HWND)
-_sig(user32.SetWindowRgn, ctypes.c_int, wintypes.HWND, wintypes.HANDLE, wintypes.BOOL)
-_sig(gdi32.CreateRoundRectRgn, wintypes.HANDLE, *[ctypes.c_int] * 6)
-_sig(gdi32.CreateRectRgn, wintypes.HANDLE, *[ctypes.c_int] * 4)
-_sig(
+set_signature(user32.GetWindowLongW, wintypes.LONG, wintypes.HWND, ctypes.c_int)
+set_signature(user32.GetDpiForWindow, wintypes.UINT, wintypes.HWND)
+set_signature(user32.SetWindowRgn, ctypes.c_int, wintypes.HWND, wintypes.HANDLE, wintypes.BOOL)
+set_signature(gdi32.CreateRoundRectRgn, wintypes.HANDLE, *[ctypes.c_int] * 6)
+set_signature(gdi32.CreateRectRgn, wintypes.HANDLE, *[ctypes.c_int] * 4)
+set_signature(
     gdi32.CombineRgn, ctypes.c_int, wintypes.HANDLE, wintypes.HANDLE, wintypes.HANDLE, ctypes.c_int
 )
-_sig(gdi32.DeleteObject, wintypes.BOOL, wintypes.HANDLE)
-_sig(user32.SetWindowLongW, wintypes.LONG, wintypes.HWND, ctypes.c_int, wintypes.LONG)
-_sig(
+set_signature(gdi32.DeleteObject, wintypes.BOOL, wintypes.HANDLE)
+set_signature(user32.SetWindowLongW, wintypes.LONG, wintypes.HWND, ctypes.c_int, wintypes.LONG)
+set_signature(
     user32.SetLayeredWindowAttributes,
     wintypes.BOOL,
     wintypes.HWND,
@@ -255,8 +266,9 @@ def key_name(vk: int) -> str:
 
 def modifiers_down() -> tuple[str, ...]:
     """Names of the modifier keys held right now, in order ("ctrl", "shift", "alt")."""
-    modifier_keys = (("ctrl", 0x11), ("shift", 0x10), ("alt", 0x12))
-    return tuple(name for name, vk in modifier_keys if user32.GetKeyState(vk) & 0x8000)
+    return tuple(
+        name for name, codes in MODIFIER_KEYS.items() if user32.GetKeyState(codes[0]) & 0x8000
+    )
 
 
 def window_title(hwnd: Hwnd) -> str:

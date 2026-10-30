@@ -42,26 +42,28 @@ class DWM_THUMBNAIL_PROPERTIES(ctypes.Structure):  # noqa: N801 - Win32 name
 
 
 HRESULT = ctypes.c_long
-dwmapi.DwmRegisterThumbnail.restype = HRESULT
-dwmapi.DwmRegisterThumbnail.argtypes = [
+win32.set_signature(
+    dwmapi.DwmRegisterThumbnail,
+    HRESULT,
     wintypes.HWND,
     wintypes.HWND,
     ctypes.POINTER(wintypes.HANDLE),
-]
-dwmapi.DwmUpdateThumbnailProperties.restype = HRESULT
-dwmapi.DwmUpdateThumbnailProperties.argtypes = [
+)
+win32.set_signature(
+    dwmapi.DwmUpdateThumbnailProperties,
+    HRESULT,
     wintypes.HANDLE,
     ctypes.POINTER(DWM_THUMBNAIL_PROPERTIES),
-]
-dwmapi.DwmUnregisterThumbnail.restype = HRESULT
-dwmapi.DwmUnregisterThumbnail.argtypes = [wintypes.HANDLE]
-dwmapi.DwmSetWindowAttribute.restype = HRESULT
-dwmapi.DwmSetWindowAttribute.argtypes = [
+)
+win32.set_signature(dwmapi.DwmUnregisterThumbnail, HRESULT, wintypes.HANDLE)
+win32.set_signature(
+    dwmapi.DwmSetWindowAttribute,
+    HRESULT,
     wintypes.HWND,
     wintypes.DWORD,
     ctypes.c_void_p,
     wintypes.DWORD,
-]
+)
 
 
 def _check(result: int, what: str) -> None:
@@ -98,8 +100,6 @@ def set_rounded_corners(hwnd: Hwnd, rounded: bool) -> None:
 
 # Windows 11 (build 22000) rounds windows' corners on request; Windows 10 cannot.
 ROUNDED_POPUPS = sys.getwindowsversion().build >= 22000
-# Popups draw their own 1px frame only where Windows cannot draw a rounded one.
-POPUP_FRAME = 0 if ROUNDED_POPUPS else 1
 
 
 def round_popup(hwnd: Hwnd, border: str, small: bool = False) -> None:

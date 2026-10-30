@@ -1,1 +1,1 @@
-"""What appears on screen over the game: mirrors, timer badges and region selection."""
+"""The windows over the game: the mirrors, their frames and badges, and the selection cover."""

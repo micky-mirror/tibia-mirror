@@ -1,14 +1,13 @@
 """Colours, fonts and button styles, in a dark and a light theme (Catppuccin Mocha and Latte).
 
 use(name) swaps the module attributes, so read them as `theme.BG` when drawing,
-never copy them at import time. The App rebuilds the panel after a switch.
+never copy them at import time. A new theme is used after a restart.
 Button styles are in pixels at the current display scaling: call use() after scale.init().
 """
 
-from dataclasses import replace
 from typing import TypedDict
 
-from tibia_mirror.ui.base.render import ButtonStyle
+from tibia_mirror.ui.base.render import RaisedStyle
 from tibia_mirror.ui.base.scale import px
 
 
@@ -28,7 +27,6 @@ class Palette(TypedDict):
     ACCENT_TINT: str
     ON_ACCENT: str
     GREEN: str
-    GREEN_HI: str
     RED: str
     RED_HI: str
     YELLOW: str
@@ -55,10 +53,9 @@ PALETTES: dict[str, Palette] = {
         "ACCENT_TINT": "#2f3750",  # ACCENT at 20% over MANTLE: the selected navigation item
         "ON_ACCENT": "#11111b",  # text and knobs on accent-coloured fills
         "GREEN": "#a6e3a1",
-        "GREEN_HI": "#bff0bb",
         "RED": "#f38ba8",
         "RED_HI": "#f7a8be",
-        "YELLOW": "#f9e2af",  # the unsaved-changes line
+        "YELLOW": "#f9e2af",  # the note that the mirrors are hidden
         "GOLD": "#f2b84b",  # Tibia Coins in the tip lines; kept apart from YELLOW's warning
         "BLURPLE": "#8c94f7",  # Discord's blurple, lightened to read on BG
         "KNOB": "#cdd6f4",
@@ -80,7 +77,6 @@ PALETTES: dict[str, Palette] = {
         "ACCENT_TINT": "#becff0",  # ACCENT at 20% over MANTLE
         "ON_ACCENT": "#ffffff",
         "GREEN": "#40a02b",
-        "GREEN_HI": "#57b541",
         "RED": "#d20f39",
         "RED_HI": "#e0365a",
         "YELLOW": "#b86e00",  # Latte's yellow is too faint for text on a light background
@@ -107,7 +103,6 @@ ACCENT_HI: str
 ACCENT_TINT: str
 ON_ACCENT: str
 GREEN: str
-GREEN_HI: str
 RED: str
 RED_HI: str
 YELLOW: str
@@ -117,9 +112,8 @@ KNOB: str
 KNOB_ACTIVE: str
 MIRROR_FRAME: str
 SHADOW: float
-PRIMARY_BUTTON: ButtonStyle
-SECONDARY_BUTTON: ButtonStyle
-SAVE_BUTTON: ButtonStyle
+PRIMARY_BUTTON: RaisedStyle
+SECONDARY_BUTTON: RaisedStyle
 
 # A Tk font as (family, size) or (family, size, style), e.g. ("Segoe UI", 11, "bold").
 FontSpec = tuple[str, int] | tuple[str, int, str]
@@ -152,6 +146,22 @@ FRAME_COLOR_HEX = {
     "deep_teal": "#179299",
     "deep_blue": "#1e66f5",
     "deep_purple": "#8839ef",
+    "silver": "#c0c0c0",
+    "neon_pink": "#ff2d95",
+    "coral": "#ff6f61",
+    "gold": "#ffd700",
+    "neon_green": "#39ff14",
+    "cyan": "#00e5ff",
+    "indigo": "#5c6bff",
+    "magenta": "#ff00ff",
+    "black": "#000000",
+    "maroon": "#800020",
+    "brown": "#8b4513",
+    "olive": "#808000",
+    "forest": "#1b5e20",
+    "dark_teal": "#005f5f",
+    "navy": "#001f7a",
+    "plum": "#5b1f6e",
 }
 
 
@@ -167,7 +177,7 @@ def use(name: str) -> None:
     """Switch every colour and button style to the `name` theme ("dark" or "light")."""
     global current
     palette = PALETTES[name]
-    secondary = ButtonStyle(
+    secondary = RaisedStyle(
         fill=palette["SURFACE"],
         radius=px(8),
         shadow_alpha=0.45 * palette["SHADOW"],
@@ -176,7 +186,7 @@ def use(name: str) -> None:
     )
     globals().update(
         palette,
-        PRIMARY_BUTTON=ButtonStyle(
+        PRIMARY_BUTTON=RaisedStyle(
             fill=palette["ACCENT"],
             radius=px(10),
             shadow_alpha=0.55 * palette["SHADOW"],
@@ -184,7 +194,6 @@ def use(name: str) -> None:
             shadow_blur=px(10),
         ),
         SECONDARY_BUTTON=secondary,
-        SAVE_BUTTON=replace(secondary, fill=palette["GREEN"]),
     )
     current = name
 
