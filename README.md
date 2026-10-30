@@ -12,7 +12,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-11-0078D6?logo=windows&logoColor=white" alt="Windows 11">
-  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" alt="Python 3.10 or newer">
+  <img src="https://img.shields.io/badge/Python-3.13%2B-3776AB?logo=python&logoColor=white" alt="Python 3.13 or newer">
   <img src="https://img.shields.io/badge/automation-none-2ea44f" alt="No automation">
   <img src="https://img.shields.io/badge/price-free-f2b84b" alt="Free">
   <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-PolyForm%20Strict-8c94f7" alt="PolyForm Strict license"></a>
@@ -251,7 +251,7 @@ The streaming permission, and the licenses of the open-source software inside th
 
 ### Running from source
 
-Windows 11 and Python 3.10 or newer; no third-party packages are needed to run it.
+Windows 11 and Python 3.13 or newer; no third-party packages are needed to run it.
 
 ```
 python main.py
