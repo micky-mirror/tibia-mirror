@@ -22,10 +22,10 @@ from tibia_mirror.config import (
     TIMER_TICK_MS,
 )
 from tibia_mirror.core import regions
-from tibia_mirror.core.connection import MINIMIZED
-from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.profile import Profile
+from tibia_mirror.core.tibia.connection import MINIMIZED
+from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.core.timers import combo_matches
 from tibia_mirror.i18n import tr, tr_n
 from tibia_mirror.settings.app_settings import AppSettings

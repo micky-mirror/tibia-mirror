@@ -5,11 +5,11 @@ from collections.abc import Callable
 
 from tibia_mirror.app_parts.front_window_tracker import FrontWindowTracker
 from tibia_mirror.config import CONNECTION_POLL_MS
-from tibia_mirror.core import characters
-from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
-from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.handles import Hwnd
+from tibia_mirror.core.tibia import characters
+from tibia_mirror.core.tibia.connection import CONNECTED, MINIMIZED, WAITING
+from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.winapi import win32
 from tibia_mirror.winapi.tibia import find_tibia_window
 

@@ -1,4 +1,4 @@
-from tibia_mirror.core.characters import character_in_title
+from tibia_mirror.core.tibia.characters import character_in_title
 
 
 def test_character_from_the_window_title():

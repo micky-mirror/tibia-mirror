@@ -6,7 +6,7 @@ from collections.abc import Callable, Sequence
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.config import MESSAGE_SHOW_MS, PANEL_SIZE
-from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
+from tibia_mirror.core.tibia.connection import CONNECTED, MINIMIZED, WAITING
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme

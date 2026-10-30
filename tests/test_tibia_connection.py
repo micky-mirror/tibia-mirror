@@ -4,9 +4,9 @@ import pytest
 
 from tibia_mirror.app_parts import tibia_connection as connection_module
 from tibia_mirror.app_parts.tibia_connection import TibiaConnection
-from tibia_mirror.core.connection import CONNECTED, MINIMIZED, WAITING
-from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import Rect
+from tibia_mirror.core.tibia.connection import CONNECTED, MINIMIZED, WAITING
+from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.winapi import win32
 
 HWND = 100

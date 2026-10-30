@@ -2,9 +2,9 @@
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.app_parts.tibia_connection import TibiaConnection
-from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.mirror_timer import MirrorTimer
 from tibia_mirror.core.regions import size_key
+from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.core.timers import combo_matches, pauses_of, with_pauses, without_mirrors
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 

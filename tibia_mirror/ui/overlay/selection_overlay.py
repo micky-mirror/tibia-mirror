@@ -7,7 +7,6 @@ from collections.abc import Callable
 from functools import partial
 
 from tibia_mirror.config import MIN_SELECTION_SIDE
-from tibia_mirror.core.game_window import GameWindow
 from tibia_mirror.core.geometry import (
     Point,
     Rect,
@@ -15,6 +14,7 @@ from tibia_mirror.core.geometry import (
     overlay_to_client,
     rect_from_drag,
 )
+from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
