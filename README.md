@@ -51,6 +51,10 @@ Tibia Mirror runs on **Windows 11**, where it is tested.
 > The first time, Windows may say "Windows protected your PC", because the file isn't signed.
 > Click **More info**, then **Run anyway**.
 
+> [!NOTE]
+> If Tibia runs as administrator, Tibia Mirror must run as administrator too.
+> Otherwise the features that react to your keys and clicks won't work.
+
 The app finds Tibia by itself: the panel shows "Waiting for Tibia..." until it's running, and reconnects if Tibia restarts.
 Only one copy of the app runs at a time: starting it again brings the open panel to the front.
 The panel opens where you left it, at the same size (smaller if it no longer fits the screen).
