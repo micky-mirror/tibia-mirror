@@ -175,7 +175,7 @@ The panel is plain Tk, made to look modern without third-party packages:
 1. **One copy at a time** (`winapi/instance.py`): a named mutex marks the running copy.
    A second copy signals it to show its panel, and quits before touching any data.
 2. **Error log** (`errors.py`): the `.exe` has no console, so errors go to `error.log` through Python's `logging`.
-   At 1 MB the log moves to `error.log.1` and a new one starts.
+   When the app starts, a log over 1 MB moves to `error.log.1` and a new one starts.
    Errors in Tk callbacks come in through `AppWindow.report_callback_exception`.
    If the app can't even open its panel, a message box names the log.
 3. **Data** lives in `%APPDATA%\Tibia Mirror`, shared by the `.exe` and a run from source.
