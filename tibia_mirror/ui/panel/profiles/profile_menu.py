@@ -5,8 +5,8 @@ from collections.abc import Callable, Sequence
 from functools import partial
 
 from tibia_mirror.core.geometry import Box
+from tibia_mirror.core.mirrors.regions import next_default_name
 from tibia_mirror.core.profiles import copy_name, name_error
-from tibia_mirror.core.regions import next_default_name
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog

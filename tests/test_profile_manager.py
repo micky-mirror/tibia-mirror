@@ -6,7 +6,7 @@ from dataclasses import replace
 import pytest
 
 from tibia_mirror.app_parts.profile_manager import ProfileManager
-from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
 from tibia_mirror.core.profile import Profile
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 

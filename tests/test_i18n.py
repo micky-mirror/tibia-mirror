@@ -5,7 +5,7 @@ import string
 import pytest
 
 from tibia_mirror import i18n
-from tibia_mirror.core.mirror_timer import SOUNDS
+from tibia_mirror.core.mirrors.mirror_timer import SOUNDS
 from tibia_mirror.i18n import POLISH, POLISH_PLURALS, tr, tr_n
 
 SOURCE = pathlib.Path(__file__).parent.parent / "tibia_mirror"

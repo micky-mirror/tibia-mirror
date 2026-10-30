@@ -4,7 +4,7 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
 
-from tibia_mirror.core.mirror_timer import SOUNDS, MirrorTimer
+from tibia_mirror.core.mirrors.mirror_timer import SOUNDS, MirrorTimer
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.dropdown_menu import MenuOption

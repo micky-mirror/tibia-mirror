@@ -10,11 +10,11 @@ from tibia_mirror.app_parts.mirror_manager import MirrorManager
 from tibia_mirror.app_parts.timer_manager import TimerManager
 from tibia_mirror.config import FRAME_COLORS, NEW_MIRROR_GAP
 from tibia_mirror.core.geometry import Rect
-from tibia_mirror.core.mirror_look import MirrorLook
-from tibia_mirror.core.mirror_settings import MirrorSettings
-from tibia_mirror.core.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirrors.mirror_look import MirrorLook
+from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
+from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirrors.regions import Layout
 from tibia_mirror.core.profile import Profile
-from tibia_mirror.core.regions import Layout
 from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.ui.base.scale import px

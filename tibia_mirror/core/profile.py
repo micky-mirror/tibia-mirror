@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from tibia_mirror.core.mirror_settings import MirrorSettings
+from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
 
 PROFILE_FILE_FORMAT = 2  # the "version" number written into every profile file
 

@@ -3,7 +3,7 @@
 import string
 import tkinter as tk
 
-from tibia_mirror.core.timers import parse_alert
+from tibia_mirror.core.mirrors.timers import parse_alert
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px

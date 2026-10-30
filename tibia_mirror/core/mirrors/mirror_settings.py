@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from tibia_mirror.config import DEFAULT_OPACITY, FRAME_COLORS
-from tibia_mirror.core.mirror_timer import MirrorTimer
-from tibia_mirror.core.regions import (
+from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirrors.regions import (
     Layout,
     clamp_opacity,
     clamp_zoom,

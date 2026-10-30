@@ -1,5 +1,5 @@
 from tibia_mirror.config import FRAME_COLORS
-from tibia_mirror.core.regions import next_default_name
+from tibia_mirror.core.mirrors.regions import next_default_name
 from tibia_mirror.ui.base.theme import FRAME_COLOR_HEX
 
 

@@ -4,8 +4,8 @@ import tkinter as tk
 from collections.abc import Callable
 from dataclasses import replace
 
-from tibia_mirror.core.mirror_timer import MirrorTimer
-from tibia_mirror.core.timers import clock
+from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirrors.timers import clock
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.scale import px

@@ -8,7 +8,7 @@ from typing import Any
 
 from tibia_mirror.config import TIMER_ALERT_RANGE, TIMER_DIRECTIONS
 from tibia_mirror.core.keys import KeyCombo, canonical_modifiers, parse_key
-from tibia_mirror.core.timers import clock
+from tibia_mirror.core.mirrors.timers import clock
 
 # the sounds a timer can play; the first is the default
 SOUNDS = ("notification", "critical", "beep", "none")

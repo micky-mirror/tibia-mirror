@@ -6,9 +6,9 @@ import pytest
 
 from tibia_mirror.config import ZOOM_RANGE
 from tibia_mirror.core.geometry import Rect
-from tibia_mirror.core.mirror_settings import MirrorSettings
-from tibia_mirror.core.mirror_timer import MirrorTimer
-from tibia_mirror.core.regions import Layout
+from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
+from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirrors.regions import Layout
 
 # One layout as a profile file holds it, and the same layout as the class holds it.
 LAYOUTS_JSON = {"1920x1080": {"region": [10, 20, 300, 40], "offset": [5, 6]}}

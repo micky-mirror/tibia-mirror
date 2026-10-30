@@ -15,9 +15,9 @@ from tibia_mirror.config import (
 )
 from tibia_mirror.core.geometry import Rect, scaled_size, zoom_for_width
 from tibia_mirror.core.handles import Hwnd
-from tibia_mirror.core.mirror_look import MirrorLook
-from tibia_mirror.core.mirror_settings import MirrorSettings
-from tibia_mirror.core.regions import Layout, size_key
+from tibia_mirror.core.mirrors.mirror_look import MirrorLook
+from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
+from tibia_mirror.core.mirrors.regions import Layout, size_key
 from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px

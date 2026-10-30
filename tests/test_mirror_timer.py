@@ -2,7 +2,7 @@
 
 import pytest
 
-from tibia_mirror.core.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
 
 # A timer where every value is different from its default.
 CHANGED_TIMER = MirrorTimer(

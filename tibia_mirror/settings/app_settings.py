@@ -8,8 +8,8 @@ from typing import Any, TypedDict
 
 from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
 from tibia_mirror.core.keys import KeyCombo, canonical_modifiers, parse_key
-from tibia_mirror.core.regions import clamp_opacity
-from tibia_mirror.core.timers import Pauses, pauses_from_json, pauses_to_json
+from tibia_mirror.core.mirrors.regions import clamp_opacity
+from tibia_mirror.core.mirrors.timers import Pauses, pauses_from_json, pauses_to_json
 
 # The place and the size of the panel on the screen: (x, y, width, height).
 PanelRect = tuple[int, int, int, int]

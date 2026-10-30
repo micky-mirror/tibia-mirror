@@ -1,4 +1,4 @@
-from tibia_mirror.core.timers import (
+from tibia_mirror.core.mirrors.timers import (
     clock,
     parse_alert,
     pauses_from_json,

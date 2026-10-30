@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from tibia_mirror.core.mirror_timer import MirrorTimer
+from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
 
 
 @dataclass(frozen=True)
