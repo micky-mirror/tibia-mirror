@@ -3,10 +3,10 @@
 import tkinter as tk
 
 from tibia_mirror.ui.base.render import (
-    ButtonStyle,
     Pixels,
-    button_pixels,
+    RaisedStyle,
     outlined_pixels,
+    raised_pixels,
     rounded_pixels,
 )
 
@@ -50,9 +50,9 @@ def raised_image(
     *,
     width: int,
     height: int,
-    style: ButtonStyle,
+    style: RaisedStyle,
     background: str,
     is_pressed: bool = False,
 ) -> tk.PhotoImage:
     """A picture of a raised box with its soft shadow, sunk while pressed."""
-    return _photo(master, button_pixels(width, height, style, background, is_pressed))
+    return _photo(master, raised_pixels(width, height, style, background, is_pressed))

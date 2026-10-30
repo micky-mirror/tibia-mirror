@@ -7,7 +7,7 @@ Button styles are in pixels at the current display scaling: call use() after sca
 
 from typing import TypedDict
 
-from tibia_mirror.ui.base.render import ButtonStyle
+from tibia_mirror.ui.base.render import RaisedStyle
 from tibia_mirror.ui.base.scale import px
 
 
@@ -112,8 +112,8 @@ KNOB: str
 KNOB_ACTIVE: str
 MIRROR_FRAME: str
 SHADOW: float
-PRIMARY_BUTTON: ButtonStyle
-SECONDARY_BUTTON: ButtonStyle
+PRIMARY_BUTTON: RaisedStyle
+SECONDARY_BUTTON: RaisedStyle
 
 # A Tk font as (family, size) or (family, size, style), e.g. ("Segoe UI", 11, "bold").
 FontSpec = tuple[str, int] | tuple[str, int, str]
@@ -177,7 +177,7 @@ def use(name: str) -> None:
     """Switch every colour and button style to the `name` theme ("dark" or "light")."""
     global current
     palette = PALETTES[name]
-    secondary = ButtonStyle(
+    secondary = RaisedStyle(
         fill=palette["SURFACE"],
         radius=px(8),
         shadow_alpha=0.45 * palette["SHADOW"],
@@ -186,7 +186,7 @@ def use(name: str) -> None:
     )
     globals().update(
         palette,
-        PRIMARY_BUTTON=ButtonStyle(
+        PRIMARY_BUTTON=RaisedStyle(
             fill=palette["ACCENT"],
             radius=px(10),
             shadow_alpha=0.55 * palette["SHADOW"],

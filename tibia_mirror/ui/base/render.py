@@ -23,7 +23,7 @@ PRESSED_SHADOW_PART = 0.6  # how much of its shadow's strength a pressed button 
 
 
 @dataclass(frozen=True)
-class ButtonStyle:
+class RaisedStyle:
     fill: str
     radius: int
     shadow_alpha: float = 0.0  # 0 disables the shadow
@@ -80,7 +80,7 @@ class Shadow:
     blur: float  # how far it fades out beyond the edge of the box
 
 
-def margins(style: ButtonStyle) -> Margins:
+def margins(style: RaisedStyle) -> Margins:
     blur = style.shadow_blur if style.shadow_alpha else 0
     offset = style.shadow_offset if style.shadow_alpha else 0
     return Margins(blur, max(0, blur - offset), blur, blur + offset)
@@ -115,23 +115,23 @@ def shadow_opacity(distance: float, blur: float) -> float:
 
 
 @lru_cache(maxsize=128)
-def button_pixels(
-    width: int, height: int, style: ButtonStyle, background: str, pressed: bool = False
+def raised_pixels(
+    width: int, height: int, style: RaisedStyle, background: str, is_pressed: bool = False
 ) -> Pixels:
-    """The button over `background`, with its shadow margins around it.
+    """The raised box over `background`, with its shadow margins around it.
 
     Pressed sinks the body by PRESSED_SINK and flattens the shadow.
     """
     margin = margins(style)
-    sink = PRESSED_SINK if pressed else 0
+    sink = PRESSED_SINK if is_pressed else 0
     left, top = margin.left, margin.top + sink
     body = Box(left, top, left + width, top + height, style.radius)
 
     shadow = None
     if style.shadow_alpha:
-        # pressed, the button is closer to the page: its shadow drops half as far and is fainter
-        drop = (style.shadow_offset // 2 if pressed else style.shadow_offset) - sink
-        alpha = style.shadow_alpha * (PRESSED_SHADOW_PART if pressed else 1.0)
+        # pressed, the box is closer to the page: its shadow drops half as far and is fainter
+        drop = (style.shadow_offset // 2 if is_pressed else style.shadow_offset) - sink
+        alpha = style.shadow_alpha * (PRESSED_SHADOW_PART if is_pressed else 1.0)
         shadow = Shadow(body.moved_down(drop), alpha, style.shadow_blur)
 
     full_width = margin.left + width + margin.right

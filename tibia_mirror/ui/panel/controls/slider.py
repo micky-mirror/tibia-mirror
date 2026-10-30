@@ -6,7 +6,7 @@ from collections.abc import Callable
 from tibia_mirror.core.geometry import slider_value, slider_x
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import raised_image, rounded_image
-from tibia_mirror.ui.base.render import ButtonStyle, margins
+from tibia_mirror.ui.base.render import RaisedStyle, margins
 from tibia_mirror.ui.base.scale import px
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -172,11 +172,11 @@ class Slider:
             background=theme.SURFACE,
         )
 
-    def _get_knob_style(self, is_active: bool) -> ButtonStyle:
+    def _get_knob_style(self, is_active: bool) -> RaisedStyle:
         """A round shape with a soft shadow, in its own colour while the knob is active."""
         colour = theme.KNOB_ACTIVE if is_active else theme.KNOB
 
-        return ButtonStyle(
+        return RaisedStyle(
             fill=colour,
             radius=px(KNOB_SIZE) // 2,
             shadow_alpha=0.45 * theme.SHADOW,

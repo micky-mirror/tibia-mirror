@@ -5,19 +5,19 @@ import pytest
 
 from tibia_mirror.ui.base.render import (
     Box,
-    ButtonStyle,
     Margins,
-    button_pixels,
+    RaisedStyle,
     hex_to_rgb,
     margins,
     outlined_pixels,
+    raised_pixels,
     rounded_pixels,
 )
 
 BG = "#1e1e2e"
 FILL = "#89b4fa"
-FLAT = ButtonStyle(fill=FILL, radius=6)
-SHADOWED = ButtonStyle(fill=FILL, radius=6, shadow_alpha=0.5, shadow_offset=3, shadow_blur=8)
+FLAT = RaisedStyle(fill=FILL, radius=6)
+SHADOWED = RaisedStyle(fill=FILL, radius=6, shadow_alpha=0.5, shadow_offset=3, shadow_blur=8)
 
 
 def luminance(color):
@@ -58,26 +58,26 @@ def test_moved_down_keeps_the_size():
 
 
 def test_image_size_includes_margins():
-    rows = button_pixels(40, 20, SHADOWED, BG)
+    rows = raised_pixels(40, 20, SHADOWED, BG)
     assert len(rows) == 5 + 20 + 11
     assert all(len(r) == 8 + 40 + 8 for r in rows)
 
 
 def test_centre_is_fill_and_corners_are_rounded_away():
-    rows = button_pixels(40, 20, FLAT, BG)
+    rows = raised_pixels(40, 20, FLAT, BG)
     assert rows[10][20] == FILL
     assert rows[0][0] == BG  # outside the rounded corner
     assert rows[0][20] == FILL  # straight top edge is fully covered
 
 
 def test_edges_are_antialiased():
-    rows = button_pixels(40, 20, FLAT, BG)
+    rows = raised_pixels(40, 20, FLAT, BG)
     corner_band = {rows[1][1], rows[0][2], rows[2][0]}
     assert corner_band - {BG, FILL}, "expected blended pixels along the rounded corner"
 
 
 def test_shadow_darkens_below_but_not_above():
-    rows = button_pixels(40, 20, SHADOWED, BG)
+    rows = raised_pixels(40, 20, SHADOWED, BG)
     m = margins(SHADOWED)
     below = rows[m.top + 20 + 2][m.left + 20]
     above = rows[0][m.left + 20]
@@ -88,8 +88,8 @@ def test_shadow_darkens_below_but_not_above():
 
 def test_pressed_moves_body_down_one_pixel():
     m = margins(SHADOWED)
-    normal = button_pixels(40, 20, SHADOWED, BG)
-    pressed = button_pixels(40, 20, SHADOWED, BG, pressed=True)
+    normal = raised_pixels(40, 20, SHADOWED, BG)
+    pressed = raised_pixels(40, 20, SHADOWED, BG, is_pressed=True)
     x = m.left + 20
     assert normal[m.top][x] == FILL
     assert pressed[m.top][x] != FILL
@@ -119,16 +119,16 @@ def fingerprint(rows):
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
-PRIMARY = ButtonStyle("#89b4fa", radius=10, shadow_alpha=0.55, shadow_offset=4, shadow_blur=10)
-SECONDARY_LIGHT = ButtonStyle(
+PRIMARY = RaisedStyle("#89b4fa", radius=10, shadow_alpha=0.55, shadow_offset=4, shadow_blur=10)
+SECONDARY_LIGHT = RaisedStyle(
     "#ffffff", radius=10, shadow_alpha=0.2025, shadow_offset=3, shadow_blur=8
 )
-KNOB = ButtonStyle("#cdd6f4", radius=9, shadow_alpha=0.45, shadow_offset=1, shadow_blur=4)
-WIDE_SHADOW = ButtonStyle("#89b4fa", radius=15, shadow_alpha=0.55, shadow_offset=5, shadow_blur=13)
+KNOB = RaisedStyle("#cdd6f4", radius=9, shadow_alpha=0.45, shadow_offset=1, shadow_blur=4)
+WIDE_SHADOW = RaisedStyle("#89b4fa", radius=15, shadow_alpha=0.55, shadow_offset=5, shadow_blur=13)
 
 
 @pytest.mark.parametrize(
-    ("width", "height", "style", "background", "pressed", "expected"),
+    ("width", "height", "style", "background", "is_pressed", "expected"),
     [
         (120, 34, PRIMARY, "#1e1e2e", False, "49e6b02590f8b2f4"),
         (120, 34, PRIMARY, "#1e1e2e", True, "0238f16824750017"),
@@ -138,8 +138,8 @@ WIDE_SHADOW = ButtonStyle("#89b4fa", radius=15, shadow_alpha=0.55, shadow_offset
         (57, 83, WIDE_SHADOW, "#1e1e2e", True, "55bbc6d75ef56cb2"),
     ],
 )
-def test_button_pixels_stay_the_same(width, height, style, background, pressed, expected):
-    assert fingerprint(button_pixels(width, height, style, background, pressed)) == expected
+def test_raised_pixels_stay_the_same(width, height, style, background, is_pressed, expected):
+    assert fingerprint(raised_pixels(width, height, style, background, is_pressed)) == expected
 
 
 @pytest.mark.parametrize(

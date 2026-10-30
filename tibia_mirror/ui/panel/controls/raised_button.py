@@ -8,7 +8,7 @@ from dataclasses import replace
 
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.images import raised_image
-from tibia_mirror.ui.base.render import PRESSED_SINK, ButtonStyle, margins
+from tibia_mirror.ui.base.render import PRESSED_SINK, RaisedStyle, margins
 
 
 class RaisedButton(tk.Canvas):
@@ -25,7 +25,7 @@ class RaisedButton(tk.Canvas):
         *,
         width: int,
         height: int,
-        style: ButtonStyle,
+        style: RaisedStyle,
         hover_fill: str,
         font: theme.FontSpec,
         text_colour: str,
@@ -122,7 +122,7 @@ class RaisedButton(tk.Canvas):
 
         return "normal"
 
-    def _get_image(self, style: ButtonStyle, *, is_pressed: bool) -> tk.PhotoImage:
+    def _get_image(self, style: RaisedStyle, *, is_pressed: bool) -> tk.PhotoImage:
         """The button and its shadow. Pressed, it is a pixel lower and its shadow is flatter."""
         return raised_image(
             self,

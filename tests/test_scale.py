@@ -58,7 +58,7 @@ PIXEL_KEYWORDS = {
 }
 # Calls whose positional arguments are pixel sizes or coordinates (how many, None: all).
 PIXEL_POSITIONALS = {
-    "button_pixels": 2,
+    "raised_pixels": 2,
     "outlined_pixels": 3,
     "rounded_pixels": 3,
     **dict.fromkeys(("create_line", "create_text", "create_image", "create_window"), None),
