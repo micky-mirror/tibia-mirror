@@ -304,17 +304,21 @@ tibia_mirror/
     settings_writer.py       writing settings.json
   core/                      pure logic: no Windows or Tk code
     geometry.py              pure coordinate math
-    game_window.py           the Tibia window as the app sees it
-    connection.py            the states of the connection to Tibia
-    profile.py               one profile, as it is saved in its file
-    mirror_settings.py       the settings of one mirror
-    mirror_timer.py          the timer of one mirror and what its badge shows
-    mirror_look.py           how every mirror is drawn
-    regions.py               layouts, window sizes, ids and default names
-    profiles.py              the rules for profile names
-    timers.py                key combinations and paused progress per character
-    characters.py            the character in Tibia's window title
     handles.py               the Hwnd name for window handles
+    keys.py                  key combinations
+    tibia/                   what the app knows about Tibia
+      game_window.py         the Tibia window as the app sees it
+      connection.py          the states of the connection to Tibia
+      characters.py          the character in Tibia's window title
+    mirrors/                 the mirrors: settings, timers and look
+      mirror_settings.py     the settings of one mirror
+      mirror_timer.py        the timer of one mirror and what its badge shows
+      mirror_look.py         how every mirror is drawn
+      regions.py             layouts, window sizes, ids and default names
+      timers.py              clock text, alert times and paused progress per character
+    profiles/                the profiles and their names
+      profile.py             one profile, as it is saved in its file
+      profile_names.py       the rules for profile names
   settings/                  the settings of the app
     app_settings.py          the settings, as they are saved in settings.json
     app_settings_store.py    the settings while the app runs

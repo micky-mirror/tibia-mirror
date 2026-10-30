@@ -77,7 +77,7 @@ Each mirror (`ui/overlay/mirror_window.py`) is a borderless, always-on-top windo
 ### Layouts per window size
 
 Tibia's panels don't scale with its window, so a mirror keeps one **layout per client size** (e.g. windowed and fullscreen).
-A layout (`core/regions.py`) is the region shown plus the mirror's position relative to the game window, so mirrors follow Tibia when it moves.
+A layout (`core/mirrors/regions.py`) is the region shown plus the mirror's position relative to the game window, so mirrors follow Tibia when it moves.
 Adding a region makes a layout for the size Tibia has at that moment.
 A mirror without a layout for the current size is not shown, and the Mirrors page leaves out its card.
 
@@ -122,7 +122,7 @@ It leaves out the repeats of a held key and a modifier pressed alone.
 - A key starts the timers bound to exactly that combination, but only while Tibia is in front.
 - A key combination does one thing only.
   Setting a key in one place clears it everywhere else (`ProfileManager.clear_hotkey`), and a profile that is opened loses the hide-all key from its timers.
-- The timer logic is pure: `core/mirror_timer.py` has a timer's settings and what its badge shows, and `core/timers.py` has key combinations and paused progress.
+- The timer logic is pure: `core/mirrors/mirror_timer.py` has a timer's settings and what its badge shows, `core/mirrors/timers.py` has the clock text and paused progress, and `core/keys.py` has key combinations.
 - `TimerManager` (`app_parts/timer_manager.py`) keeps when each timer started.
   The App passes it the clicks and keys, and `MirrorManager.update_timer_badges` shows the times on the badges every 200 ms (`TIMER_TICK_MS`).
 - A mirror window plays the timer's sound when its time is up, but not while the mirror is hidden.
@@ -134,14 +134,14 @@ While nobody is logged in, a paused timer shows its time dimmed.
 
 ## Profiles and settings
 
-- **Profiles** (`core/profile.py`, `core/mirror_settings.py`, `core/mirror_timer.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
+- **Profiles** (`core/profiles/profile.py`, `core/mirrors/mirror_settings.py`, `core/mirrors/mirror_timer.py`) are JSON files, one per profile, in `%APPDATA%\Tibia Mirror\profiles`.
   Each mirror has a permanent hidden `id`, a name, opacity, zoom, colour, timer and its layouts.
   Files of v1.0.0 load as they are, and tests pin that format.
 - **The open profile** is kept by `ProfileManager` (`app_parts/profile_manager.py`), which also does new, duplicate, rename and delete.
   Every change is written to the file at once.
   A duplicate gives its mirrors new ids, so paused timers never mix between profiles.
   A file that can't be read opens as an empty profile, and the panel says so.
-- **Profile names** are file names, so they follow Windows' rules and compare ignoring case (`core/profiles.py`).
+- **Profile names** are file names, so they follow Windows' rules and compare ignoring case (`core/profiles/profile_names.py`).
 - **Settings** (`settings/app_settings.py`) are saved to `settings.json`.
   Bad or unknown values fall back to defaults, so a hand-edited file never stops the app from starting.
   `AppSettingsStore` (`settings/app_settings_store.py`) holds them while the app runs, and tells the App and the pages that listen after each change.
@@ -201,7 +201,7 @@ These are deliberate and must stay true:
 | App parts | `app_parts/app_window.py`, `app_parts/tibia_connection.py`, `app_parts/front_window_tracker.py`, `app_parts/profile_manager.py`, `app_parts/mirror_manager.py`, `app_parts/timer_manager.py`, `app_parts/input_watcher.py`, `app_parts/settings_writer.py` |
 | Settings | `settings/app_settings.py`, `settings/app_settings_store.py` |
 | Windows and Tibia | `winapi/win32.py` (all Win32 calls), `winapi/dwm.py`, `winapi/tibia.py`, `winapi/rawinput.py`, `winapi/instance.py`, `winapi/sounds.py` |
-| Pure logic | `core/geometry.py`, `core/game_window.py`, `core/connection.py`, `core/profile.py`, `core/mirror_settings.py`, `core/mirror_timer.py`, `core/mirror_look.py`, `core/regions.py`, `core/profiles.py`, `core/timers.py`, `core/characters.py`, `core/handles.py` |
+| Pure logic | `core/geometry.py`, `core/handles.py`, `core/keys.py`, `core/tibia/game_window.py`, `core/tibia/connection.py`, `core/tibia/characters.py`, `core/mirrors/mirror_settings.py`, `core/mirrors/mirror_timer.py`, `core/mirrors/mirror_look.py`, `core/mirrors/regions.py`, `core/mirrors/timers.py`, `core/profiles/profile.py`, `core/profiles/profile_names.py` |
 | Text | `i18n.py`, `about.py` |
 | Mirrors | `ui/overlay/mirror_window.py`, `ui/overlay/mirror_frame.py`, `ui/overlay/timer_badge.py`, `ui/overlay/selection_overlay.py`, `ui/overlay/loupe.py`, `ui/overlay/pixel_marker.py` |
 | Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, `ui/panel/footer.py`, the pages in `ui/panel/pages/`, the mirror cards and the timer dialog in `ui/panel/mirrors/`, the profile picker and menu in `ui/panel/profiles/`, the rows of the cards in `ui/panel/rows/` |
