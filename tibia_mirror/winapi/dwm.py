@@ -42,26 +42,28 @@ class DWM_THUMBNAIL_PROPERTIES(ctypes.Structure):  # noqa: N801 - Win32 name
 
 
 HRESULT = ctypes.c_long
-dwmapi.DwmRegisterThumbnail.restype = HRESULT
-dwmapi.DwmRegisterThumbnail.argtypes = [
+win32.set_signature(
+    dwmapi.DwmRegisterThumbnail,
+    HRESULT,
     wintypes.HWND,
     wintypes.HWND,
     ctypes.POINTER(wintypes.HANDLE),
-]
-dwmapi.DwmUpdateThumbnailProperties.restype = HRESULT
-dwmapi.DwmUpdateThumbnailProperties.argtypes = [
+)
+win32.set_signature(
+    dwmapi.DwmUpdateThumbnailProperties,
+    HRESULT,
     wintypes.HANDLE,
     ctypes.POINTER(DWM_THUMBNAIL_PROPERTIES),
-]
-dwmapi.DwmUnregisterThumbnail.restype = HRESULT
-dwmapi.DwmUnregisterThumbnail.argtypes = [wintypes.HANDLE]
-dwmapi.DwmSetWindowAttribute.restype = HRESULT
-dwmapi.DwmSetWindowAttribute.argtypes = [
+)
+win32.set_signature(dwmapi.DwmUnregisterThumbnail, HRESULT, wintypes.HANDLE)
+win32.set_signature(
+    dwmapi.DwmSetWindowAttribute,
+    HRESULT,
     wintypes.HWND,
     wintypes.DWORD,
     ctypes.c_void_p,
     wintypes.DWORD,
-]
+)
 
 
 def _check(result: int, what: str) -> None:
