@@ -154,6 +154,11 @@ The panel is plain Tk, made to look modern without third-party packages:
 
 - **Rounded, anti-aliased shapes and shadows** (buttons, cards, fields) are drawn in code in `ui/base/render.py` and cached.
 - **Mirror cards, the menu rail and the cards of settings rows** are drawn on one canvas each and hit-tested by position, for clean hover handling.
+- **Controls** (`ui/panel/controls/`): one control per file, and each one owns its look and its state.
+  The code that uses a control only places it and reacts to its callback (`on_change`, `on_pick` or `command`).
+  A control with its own canvas or window, like `RaisedButton` or `TextField`, binds its own mouse and key events.
+  A control drawn on a card's canvas, like `Slider` or `SegmentedControl`, gets the pointer from the card (`pointer_moved`, `pointer_pressed`, ...).
+  `pointer_moved` returns whether a click there would act, so the card shows a hand.
 - **Themes** (`ui/base/theme.py`): colours are read when a widget is drawn, never copied at import time.
   A new theme or language is used after a restart: the Settings page asks first, and nothing is built again while the app runs (see "Input and timers").
 - **Languages** (`i18n.py`): every user-facing text goes through `tr()`; a test fails if any has no Polish translation.
@@ -201,4 +206,4 @@ These are deliberate and must stay true:
 | Mirrors | `ui/overlay/mirror_window.py`, `ui/overlay/mirror_frame.py`, `ui/overlay/timer_badge.py`, `ui/overlay/selection_overlay.py`, `ui/overlay/loupe.py`, `ui/overlay/pixel_marker.py` |
 | Panel | `ui/panel/panel.py`, `ui/panel/nav.py`, `ui/panel/footer.py`, the pages in `ui/panel/pages/`, the mirror cards and the timer dialog in `ui/panel/mirrors/`, the profile picker and menu in `ui/panel/profiles/`, the rows of the cards in `ui/panel/rows/` |
 | Widgets | `ui/panel/controls/` |
-| Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/images.py`, `ui/base/text.py`, `ui/base/windows.py` |
+| Drawing | `ui/base/render.py`, `ui/base/theme.py`, `ui/base/scale.py`, `ui/base/images.py`, `ui/base/icons.py`, `ui/base/text.py`, `ui/base/windows.py` |
