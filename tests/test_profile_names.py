@@ -1,4 +1,4 @@
-from tibia_mirror.core.profiles import copy_name, name_error
+from tibia_mirror.core.profiles.profile_names import copy_name, name_error
 
 
 def test_name_error():

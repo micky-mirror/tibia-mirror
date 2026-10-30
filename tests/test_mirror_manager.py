@@ -14,7 +14,7 @@ from tibia_mirror.core.mirrors.mirror_look import MirrorLook
 from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
 from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
 from tibia_mirror.core.mirrors.regions import Layout
-from tibia_mirror.core.profile import Profile
+from tibia_mirror.core.profiles.profile import Profile
 from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.ui.base.scale import px

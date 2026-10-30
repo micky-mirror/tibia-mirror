@@ -5,7 +5,7 @@ import json
 import pytest
 
 from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
-from tibia_mirror.core.profile import Profile
+from tibia_mirror.core.profiles.profile import Profile
 
 # One mirror as a profile file holds it, and the same mirror as the class holds it.
 MIRROR_JSON = {
