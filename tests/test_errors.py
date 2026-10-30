@@ -51,12 +51,13 @@ def test_an_error_that_nothing_catches_is_written(log_file):
     assert "ValueError: uncaught" in log_file.read_text(encoding="utf-8")
 
 
-def test_a_full_log_moves_to_a_second_file(log_file):
+def test_a_full_log_moves_to_a_second_file_at_start(log_file):
+    log_file.parent.mkdir()
+    log_file.write_text("old error\n" * 300, encoding="utf-8")
+
     errors.start(log_file, 2_000)
+    errors.log_exception(*raised("new error"))
 
-    for number in range(40):
-        errors.log_exception(*raised(f"error {number}"))
-
-    assert log_file.with_name("error.log.1").exists()
-    assert "error 39" in log_file.read_text(encoding="utf-8")
-    assert log_file.stat().st_size <= 2_000
+    assert "old error" in log_file.with_name("error.log.1").read_text(encoding="utf-8")
+    assert "old error" not in log_file.read_text(encoding="utf-8")
+    assert "new error" in log_file.read_text(encoding="utf-8")
