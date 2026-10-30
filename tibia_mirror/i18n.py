@@ -216,6 +216,12 @@ POLISH = {
     "Discord": "Discordzie",
     "Copy": "Kopiuj",
     "Copied": "Skopiowano",
+    "If Tibia runs as administrator, Tibia Mirror must run as administrator too. "
+    "Otherwise the features that react to your keys and clicks won't work.": (
+        "Jeśli Tibia została uruchomiona jako administrator, Tibia Mirror również "
+        "musi zostać uruchomiona w ten sam sposób. "
+        "Inaczej funkcje reagujące na klawisze i kliknięcia nie będą działać."
+    ),
     "A fan-made tool for the Tibia community. Tibia is a trademark of "
     "CipSoft GmbH, and this app is not affiliated with or endorsed by CipSoft.": (
         "Narzędzie stworzone przez fana dla społeczności Tibii. Tibia jest znakiem "

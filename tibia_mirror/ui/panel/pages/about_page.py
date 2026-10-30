@@ -1,4 +1,4 @@
-"""The About page: what the app is for, its version, contact, tips and the trademark notice."""
+"""The About page: what the app is for, its version, contact, tips, notes and the trademark."""
 
 import tkinter as tk
 from collections.abc import Sequence
@@ -30,6 +30,7 @@ class AboutPage(tk.Frame):
         self._add_intro()
         self._add_contact()
         self._add_tip()
+        self._add_admin_note()
         self._add_trademark_notice()
 
     def _add_column(self, side_pad: int) -> None:
@@ -125,6 +126,16 @@ class AboutPage(tk.Frame):
         """A name on its own line, with a copy icon. A click copies the name."""
         copy_name = CopyText(self._column, name, text_colour=colour, background=theme.BG)
         copy_name.pack(side="top", anchor="w")
+
+    def _add_admin_note(self) -> None:
+        """A note on running the app as administrator."""
+        self._add_paragraph(
+            tr(
+                "If Tibia runs as administrator, Tibia Mirror must run as administrator too. "
+                "Otherwise the features that react to your keys and clicks won't work."
+            ),
+            theme.TEXT,
+        )
 
     def _add_trademark_notice(self) -> None:
         """The last paragraph: the app is made by a fan and is not a CipSoft product."""
