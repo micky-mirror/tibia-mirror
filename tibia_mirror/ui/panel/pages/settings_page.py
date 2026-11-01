@@ -133,7 +133,7 @@ class SettingsPage(tk.Frame):
         self._scroll_cards.add_caption(tr("ADD BY CLICK"))
         size_row = SizeRow(
             tr("Box size"),
-            tr("The part of the game a new mirror shows, when you add it by click."),
+            tr("The part of the game a new mirror shows."),
             size=current_settings.click_box_size,
             on_change=lambda size: self._settings.update(click_box_size=size),
         )

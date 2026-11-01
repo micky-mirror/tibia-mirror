@@ -181,9 +181,7 @@ POLISH = {
     "Clips a few pixels at each corner.": "Ucina kilka pikseli w rogach.",
     "ADD BY CLICK": "DODAJ KLIKNIĘCIEM",
     "Box size": "Rozmiar obszaru",
-    "The part of the game a new mirror shows, when you add it by click.": (
-        "Część gry, którą pokaże nowe odbicie dodane kliknięciem."
-    ),
+    "The part of the game a new mirror shows.": "Część gry, którą pokaże nowe odbicie.",
     "Direction": "Kierunek",
     "Where the box grows from the click.": "W którą stronę obszar rośnie od kliknięcia.",
     "Hide all mirrors": "Ukryj wszystkie odbicia",
