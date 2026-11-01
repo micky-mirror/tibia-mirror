@@ -11,6 +11,7 @@ from tibia_mirror.ui.base.text import percent
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
 from tibia_mirror.ui.panel.rows.choice_row import ChoiceRow
 from tibia_mirror.ui.panel.rows.scroll_cards import ScrollCards
+from tibia_mirror.ui.panel.rows.size_row import SizeRow
 from tibia_mirror.ui.panel.rows.slider_row import SliderRow
 from tibia_mirror.ui.panel.rows.toggle_row import ToggleRow
 
@@ -31,6 +32,7 @@ class SettingsPage(tk.Frame):
         self._add_general_group()
         self._add_profiles_group()
         self._add_mirrors_group()
+        self._add_click_group()
 
     def _add_scroll_cards(self) -> None:
         """The scrolling column that holds the groups of the page."""
@@ -122,6 +124,19 @@ class SettingsPage(tk.Frame):
             on_change=lambda is_on: self._settings.update(is_rounded_corners_on=is_on),
         )
         self._scroll_cards.add_card([opacity_row, zoom_row, frame_row, tint_row, corners_row])
+
+    def _add_click_group(self) -> None:
+        """The fourth group: the box that Add by click places."""
+        current_settings = self._settings.current
+
+        self._scroll_cards.add_caption(tr("ADD BY CLICK"))
+        size_row = SizeRow(
+            tr("Box size"),
+            tr("The part of the game a new mirror shows, when you add it by click."),
+            size=current_settings.click_box_size,
+            on_change=lambda size: self._settings.update(click_box_size=size),
+        )
+        self._scroll_cards.add_card([size_row])
 
     def _on_language_chosen(self, language: str) -> None:
         self._ask_restart(

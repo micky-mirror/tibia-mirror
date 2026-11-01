@@ -179,6 +179,11 @@ POLISH = {
     "Shades coloured mirrors in their colour.": "Barwi kolorowe odbicia kolorem ramki.",
     "Rounded corners": "Zaokrąglone rogi",
     "Clips a few pixels at each corner.": "Ucina kilka pikseli w rogach.",
+    "ADD BY CLICK": "DODAJ KLIKNIĘCIEM",
+    "Box size": "Rozmiar obszaru",
+    "The part of the game a new mirror shows, when you add it by click.": (
+        "Część gry, którą pokaże nowe odbicie dodane kliknięciem."
+    ),
     "Hide all mirrors": "Ukryj wszystkie odbicia",
     "Press again to bring them back. Works while Tibia is active.": (
         "Naciśnij ponownie, aby je przywrócić. Działa, gdy Tibia jest aktywna."
