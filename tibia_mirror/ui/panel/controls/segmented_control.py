@@ -28,6 +28,8 @@ class SegmentedControl:
         options: Sequence[tuple[str, str]],
         selected: str,
         on_change: Callable[[str], None],
+        *,
+        font: theme.FontSpec = theme.FONT,
     ) -> None:
         self._canvas = canvas
         self._right = right  # where the track ends on the canvas
@@ -37,7 +39,7 @@ class SegmentedControl:
         self._on_change = on_change  # called with the key of the option the user chooses
         self._hovered: str | None = None  # the key of the option under the pointer
         self._pressed: str | None = None  # the key of the option the button went down on
-        self._font = tkfont.Font(font=theme.FONT)  # measures the texts
+        self._font = tkfont.Font(font=font)  # draws and measures the texts
         self._boxes = self._get_boxes()  # the place of the pill of each option, by key
         # draw control parts
         self._draw_track()
@@ -123,7 +125,7 @@ class SegmentedControl:
             middle_x = (left + right) / 2
 
             self._text_items[key] = self._canvas.create_text(
-                middle_x, self._middle_y, text=text, font=theme.FONT
+                middle_x, self._middle_y, text=text, font=self._font
             )
 
     def _update_pill(self) -> None:

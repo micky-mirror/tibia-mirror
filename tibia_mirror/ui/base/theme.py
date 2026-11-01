@@ -127,6 +127,8 @@ FONT_TITLE: FontSpec = ("Segoe UI Semibold", 16)
 FONT_ICON: FontSpec = ("Segoe MDL2 Assets", 11)
 FONT_ICON_SMALL: FontSpec = ("Segoe MDL2 Assets", 8)
 FONT_ICON_LARGE: FontSpec = ("Segoe MDL2 Assets", 16)
+# Symbols such as arrows; bigger than the text, so their thin lines are easy to see.
+FONT_SYMBOL: FontSpec = ("Segoe UI Symbol", 13)
 
 # Mirror frame colours sit over the game, so they're the same in both themes.
 # "default" is MIRROR_FRAME.

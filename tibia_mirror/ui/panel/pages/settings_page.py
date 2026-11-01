@@ -10,6 +10,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.text import percent
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
 from tibia_mirror.ui.panel.rows.choice_row import ChoiceRow
+from tibia_mirror.ui.panel.rows.hint_choice_row import HintChoiceRow
 from tibia_mirror.ui.panel.rows.scroll_cards import ScrollCards
 from tibia_mirror.ui.panel.rows.size_row import SizeRow
 from tibia_mirror.ui.panel.rows.slider_row import SliderRow
@@ -136,7 +137,20 @@ class SettingsPage(tk.Frame):
             size=current_settings.click_box_size,
             on_change=lambda size: self._settings.update(click_box_size=size),
         )
-        self._scroll_cards.add_card([size_row])
+        direction_row = HintChoiceRow(
+            tr("Direction"),
+            tr("Where the box grows from the click."),
+            options=(
+                ("bottom-right", "\u2198"),  # an arrow to the bottom right
+                ("top-right", "\u2197"),  # to the top right
+                ("top-left", "\u2196"),  # to the top left
+                ("bottom-left", "\u2199"),  # to the bottom left
+            ),
+            selected=current_settings.click_box_direction,
+            on_change=lambda direction: self._settings.update(click_box_direction=direction),
+            font=theme.FONT_SYMBOL,
+        )
+        self._scroll_cards.add_card([size_row, direction_row])
 
     def _on_language_chosen(self, language: str) -> None:
         self._ask_restart(
