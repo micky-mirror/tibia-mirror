@@ -45,7 +45,11 @@ V1_FILE_CONTENT = {
 # only v1.0.0 has fade animations, the autosave setting and character links
 V1_ONLY_KEYS = ("autosave", "fades", "characters")
 # keys that v1.0.0 does not write, with the values CHANGED_SETTINGS gives them
-NEW_KEYS = {"new_zoom": 1.0}
+NEW_KEYS = {
+    "new_zoom": 1.0,
+    "click_box_size": [32, 32],
+    "click_box_direction": "bottom-right",
+}
 
 
 def test_empty_file_content_gives_the_defaults() -> None:
