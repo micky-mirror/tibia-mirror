@@ -12,12 +12,14 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
 from tibia_mirror.ui.panel.controls.dropdown_menu import DIVIDER, DropdownMenu, MenuOption
 from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
+from tibia_mirror.ui.panel.profiles.profile_key_dialog import ProfileKeyDialog
 
 # The keys of the actions in the menu. The other keys are profile names, and
 # a profile name can't hold "<" or ">", so the two never mix.
 NEW = "<new>"
 DUPLICATE = "<duplicate>"
 RENAME = "<rename>"
+KEY = "<key>"
 DELETE = "<delete>"
 
 
@@ -64,6 +66,7 @@ class ProfileMenu:
             MenuOption(NEW, tr("New profile…")),
             MenuOption(DUPLICATE, tr("Duplicate…")),
             MenuOption(RENAME, tr("Rename…")),
+            MenuOption(KEY, tr("Add key…"), text_colour=theme.ACCENT),
         ]
 
         if len(self._profile_names) > 1:
@@ -77,6 +80,7 @@ class ProfileMenu:
             NEW: self._new,
             DUPLICATE: self._duplicate,
             RENAME: self._rename,
+            KEY: self._set_key,
             DELETE: self._delete,
         }
 
@@ -130,6 +134,10 @@ class ProfileMenu:
             on_cancel=lambda: None,
             get_name_error=partial(name_error, taken=other_names),
         )
+
+    def _set_key(self) -> None:
+        """Ask for the key that opens the active profile."""
+        ProfileKeyDialog(self._window, self._active_name, None, on_ok=lambda key: None)
 
     def _delete(self) -> None:
         """Ask if the user is sure, then delete the active profile."""
