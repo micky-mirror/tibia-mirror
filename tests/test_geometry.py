@@ -2,6 +2,7 @@ from tibia_mirror.core.geometry import (
     Rect,
     clamp_box,
     fit_panel_size,
+    fitting_zoom,
     magnifier_source,
     nudged_point,
     overlay_to_client,
@@ -60,6 +61,19 @@ def test_zoom_for_width_rounds_to_whole_percent_and_clamps():
     assert zoom_for_width(133, 100, (0.25, 4.0)) == 1.33
     assert zoom_for_width(10, 100, (0.25, 4.0)) == 0.25
     assert zoom_for_width(900, 100, (0.25, 4.0)) == 4.0
+
+
+def test_fitting_zoom_keeps_a_zoom_that_fits():
+    assert fitting_zoom(200, 100, 2.0, Rect(0, 0, 1920, 1040), 0.25) == 2.0
+
+
+def test_fitting_zoom_lowers_a_zoom_in_steps_until_it_fits():
+    # 3440 / 900 = 3.82, so 3.75 is the highest step that fits
+    assert fitting_zoom(900, 300, 4.0, Rect(0, 0, 3440, 1400), 0.25) == 3.75
+
+
+def test_fitting_zoom_never_goes_below_one_step():
+    assert fitting_zoom(4000, 100, 2.0, Rect(0, 0, 1920, 1040), 0.25) == 0.25
 
 
 def test_scroll_thumb_hidden_when_everything_fits():

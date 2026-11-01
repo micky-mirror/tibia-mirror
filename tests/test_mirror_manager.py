@@ -484,6 +484,33 @@ def test_an_added_mirror_sits_left_of_its_area_when_the_right_has_no_room(monkey
     assert added.layouts["800x600"].offset == (600 - gap - 190, 40)
 
 
+def test_an_added_mirror_starts_at_the_new_mirror_zoom(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1920, 1040))
+
+    added = add_mirror(Rect(30, 40, 200, 100), replace(DEFAULT_SETTINGS, new_mirror_zoom=2.0))
+
+    assert added.zoom == 2.0
+
+
+def test_an_added_mirror_too_big_for_the_screen_starts_at_a_lower_zoom(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1000, 1040))
+
+    added = add_mirror(Rect(30, 40, 300, 100), replace(DEFAULT_SETTINGS, new_mirror_zoom=4.0))
+
+    # 1000 / 300 = 3.33, so 3.25 is the highest step that fits
+    assert added.zoom == 3.25
+
+
+def test_an_added_mirror_is_placed_by_its_zoomed_size(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1000, 1040))
+
+    added = add_mirror(Rect(500, 40, 200, 100), replace(DEFAULT_SETTINGS, new_mirror_zoom=2.0))
+
+    # At 100% the mirror fits at the right; at 200% it is 400 wide and only fits at the left.
+    gap = px(NEW_MIRROR_GAP)
+    assert added.layouts["800x600"].offset == (500 - gap - 400, 40)
+
+
 def test_every_added_mirror_gets_its_own_id(monkeypatch):
     use_work_area(monkeypatch, Rect(0, 0, 1920, 1040))
     profile_manager = FakeProfileManager([])
@@ -538,6 +565,18 @@ def test_a_mirror_without_a_place_for_this_game_size_goes_beside_its_new_area(mo
     (changed,) = profile_manager.current.mirrors
     gap = px(NEW_MIRROR_GAP)
     assert changed.layouts["800x600"] == Layout(Rect(30, 40, 200, 100), (30 + 200 + gap, 40))
+
+
+def test_a_zoomed_mirror_at_a_new_game_size_is_placed_by_its_zoomed_size(monkeypatch):
+    use_work_area(monkeypatch, Rect(0, 0, 1000, 1040))
+    profile_manager = FakeProfileManager([replace(make_mirror("Minimap"), zoom=2.0)])
+    manager = make_manager(profile_manager)
+
+    manager.set_area("Minimap", Rect(500, 40, 200, 100))
+
+    (changed,) = profile_manager.current.mirrors
+    gap = px(NEW_MIRROR_GAP)
+    assert changed.layouts["800x600"].offset == (500 - gap - 400, 40)
 
 
 def test_an_area_for_an_unknown_mirror_changes_nothing():
