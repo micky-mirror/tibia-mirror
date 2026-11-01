@@ -58,10 +58,11 @@ POLISH = {
         "Odbicia z tego profilu pojawią się po połączeniu z Tibią."
     ),
     # Mirrors page
-    "Add region": "Dodaj region",
+    "Add by drag": "Dodaj przeciągając",
+    "Add by click": "Dodaj klikając",
     "REGIONS": "REGIONY",
-    "Click Add region, then drag a box over the part of the game to mirror.": (
-        "Kliknij Dodaj region, a potem zaznacz fragment gry do odbicia."
+    "Click Add by drag, then drag a box over the part of the game to mirror.": (
+        "Kliknij Dodaj przeciągając, a potem zaznacz fragment gry do odbicia."
     ),
     "New profile…": "Nowy profil…",
     "Duplicate…": "Duplikuj…",
@@ -179,7 +180,7 @@ POLISH = {
     "Shades coloured mirrors in their colour.": "Barwi kolorowe odbicia kolorem ramki.",
     "Rounded corners": "Zaokrąglone rogi",
     "Clips a few pixels at each corner.": "Ucina kilka pikseli w rogach.",
-    "ADD BY CLICK": "DODAJ KLIKNIĘCIEM",
+    "ADD BY CLICK": "DODAJ KLIKAJĄC",
     "Box size": "Rozmiar obszaru",
     "The part of the game a new mirror shows.": "Część gry, którą pokaże nowe odbicie.",
     "Direction": "Kierunek",

@@ -69,6 +69,7 @@ class Panel(tk.Frame):
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
         on_select_area: Callable[[str | None], None],
+        on_add_by_click: Callable[[], None],
     ) -> None:
         super().__init__(window, bg=theme.BG)
         self._settings = settings
@@ -85,6 +86,7 @@ class Panel(tk.Frame):
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
         # gets the id of the mirror whose area is selected again, None for a new mirror
         self._on_select_area = on_select_area
+        self._on_add_by_click = on_add_by_click  # starts adding a new mirror of the set size
         self._open_page = START_PAGE  # the key of the page that is shown
         self._add_menu()
         self._add_content()
@@ -232,6 +234,7 @@ class Panel(tk.Frame):
             self._on_mirror_changed,
             self._on_mirror_removed,
             self._on_select_area,
+            self._on_add_by_click,
         )
         self._pages: dict[str, tk.Frame] = {
             "mirrors": self._mirrors_page,

@@ -39,7 +39,6 @@ class RaisedButton(tk.Canvas):
             bg=background,
             highlightthickness=0,
             bd=0,
-            cursor="hand2",
         )
         self._text = text
         self._command = command  # called when the button is clicked
@@ -77,13 +76,18 @@ class RaisedButton(tk.Canvas):
         )
 
     def _bind_events(self) -> None:
-        self.bind("<Enter>", self._on_mouse_enter)
+        self.bind("<Motion>", self._on_mouse_move)  # with the mouse button held down too
         self.bind("<Leave>", self._on_mouse_leave)
         self.bind("<ButtonPress-1>", self._on_mouse_down)
         self.bind("<ButtonRelease-1>", self._on_mouse_up)
 
-    def _on_mouse_enter(self, event: tk.Event[tk.Canvas]) -> None:
-        self._is_hovered = True
+    def _on_mouse_move(self, event: tk.Event[tk.Canvas]) -> None:
+        is_hovered = self._is_on_button(event.x, event.y)
+
+        if is_hovered == self._is_hovered:
+            return
+
+        self._is_hovered = is_hovered
         self._update_look()
 
     def _on_mouse_leave(self, event: tk.Event[tk.Canvas]) -> None:
@@ -91,7 +95,7 @@ class RaisedButton(tk.Canvas):
         self._update_look()
 
     def _on_mouse_down(self, event: tk.Event[tk.Canvas]) -> None:
-        self._is_pressed = True
+        self._is_pressed = self._is_on_button(event.x, event.y)
         self._update_look()
 
     def _on_mouse_up(self, event: tk.Event[tk.Canvas]) -> None:
@@ -108,9 +112,11 @@ class RaisedButton(tk.Canvas):
         look = self._get_look()
         middle_x, middle_y = self._get_text_position()
         sink = PRESSED_SINK if look == "pressed" else 0
+        cursor = "hand2" if self._is_hovered else ""
 
         self.itemconfigure(self._image_item, image=self._images[look])
         self.coords(self._text_item, middle_x, middle_y + sink)
+        self.configure(cursor=cursor)
 
     def _get_look(self) -> str:
         """Pressed while it is down with the pointer on it, hovered while only pointed at."""
@@ -132,6 +138,15 @@ class RaisedButton(tk.Canvas):
             background=self._background,
             is_pressed=is_pressed,
         )
+
+    def _is_on_button(self, position_x: int, position_y: int) -> bool:
+        """True on the button itself, False on the room for its shadow around it."""
+        left = self.shadow_margins.left
+        top = self.shadow_margins.top
+        is_inside_x = left <= position_x < left + self._width
+        is_inside_y = top <= position_y < top + self._height
+
+        return is_inside_x and is_inside_y
 
     def _get_text_position(self) -> tuple[float, float]:
         """The middle of the button, inside the room for the shadow."""

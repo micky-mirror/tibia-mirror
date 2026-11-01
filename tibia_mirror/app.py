@@ -31,7 +31,11 @@ from tibia_mirror.i18n import tr, tr_n
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base.text import key_combo_name
-from tibia_mirror.ui.overlay.selection_overlay import NewRegionOverlay, SelectionOverlay
+from tibia_mirror.ui.overlay.selection_overlay import (
+    ClickRegionOverlay,
+    NewRegionOverlay,
+    SelectionOverlay,
+)
 from tibia_mirror.ui.panel.panel import Panel
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import win32
@@ -275,7 +279,7 @@ class App:
         else:
             self._on_profile_selected(self.profile_manager.active_name)
 
-    def _on_select_area(self, mirror_id: str | None) -> None:
+    def _on_select_area(self, mirror_id: str | None, *, is_by_click: bool = False) -> None:
         if self._is_selecting:
             return  # a cover is already open, maybe on another monitor than the panel
 
@@ -298,6 +302,20 @@ class App:
 
         names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
         suggested_name = regions.next_default_name(names, stem=tr("Region"))
+
+        if is_by_click:
+            current_settings = self.settings.current
+            ClickRegionOverlay(
+                self.window,
+                game_window,
+                suggested_name,
+                current_settings.click_box_size,
+                current_settings.click_box_direction,
+                on_selected,
+                self._on_selection_cancelled,
+            )
+            return
+
         NewRegionOverlay(
             self.window,
             game_window,
@@ -382,6 +400,7 @@ class App:
             self.mirror_manager.update_mirror,
             self.profile_manager.remove_mirror,
             self._on_select_area,
+            partial(self._on_select_area, None, is_by_click=True),
         )
         self.panel.pack(fill="both", expand=True)
         self._show_hidden_note()

@@ -10,12 +10,14 @@ from tibia_mirror.config import MIN_SELECTION_SIDE
 from tibia_mirror.core.geometry import (
     Point,
     Rect,
+    box_from_corner,
     nudged_point,
     overlay_to_client,
     rect_from_drag,
 )
 from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.app_settings import BoxSize
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.overlay.loupe import Loupe
@@ -179,3 +181,60 @@ class NewRegionOverlay(SelectionOverlay):
             on_ok=partial(self._on_named, area),
             on_cancel=self._on_cancel,
         )
+
+
+class ClickRegionOverlay(NewRegionOverlay):
+    """The cover for a new mirror of a set size: a box follows the point, a click places it."""
+
+    def __init__(
+        self,
+        parent: tk.Misc,
+        game_window: GameWindow,
+        suggested_name: str,
+        box_size: BoxSize,
+        direction: str,
+        on_named: Callable[[Rect, str], None],
+        on_cancel: Callable[[], None],
+    ) -> None:
+        # kept first: the cover shows the box while it is built
+        self._box_size = box_size  # in game pixels
+        self._direction = direction  # where the box grows from the point
+        super().__init__(parent, game_window, suggested_name, on_named, on_cancel)
+        self._is_pressed = False  # True from a press on the cover until the button goes up
+
+    def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
+        self._pointer = (event.x, event.y)
+        self._is_pressed = True
+        self._show_point()
+
+    def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
+        if not self._is_pressed:
+            return  # the press was before the cover opened
+
+        self._pointer = (event.x, event.y)
+        selection = self._get_box()
+
+        self.destroy()
+        self._on_selected(self._get_game_area(selection))
+
+    def _show_point(self) -> None:
+        """Show the point in the loupe, and the box of the set size at it."""
+        point_x, point_y = self._get_point()
+        monitor = self._monitor_area
+        point_on_screen = (monitor.x + point_x, monitor.y + point_y)
+        box = self._get_box()
+        box_corners = (box.x, box.y, box.right, box.bottom)
+
+        if self._box is None:
+            self._box = self._canvas.create_rectangle(
+                *box_corners, outline=theme.ACCENT, width=px(BOX_OUTLINE)
+            )
+        else:
+            self._canvas.coords(self._box, *box_corners)
+
+        self._loupe.show_at(point_on_screen, (box.w, box.h))
+
+    def _get_box(self) -> Rect:
+        """The box of the set size at the point, on the cover."""
+        width, height = self._box_size
+        return box_from_corner(self._get_point(), width, height, self._direction)
