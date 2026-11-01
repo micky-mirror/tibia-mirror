@@ -23,6 +23,8 @@ DEFAULT_PROFILE = "Default"
 
 # Mirror zoom limits (1.0 = actual size).
 ZOOM_RANGE = (0.25, 4.0)
+# The "Zoom of new mirrors" slider moves in steps of this size.
+ZOOM_STEP = 0.25
 # How close to a mirror's bottom-right corner the pointer must be to resize it.
 RESIZE_GRIP = 14
 # A new mirror is placed this far from the area it mirrors.

@@ -169,6 +169,10 @@ POLISH = {
     "Stays above other windows.": "Pozostaje nad innymi oknami.",
     "Opacity of new mirrors": "Krycie nowych odbić",
     "Each mirror can still be set on its card.": "Każde odbicie ustawisz też na jego karcie.",
+    "Zoom of new mirrors": "Powiększenie nowych odbić",
+    "Each mirror can still be resized at its corner.": (
+        "Każde odbicie wciąż można powiększyć w standardowy sposób."
+    ),
     "Mirror frame": "Ramka odbicia",
     "Grey outline on mirrors without a colour.": "Szara obwódka wokół odbić bez koloru.",
     "Tint with frame colour": "Barwienie kolorem ramki",

@@ -3,7 +3,7 @@
 import tkinter as tk
 from collections.abc import Callable
 
-from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
+from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP, ZOOM_RANGE, ZOOM_STEP
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
@@ -92,6 +92,17 @@ class SettingsPage(tk.Frame):
             value_text=percent,
             on_change=lambda opacity: self._settings.update(new_mirror_opacity=opacity),
         )
+        zoom_row = SliderRow(
+            tr("Zoom of new mirrors"),
+            tr("Each mirror can still be resized at its corner."),
+            value=current_settings.new_mirror_zoom,
+            start=ZOOM_RANGE[0],
+            end=ZOOM_RANGE[1],
+            step=ZOOM_STEP,
+            lowest=ZOOM_RANGE[0],
+            value_text=percent,
+            on_change=lambda zoom: self._settings.update(new_mirror_zoom=zoom),
+        )
         frame_row = ToggleRow(
             tr("Mirror frame"),
             tr("Grey outline on mirrors without a colour."),
@@ -110,7 +121,7 @@ class SettingsPage(tk.Frame):
             is_on=current_settings.is_rounded_corners_on,
             on_change=lambda is_on: self._settings.update(is_rounded_corners_on=is_on),
         )
-        self._scroll_cards.add_card([opacity_row, frame_row, tint_row, corners_row])
+        self._scroll_cards.add_card([opacity_row, zoom_row, frame_row, tint_row, corners_row])
 
     def _on_language_chosen(self, language: str) -> None:
         self._ask_restart(

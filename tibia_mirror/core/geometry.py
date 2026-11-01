@@ -1,5 +1,6 @@
 """Pure coordinate math: no Win32 or Tk, so it is unit-testable anywhere."""
 
+import math
 from dataclasses import dataclass
 
 # An (x, y) position in pixels.
@@ -106,6 +107,16 @@ def zoom_for_width(width: int, region_width: int, zoom_range: tuple[float, float
     """The zoom that makes a region `region_width` wide show `width` wide, in whole percent."""
     lo, hi = zoom_range
     return min(hi, max(lo, round(width / region_width, 2)))
+
+
+def fitting_zoom(width: int, height: int, zoom: float, bounds: Rect, step: float) -> float:
+    """The zoom, lowered in steps until a region of this size fits in `bounds`."""
+    largest_zoom = min(bounds.w / width, bounds.h / height)
+
+    if zoom <= largest_zoom:
+        return zoom
+
+    return max(step, math.floor(largest_zoom / step) * step)
 
 
 def scroll_thumb(first: float, last: float, track: int, min_size: int) -> tuple[int, int] | None:
