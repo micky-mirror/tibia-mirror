@@ -44,6 +44,8 @@ V1_FILE_CONTENT = {
 }
 # only v1.0.0 has fade animations, the autosave setting and character links
 V1_ONLY_KEYS = ("autosave", "fades", "characters")
+# keys that v1.0.0 does not write, with the values CHANGED_SETTINGS gives them
+NEW_KEYS = {"new_zoom": 1.0}
 
 
 def test_empty_file_content_gives_the_defaults() -> None:
@@ -193,7 +195,7 @@ def test_written_settings_keep_the_format_of_v1_0_0() -> None:
         key: value for key, value in V1_FILE_CONTENT.items() if key not in V1_ONLY_KEYS
     }
 
-    assert CHANGED_SETTINGS.to_json() == shared_content
+    assert CHANGED_SETTINGS.to_json() == {**shared_content, **NEW_KEYS}
 
 
 def test_update_type_has_every_setting_with_the_same_type() -> None:

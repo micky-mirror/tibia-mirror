@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
 from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
 from tibia_mirror.core.keys import KeyCombo, canonical_modifiers, parse_key
-from tibia_mirror.core.mirrors.regions import clamp_opacity
+from tibia_mirror.core.mirrors.regions import clamp_opacity, clamp_zoom
 from tibia_mirror.core.mirrors.timers import Pauses, pauses_from_json, pauses_to_json
 
 # The place and the size of the panel on the screen: (x, y, width, height).
@@ -23,6 +23,7 @@ class AppSettings:
     # Logging in opens the profile of the character, and creates one the first time.
     is_profile_per_character_on: bool = False
     new_mirror_opacity: float = DEFAULT_OPACITY  # the opacity a new mirror starts with
+    new_mirror_zoom: float = 1.0  # the zoom a new mirror starts with, if it fits on the screen
     is_mirror_frame_on: bool = True  # a grey outline on mirrors without a colour
     is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
     is_rounded_corners_on: bool = False
@@ -57,7 +58,12 @@ class AppSettings:
                 "rounded_corners", default=cls.is_rounded_corners_on
             ),
             # numbers
-            new_mirror_opacity=saved.get_opacity("new_opacity", default=cls.new_mirror_opacity),
+            new_mirror_opacity=saved.get_number(
+                "new_opacity", default=cls.new_mirror_opacity, clamp=clamp_opacity
+            ),
+            new_mirror_zoom=saved.get_number(
+                "new_zoom", default=cls.new_mirror_zoom, clamp=clamp_zoom
+            ),
             # texts
             last_profile=saved.get_text("profile", default=cls.last_profile),
             last_character=saved.get_text("last_character", default=cls.last_character),
@@ -86,6 +92,7 @@ class AppSettings:
             "rounded_corners": self.is_rounded_corners_on,
             # numbers
             "new_opacity": round(self.new_mirror_opacity, 2),
+            "new_zoom": round(self.new_mirror_zoom, 2),
             # texts
             "profile": self.last_profile,
             "last_character": self.last_character,
@@ -107,6 +114,7 @@ class AppSettingsUpdate(TypedDict, total=False):
     is_panel_on_top: bool
     is_profile_per_character_on: bool
     new_mirror_opacity: float
+    new_mirror_zoom: float
     is_mirror_frame_on: bool
     is_frame_tint_on: bool
     is_rounded_corners_on: bool
@@ -145,14 +153,14 @@ class _SavedData:
 
         return default
 
-    def get_opacity(self, name: str, *, default: float) -> float:
-        """The saved number, moved into the allowed range. If it is not a number, the default."""
+    def get_number(self, name: str, *, default: float, clamp: Callable[[float], float]) -> float:
+        """The saved number, moved into its range by `clamp`. If it is not a number, the default."""
         value = self._data.get(name)
 
         if isinstance(value, bool) or not isinstance(value, int | float):
             return default
 
-        return clamp_opacity(value)
+        return clamp(value)
 
     def get_text(self, name: str, *, default: str) -> str:
         """The saved text if it is a text and not empty. If not, the default."""
