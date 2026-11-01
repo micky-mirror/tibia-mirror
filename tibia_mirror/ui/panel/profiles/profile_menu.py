@@ -10,6 +10,7 @@ from tibia_mirror.core.mirrors.regions import next_default_name
 from tibia_mirror.core.profiles.profile_names import copy_name, name_error
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.text import key_combo_name
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
 from tibia_mirror.ui.panel.controls.dropdown_menu import DIVIDER, DropdownMenu, MenuOption
 from tibia_mirror.ui.panel.controls.name_dialog import NameDialog
@@ -62,9 +63,15 @@ class ProfileMenu:
         menu.open(box, on_close)
 
     def _get_options(self) -> list[MenuOption | None]:
-        """Every profile, then what can be done with profiles. The last one can't be deleted."""
+        """Every profile with its key, then what can be done with profiles.
+
+        The last profile can't be deleted.
+        """
         options: list[MenuOption | None] = [
-            *[MenuOption(name, name) for name in self._profile_names],
+            *[
+                MenuOption(name, name, side_text=self._get_key_name(name))
+                for name in self._profile_names
+            ],
             DIVIDER,
             MenuOption(NEW, tr("New profile…")),
             MenuOption(DUPLICATE, tr("Duplicate…")),
@@ -76,6 +83,12 @@ class ProfileMenu:
             options += [DIVIDER, MenuOption(DELETE, tr("Delete profile"), text_colour=theme.RED)]
 
         return options
+
+    def _get_key_name(self, name: str) -> str | None:
+        """The key that opens the profile `name`, such as "Ctrl+F5". None if it has no key."""
+        key = self._profile_manager.get_key(name)
+
+        return None if key is None else key_combo_name(key)
 
     def _on_pick(self, key: str) -> None:
         """Do what the picked option stands for: an action, or opening a profile."""
