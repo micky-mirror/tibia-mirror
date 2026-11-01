@@ -61,9 +61,17 @@ POLISH = {
     "Add by drag": "Dodaj przeciągając",
     "Add by click": "Dodaj klikając",
     "REGIONS": "REGIONY",
-    "Click Add by drag, then drag a box over the part of the game to mirror.": (
-        "Kliknij Dodaj przeciągając, a potem zaznacz fragment gry do odbicia."
+    "Mirror creation": "Tworzenie odbicia",
+    "Drag a box over the game.": "Zaznacz obszar gry.",
+    "Click the point where the area starts. You can change the area size in the settings.": (
+        "Kliknij w punkt, od którego zaznaczyć obszar. Rozmiar obszaru zmienisz w ustawieniach."
     ),
+    "Place it": "Ustaw je",
+    "Drag the mirror where you want it.": "Przeciągnij odbicie w wybrane miejsce.",
+    "Drag its bottom-right corner to resize it.": "Rozmiar zmienisz, ciągnąc za prawy dolny róg.",
+    "Lock it": "Zablokuj je",
+    "Click the lock on its card.": "Kliknij kłódkę na jego karcie.",
+    "Clicks then pass through it to the game.": "Kliknięcia będą przez nie przechodzić.",
     "New profile…": "Nowy profil…",
     "Duplicate…": "Duplikuj…",
     "Rename…": "Zmień nazwę…",
