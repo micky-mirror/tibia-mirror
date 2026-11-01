@@ -574,6 +574,36 @@ def test_a_loaded_profile_loses_the_profile_keys_from_its_timers(tmp_path, folde
     assert settings.current.profile_keys == (("Druid", F1),)
 
 
+def test_a_pressed_key_finds_the_profile_with_the_same_modifiers(tmp_path, folder):
+    add_profile(folder, "Druid")
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Druid")
+    settings.update(profile_keys=(("Druid", F1), ("Knight", CTRL_F1)))
+    manager = make_manager(folder, settings)
+
+    assert manager.find_name_by_key(112, ()) == "Druid"
+    assert manager.find_name_by_key(112, ("ctrl",)) == "Knight"
+
+
+def test_a_key_that_no_profile_has_finds_nothing(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Knight", F1),))
+    manager = make_manager(folder, settings)
+
+    assert manager.find_name_by_key(113, ()) is None  # F2
+    assert manager.find_name_by_key(112, ("shift",)) is None  # Shift+F1
+
+
+def test_the_key_of_a_profile_whose_file_is_gone_finds_nothing(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Druid", F1),))
+    manager = make_manager(folder, settings)
+
+    assert manager.find_name_by_key(112, ()) is None
+
+
 def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
     manager = make_manager(folder, make_settings(tmp_path, "Default"))
     manager.load()
