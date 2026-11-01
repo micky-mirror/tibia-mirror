@@ -201,6 +201,42 @@ def test_missing_or_wrong_hide_all_key_means_no_key() -> None:
     assert AppSettings.from_json({"hide_all_key": "F9"}).hide_all_key is None
 
 
+def test_saved_profile_keys_are_read_sorted_by_name() -> None:
+    data = {
+        "profile_keys": {
+            "EK PvP": {"key": 117, "modifiers": ["ctrl"]},
+            "EK PvE": {"key": 116},
+        }
+    }
+
+    assert AppSettings.from_json(data).profile_keys == (
+        ("EK PvE", (116, ())),
+        ("EK PvP", (117, ("ctrl",))),
+    )
+
+
+def test_wrong_profile_keys_are_left_out() -> None:
+    data = {
+        "profile_keys": {
+            "": {"key": 116},  # no profile name
+            "Knight": {"key": "F5"},  # not a key code
+            "Druid": 116,  # not a key with its modifiers
+            "EK PvP": {"key": 117},
+        }
+    }
+
+    assert AppSettings.from_json(data).profile_keys == (("EK PvP", (117, ())),)
+    assert AppSettings.from_json({"profile_keys": ["EK PvP", 117]}).profile_keys == ()
+
+
+def test_profile_keys_are_written_by_profile_name() -> None:
+    settings = AppSettings(profile_keys=(("EK PvP", (117, ("ctrl",))),))
+
+    assert settings.to_json()["profile_keys"] == {
+        "EK PvP": {"key": 117, "modifiers": ["ctrl"]},
+    }
+
+
 def test_saved_panel_place_is_read() -> None:
     settings = AppSettings.from_json({"panel_rect": [-300, 50, 400, 600]})
 
