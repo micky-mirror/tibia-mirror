@@ -4,6 +4,7 @@ import tkinter as tk
 from collections.abc import Callable, Sequence
 from functools import partial
 
+from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.core.mirrors.regions import next_default_name
 from tibia_mirror.core.profiles.profile_names import copy_name, name_error
@@ -33,6 +34,7 @@ class ProfileMenu:
     def __init__(
         self,
         window: tk.Misc,
+        profile_manager: ProfileManager,
         active_name: str,
         profile_names: Sequence[str],
         on_select: Callable[[str], None],
@@ -42,6 +44,7 @@ class ProfileMenu:
         on_delete: Callable[[], None],
     ) -> None:
         self._window = window  # the main window, the menu and its dialogs open over it
+        self._profile_manager = profile_manager  # gets and sets the profile keys
         self._active_name = active_name  # the name of the active profile
         self._profile_names = profile_names  # the names of all profiles
         self._on_select = on_select  # gets the name of the profile picked in the menu
@@ -137,7 +140,12 @@ class ProfileMenu:
 
     def _set_key(self) -> None:
         """Ask for the key that opens the active profile."""
-        ProfileKeyDialog(self._window, self._active_name, None, on_ok=lambda key: None)
+        ProfileKeyDialog(
+            self._window,
+            self._active_name,
+            self._profile_manager.get_key(self._active_name),
+            on_ok=self._profile_manager.set_key,
+        )
 
     def _delete(self) -> None:
         """Ask if the user is sure, then delete the active profile."""

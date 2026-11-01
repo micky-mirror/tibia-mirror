@@ -224,6 +224,7 @@ class Panel(tk.Frame):
             self._content,
             content_width(),
             px(SIDE_PAD),
+            self._profile_manager,
             self._profile_info,
             self._on_profile_selected,
             self._on_new_profile,
