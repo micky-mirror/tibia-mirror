@@ -461,6 +461,119 @@ def test_the_hide_all_key_cleared_on_load_is_reported(tmp_path, folder):
     assert changes == [(Profile(mirrors=(mirror,)), Profile(mirrors=(cleared_mirror,)))]
 
 
+def test_a_set_key_is_kept_for_the_open_profile(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    manager = make_manager(folder, settings)
+
+    manager.set_key(F1)
+
+    assert manager.get_key("Knight") == F1
+    assert settings.current.profile_keys == (("Knight", F1),)
+
+
+def test_a_profile_key_set_to_none_is_removed(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Knight", F1),))
+    manager = make_manager(folder, settings)
+
+    manager.set_key(None)
+
+    assert manager.get_key("Knight") is None
+    assert settings.current.profile_keys == ()
+
+
+def test_a_new_profile_key_is_taken_from_another_profile(tmp_path, folder):
+    add_profile(folder, "Druid")
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Druid")
+    settings.update(profile_keys=(("Knight", F1),))
+    manager = make_manager(folder, settings)
+
+    manager.set_key(F1)
+
+    assert settings.current.profile_keys == (("Druid", F1),)
+
+
+def test_a_new_profile_key_is_taken_from_timers_and_the_hide_all_key(tmp_path, folder):
+    saved_mirrors = [make_mirror_json_with_hotkey("mirror-1", F1)]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(hide_all_key=F1)
+    manager = make_manager(folder, settings)
+    manager.load()
+
+    manager.set_key(F1)
+
+    assert manager.current.mirrors[0].timer.key is None
+    assert settings.current.hide_all_key is None
+    assert manager.get_key("Knight") == F1
+
+
+def test_a_hotkey_taken_by_a_timer_or_the_hide_all_key_leaves_its_profile(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Druid", F1), ("Knight", F2)))
+    manager = make_manager(folder, settings)
+
+    manager.clear_hotkey(F1)
+
+    assert settings.current.profile_keys == (("Knight", F2),)
+
+
+def test_a_renamed_profile_keeps_its_key(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Druid", F2), ("Knight", F1)))
+    manager = make_manager(folder, settings)
+
+    manager.rename("Elite Knight")
+
+    assert settings.current.profile_keys == (("Druid", F2), ("Elite Knight", F1))
+
+
+def test_a_deleted_profile_loses_its_key(tmp_path, folder):
+    add_profile(folder, "Druid")
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Druid", F2), ("Knight", F1)))
+    manager = make_manager(folder, settings)
+
+    manager.delete()
+
+    assert settings.current.profile_keys == (("Druid", F2),)
+
+
+def test_a_duplicate_gets_no_key(tmp_path, folder):
+    add_profile(folder, "Knight")
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Knight", F1),))
+    manager = make_manager(folder, settings)
+    manager.load()
+
+    manager.duplicate("Elite Knight")
+
+    assert manager.get_key("Elite Knight") is None
+    assert manager.get_key("Knight") == F1
+
+
+def test_a_loaded_profile_loses_the_profile_keys_from_its_timers(tmp_path, folder):
+    saved_mirrors = [
+        make_mirror_json_with_hotkey("mirror-1", F1),
+        make_mirror_json_with_hotkey("mirror-2", CTRL_F1),
+    ]
+    write_profile_file(folder, "Knight", {"version": 2, "mirrors": saved_mirrors})
+    settings = make_settings(tmp_path, "Knight")
+    settings.update(profile_keys=(("Druid", F1),))
+    manager = make_manager(folder, settings)
+
+    manager.load()
+
+    assert [mirror.timer.key for mirror in manager.current.mirrors] == [None, CTRL_F1]
+    assert settings.current.profile_keys == (("Druid", F1),)
+
+
 def test_the_first_default_profile_has_no_mirrors(tmp_path, folder):
     manager = make_manager(folder, make_settings(tmp_path, "Default"))
     manager.load()
