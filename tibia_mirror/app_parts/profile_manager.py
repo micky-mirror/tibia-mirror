@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from tibia_mirror.config import DEFAULT_PROFILE
-from tibia_mirror.core.keys import KeyCombo
+from tibia_mirror.core.keys import KeyCombo, combo_matches
 from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
 from tibia_mirror.core.mirrors.regions import new_id
 from tibia_mirror.core.profiles.profile import Profile
@@ -120,6 +120,17 @@ class ProfileManager:
     def get_key(self, name: str) -> KeyCombo | None:
         """The key that opens the profile `name`. None if it has no key."""
         return dict(self._settings.current.profile_keys).get(name)
+
+    def find_name_by_key(self, key_code: int, modifiers: tuple[str, ...]) -> str | None:
+        """The profile that the key `key_code` with `modifiers` opens. None if no profile has it.
+
+        A profile whose file is gone is left out.
+        """
+        for name, key in self._settings.current.profile_keys:
+            if combo_matches(key, key_code, modifiers) and name in self.get_names():
+                return name
+
+        return None
 
     def set_key(self, key: KeyCombo | None) -> None:
         """Make `key` the key that opens the open profile. None: it has no key.
