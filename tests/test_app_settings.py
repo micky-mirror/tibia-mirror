@@ -45,7 +45,11 @@ V1_FILE_CONTENT = {
 # only v1.0.0 has fade animations, the autosave setting and character links
 V1_ONLY_KEYS = ("autosave", "fades", "characters")
 # keys that v1.0.0 does not write, with the values CHANGED_SETTINGS gives them
-NEW_KEYS = {"new_zoom": 1.0}
+NEW_KEYS = {
+    "new_zoom": 1.0,
+    "click_box_size": [32, 32],
+    "click_box_direction": "bottom-right",
+}
 
 
 def test_empty_file_content_gives_the_defaults() -> None:
@@ -67,6 +71,18 @@ def test_wrong_theme_and_language_become_the_first_choice() -> None:
     settings = AppSettings.from_json({"theme": "pink", "language": 5})
 
     assert settings == AppSettings()
+
+
+def test_saved_click_box_direction_is_read() -> None:
+    settings = AppSettings.from_json({"click_box_direction": "top-left"})
+
+    assert settings.click_box_direction == "top-left"
+
+
+def test_wrong_click_box_direction_becomes_bottom_right() -> None:
+    settings = AppSettings.from_json({"click_box_direction": "left"})
+
+    assert settings.click_box_direction == "bottom-right"
 
 
 def test_saved_panel_on_top_is_read() -> None:
@@ -135,6 +151,25 @@ def test_zoom_outside_the_range_is_moved_into_it() -> None:
 def test_wrong_zoom_becomes_the_default() -> None:
     assert AppSettings.from_json({"new_zoom": True}).new_mirror_zoom == 1.0
     assert AppSettings.from_json({"new_zoom": "big"}).new_mirror_zoom == 1.0
+
+
+def test_saved_click_box_size_is_read() -> None:
+    settings = AppSettings.from_json({"click_box_size": [64, 5]})
+
+    assert settings.click_box_size == (64, 5)
+
+
+def test_wrong_click_box_size_becomes_the_default() -> None:
+    wrong_values = (
+        "32x32",  # not a list
+        [32],  # too short
+        [32, 32.5],  # not a whole number
+        [True, 32],  # true is not a number here
+        [32, 4],  # smaller than a drag may be
+    )
+
+    for value in wrong_values:
+        assert AppSettings.from_json({"click_box_size": value}).click_box_size == (32, 32)
 
 
 def test_saved_profile_and_character_are_read() -> None:

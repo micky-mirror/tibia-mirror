@@ -5,6 +5,7 @@ never copy them at import time. A new theme is used after a restart.
 Button styles are in pixels at the current display scaling: call use() after scale.init().
 """
 
+from dataclasses import replace
 from typing import TypedDict
 
 from tibia_mirror.ui.base.render import RaisedStyle
@@ -26,6 +27,8 @@ class Palette(TypedDict):
     ACCENT_HI: str
     ACCENT_TINT: str
     ON_ACCENT: str
+    MAUVE: str
+    MAUVE_HI: str
     GREEN: str
     RED: str
     RED_HI: str
@@ -52,6 +55,8 @@ PALETTES: dict[str, Palette] = {
         "ACCENT_HI": "#a6c8ff",
         "ACCENT_TINT": "#2f3750",  # ACCENT at 20% over MANTLE: the selected navigation item
         "ON_ACCENT": "#11111b",  # text and knobs on accent-coloured fills
+        "MAUVE": "#cba6f7",  # the Add by click button, a sister of ACCENT
+        "MAUVE_HI": "#d8bcf9",
         "GREEN": "#a6e3a1",
         "RED": "#f38ba8",
         "RED_HI": "#f7a8be",
@@ -76,6 +81,8 @@ PALETTES: dict[str, Palette] = {
         "ACCENT_HI": "#4a85f7",
         "ACCENT_TINT": "#becff0",  # ACCENT at 20% over MANTLE
         "ON_ACCENT": "#ffffff",
+        "MAUVE": "#8839ef",
+        "MAUVE_HI": "#a061f2",
         "GREEN": "#40a02b",
         "RED": "#d20f39",
         "RED_HI": "#e0365a",
@@ -102,6 +109,8 @@ ACCENT: str
 ACCENT_HI: str
 ACCENT_TINT: str
 ON_ACCENT: str
+MAUVE: str
+MAUVE_HI: str
 GREEN: str
 RED: str
 RED_HI: str
@@ -113,6 +122,7 @@ KNOB_ACTIVE: str
 MIRROR_FRAME: str
 SHADOW: float
 PRIMARY_BUTTON: RaisedStyle
+MAUVE_BUTTON: RaisedStyle  # PRIMARY_BUTTON in MAUVE
 SECONDARY_BUTTON: RaisedStyle
 
 # A Tk font as (family, size) or (family, size, style), e.g. ("Segoe UI", 11, "bold").
@@ -127,6 +137,8 @@ FONT_TITLE: FontSpec = ("Segoe UI Semibold", 16)
 FONT_ICON: FontSpec = ("Segoe MDL2 Assets", 11)
 FONT_ICON_SMALL: FontSpec = ("Segoe MDL2 Assets", 8)
 FONT_ICON_LARGE: FontSpec = ("Segoe MDL2 Assets", 16)
+# Symbols such as arrows; bigger than the text, so their thin lines are easy to see.
+FONT_SYMBOL: FontSpec = ("Segoe UI Symbol", 13)
 
 # Mirror frame colours sit over the game, so they're the same in both themes.
 # "default" is MIRROR_FRAME.
@@ -184,15 +196,17 @@ def use(name: str) -> None:
         shadow_offset=px(2),
         shadow_blur=px(6),
     )
+    primary = RaisedStyle(
+        fill=palette["ACCENT"],
+        radius=px(10),
+        shadow_alpha=0.55 * palette["SHADOW"],
+        shadow_offset=px(4),
+        shadow_blur=px(10),
+    )
     globals().update(
         palette,
-        PRIMARY_BUTTON=RaisedStyle(
-            fill=palette["ACCENT"],
-            radius=px(10),
-            shadow_alpha=0.55 * palette["SHADOW"],
-            shadow_offset=px(4),
-            shadow_blur=px(10),
-        ),
+        PRIMARY_BUTTON=primary,
+        MAUVE_BUTTON=replace(primary, fill=palette["MAUVE"]),
         SECONDARY_BUTTON=secondary,
     )
     current = name

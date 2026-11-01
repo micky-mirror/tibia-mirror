@@ -68,6 +68,8 @@ MAX_NAME_LENGTH = 40
 
 # Drags smaller than this (on either axis) are treated as accidental clicks.
 MIN_SELECTION_SIDE = 5
+# Add by click: where the box grows from the click; the first one is the default.
+CLICK_BOX_DIRECTIONS = ("bottom-right", "top-right", "top-left", "bottom-left")
 
 # Saves wait for edits to settle, so a dragged slider doesn't write every step.
 SETTINGS_SAVE_DELAY_MS = 300
