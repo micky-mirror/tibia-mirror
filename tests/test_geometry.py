@@ -1,5 +1,6 @@
 from tibia_mirror.core.geometry import (
     Rect,
+    box_from_corner,
     clamp_box,
     fit_panel_size,
     fitting_zoom,
@@ -61,6 +62,20 @@ def test_zoom_for_width_rounds_to_whole_percent_and_clamps():
     assert zoom_for_width(133, 100, (0.25, 4.0)) == 1.33
     assert zoom_for_width(10, 100, (0.25, 4.0)) == 0.25
     assert zoom_for_width(900, 100, (0.25, 4.0)) == 4.0
+
+
+def test_box_from_corner_grows_in_each_direction():
+    corner = (100, 50)
+
+    assert box_from_corner(corner, 32, 20, "bottom-right") == Rect(100, 50, 32, 20)
+    assert box_from_corner(corner, 32, 20, "top-right") == Rect(100, 31, 32, 20)
+    assert box_from_corner(corner, 32, 20, "top-left") == Rect(69, 31, 32, 20)
+    assert box_from_corner(corner, 32, 20, "bottom-left") == Rect(69, 50, 32, 20)
+
+
+def test_box_from_corner_always_holds_the_corner_pixel():
+    for direction in ("bottom-right", "top-right", "top-left", "bottom-left"):
+        assert box_from_corner((100, 50), 32, 20, direction).contains(100, 50)
 
 
 def test_fitting_zoom_keeps_a_zoom_that_fits():
