@@ -62,6 +62,7 @@ class ProfileManager:
         If the file cannot be renamed, this raises OSError.
         """
         self._get_file(self._active_name).rename(self._get_file(new_name))
+        self._rename_key(self._active_name, new_name)
         self.open(new_name)
 
     def delete(self) -> None:
@@ -70,6 +71,7 @@ class ProfileManager:
         If the file cannot be deleted, this raises OSError.
         """
         self._get_file(self._active_name).unlink(missing_ok=True)
+        self._keep_key(self._active_name, None)
         self.open(self.get_names()[0])
 
     def load(self) -> None:
@@ -87,7 +89,7 @@ class ProfileManager:
             raise
         else:
             self.current = profile
-            self._clear_hide_all_key_from_mirrors()
+            self._clear_app_keys_from_mirrors()
 
     def update_mirror(self, mirror_settings: MirrorSettings) -> None:
         """Give the mirror with the same id these new settings, in the open profile."""
@@ -114,6 +116,20 @@ class ProfileManager:
         ]
 
         self._set_current(replace(self.current, mirrors=tuple(mirrors)))
+
+    def get_key(self, name: str) -> KeyCombo | None:
+        """The key that opens the profile `name`. None if it has no key."""
+        return dict(self._settings.current.profile_keys).get(name)
+
+    def set_key(self, key: KeyCombo | None) -> None:
+        """Make `key` the key that opens the open profile. None: it has no key.
+
+        A key that is new for the profile is first cleared from every place that has it.
+        """
+        if key is not None and key != self.get_key(self._active_name):
+            self.clear_hotkey(key)
+
+        self._keep_key(self._active_name, key)
 
     def clear_hotkey(self, key: KeyCombo) -> None:
         """Set every hotkey that is `key` to None, in the open profile and in the app settings."""
@@ -161,12 +177,14 @@ class ProfileManager:
         if not has_profiles:
             self.write_mirrors(DEFAULT_PROFILE, [])
 
-    def _clear_hide_all_key_from_mirrors(self) -> None:
-        """Set every timer hotkey in the open profile that is the hide-all key to None."""
-        hide_all_key = self._settings.current.hide_all_key
+    def _clear_app_keys_from_mirrors(self) -> None:
+        """Set every timer hotkey in the open profile that the app settings use to None."""
+        app_settings = self._settings.current
+        profile_keys = [key for _name, key in app_settings.profile_keys]
 
-        if hide_all_key is not None:
-            self._clear_mirror_hotkeys(hide_all_key)
+        for key in [app_settings.hide_all_key, *profile_keys]:
+            if key is not None:
+                self._clear_mirror_hotkeys(key)
 
     def _clear_mirror_hotkeys(self, key: KeyCombo) -> None:
         """Set every timer hotkey in the open profile that is `key` to None."""
@@ -188,7 +206,32 @@ class ProfileManager:
             if getattr(app_settings, setting_field.name) == key:
                 changes[setting_field.name] = None
 
+        changes["profile_keys"] = tuple(
+            (name, profile_key)
+            for name, profile_key in app_settings.profile_keys
+            if profile_key != key
+        )
         self._settings.update(**changes)
+
+    def _keep_key(self, name: str, key: KeyCombo | None) -> None:
+        """Keep `key` as the key of the profile `name`, in the app settings. None: no key."""
+        other_keys = [
+            (profile_name, profile_key)
+            for profile_name, profile_key in self._settings.current.profile_keys
+            if profile_name != name
+        ]
+        own_key = [] if key is None else [(name, key)]
+
+        self._settings.update(profile_keys=tuple(sorted(other_keys + own_key)))
+
+    def _rename_key(self, old_name: str, new_name: str) -> None:
+        """Move the key of the profile `old_name` to `new_name`, in the app settings."""
+        profile_keys = [
+            (new_name if profile_name == old_name else profile_name, profile_key)
+            for profile_name, profile_key in self._settings.current.profile_keys
+        ]
+
+        self._settings.update(profile_keys=tuple(sorted(profile_keys)))
 
     def _set_current(self, profile: Profile) -> None:
         """Keep a changed profile in `current`, and report the change."""
