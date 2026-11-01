@@ -174,7 +174,7 @@ class App:
         self.timer_manager.start_by_click(game_window, position_x, position_y, pressed_at)
 
     def _on_key(self, key_code: int, modifiers: tuple[str, ...], pressed_at: float) -> None:
-        """Act on a key pressed in Tibia: the hide-all key, or the key of a timer."""
+        """Act on a key pressed in Tibia: the hide-all key, the key of a profile or of a timer."""
         game_window = self.connection.game_window
         hide_all_key = self.settings.current.hide_all_key
 
@@ -186,7 +186,23 @@ class App:
             self._toggle_all_hidden()
             return
 
+        profile_name = self.profile_manager.find_name_by_key(key_code, modifiers)
+
+        if profile_name is not None:
+            self._open_profile_by_key(profile_name)
+            return
+
         self.timer_manager.start_by_key(key_code, modifiers, pressed_at)
+
+    def _open_profile_by_key(self, name: str) -> None:
+        """Open the profile `name`, whose key was pressed in Tibia.
+
+        Nothing happens while the user selects a part of the game, or when it is already open.
+        """
+        if self._is_selecting or name == self.profile_manager.active_name:
+            return
+
+        self._on_profile_selected(name)
 
     # It plans its next run first, so an error in one run cannot stop it for good.
     def _tick_timers(self) -> None:

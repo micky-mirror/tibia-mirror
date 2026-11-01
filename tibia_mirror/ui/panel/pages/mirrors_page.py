@@ -4,6 +4,7 @@ import tkinter as tk
 from collections.abc import Callable, Sequence
 from functools import partial
 
+from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import RaisedStyle, shadow_margins
@@ -34,6 +35,7 @@ class MirrorsPage(tk.Frame):
         parent: tk.Misc,
         width: int,
         side_pad: int,
+        profile_manager: ProfileManager,
         profile_info: ProfileInfo,
         on_profile_selected: Callable[[str], None],
         on_new_profile: Callable[[str], None],
@@ -49,6 +51,7 @@ class MirrorsPage(tk.Frame):
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
+        self._profile_manager = profile_manager  # the profile menu sets profile keys with it
         self._profile_info = profile_info
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
         self._on_new_profile = on_new_profile  # gets the name typed for a new profile
@@ -73,6 +76,7 @@ class MirrorsPage(tk.Frame):
         self._profile_picker = ProfilePicker(
             self,
             self._width,
+            self._profile_manager,
             self._profile_info.active_name,
             self._profile_info.names,
             self._on_profile_selected,

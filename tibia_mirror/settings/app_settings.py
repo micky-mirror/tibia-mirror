@@ -22,6 +22,8 @@ from tibia_mirror.core.mirrors.timers import Pauses, pauses_from_json, pauses_to
 PanelRect = tuple[int, int, int, int]
 # The size of a box in game pixels: (width, height).
 BoxSize = tuple[int, int]
+# The key that opens each profile: (profile name, key), sorted by name.
+ProfileKeys = tuple[tuple[str, KeyCombo], ...]
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,7 @@ class AppSettings:
     last_character: str = ""
     # The key combination that hides every mirror and brings them back. None: no key is set.
     hide_all_key: KeyCombo | None = None
+    profile_keys: ProfileKeys = ()  # profiles without a key are not in the list
     # Where the panel was when the app closed, to open it there again.
     # None: nothing is saved, and the panel opens in the middle of the screen.
     panel_rect: PanelRect | None = None
@@ -83,6 +86,7 @@ class AppSettings:
             last_character=saved.get_text("last_character", default=cls.last_character),
             # keys
             hide_all_key=saved.get_key_combo("hide_all_key", "hide_all_modifiers"),
+            profile_keys=saved.get_profile_keys("profile_keys"),
             # the place of the panel
             panel_rect=saved.get_panel_rect("panel_rect"),
             # lists the app keeps by itself
@@ -115,6 +119,10 @@ class AppSettings:
             # keys
             "hide_all_key": hide_all_key,
             "hide_all_modifiers": list(hide_all_modifiers),
+            "profile_keys": {
+                name: {"key": key, "modifiers": list(modifiers)}
+                for name, (key, modifiers) in self.profile_keys
+            },
             # the place of the panel
             "panel_rect": panel_rect,
             # lists the app keeps by itself
@@ -139,6 +147,7 @@ class AppSettingsUpdate(TypedDict, total=False):
     last_profile: str
     last_character: str
     hide_all_key: KeyCombo | None
+    profile_keys: ProfileKeys
     panel_rect: PanelRect | None
     timer_pauses: Pauses
 
@@ -215,6 +224,26 @@ class _SavedData:
             return None
 
         return key, modifiers
+
+    def get_profile_keys(self, name: str) -> ProfileKeys:
+        """The saved key of each profile. Entries without a name or a key are left out.
+
+        The file keeps them as {"profile name": {"key": code, "modifiers": [...]}}.
+        """
+        value = self._data.get(name)
+
+        if not isinstance(value, dict):
+            return ()
+
+        profile_keys: list[tuple[str, KeyCombo]] = []
+
+        for profile_name, saved_key in value.items():
+            key = _SavedData(saved_key).get_key_combo("key", "modifiers")
+
+            if profile_name != "" and key is not None:
+                profile_keys.append((profile_name, key))
+
+        return tuple(sorted(profile_keys))
 
     def get_panel_rect(self, name: str) -> PanelRect | None:
         """The saved place and size of the panel. None if they are missing or wrong.

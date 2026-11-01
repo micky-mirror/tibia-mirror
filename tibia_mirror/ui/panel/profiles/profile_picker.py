@@ -6,6 +6,7 @@ import tkinter as tk
 import tkinter.font as tkfont
 from collections.abc import Callable, Sequence
 
+from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.ui.base import icons, theme
 from tibia_mirror.ui.base.images import rounded_image
 from tibia_mirror.ui.base.scale import px
@@ -28,6 +29,7 @@ class ProfilePicker(tk.Canvas):
         self,
         parent: tk.Misc,
         width: int,
+        profile_manager: ProfileManager,
         name: str,
         profile_names: Sequence[str],
         on_profile_selected: Callable[[str], None],
@@ -47,6 +49,7 @@ class ProfilePicker(tk.Canvas):
             cursor="hand2",
         )
         self._width = width
+        self._profile_manager = profile_manager  # the menu sets profile keys with it
         self._profile_name = name  # the name of the active profile
         self._profile_names = profile_names  # the names of all profiles, for the menu
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
@@ -166,6 +169,7 @@ class ProfilePicker(tk.Canvas):
 
         profile_menu = ProfileMenu(
             self.winfo_toplevel(),
+            self._profile_manager,
             self._profile_name,
             self._profile_names,
             self._on_profile_selected,

@@ -67,6 +67,7 @@ POLISH = {
     "New profile…": "Nowy profil…",
     "Duplicate…": "Duplikuj…",
     "Rename…": "Zmień nazwę…",
+    "Add key…": "Dodaj klawisz…",
     "Delete profile": "Usuń profil",
     # Region cards and mirrors
     "Remove region": "Usuń region",
@@ -93,6 +94,8 @@ POLISH = {
     "New profile": "Nowy profil",
     "Duplicate profile": "Duplikuj profil",
     "Rename profile": "Zmień nazwę profilu",
+    'Key for "{name}"': "Klawisz dla „{name}”",
+    "Assign profile to the key.": "Przypisz profil do klawisza.",
     'Delete "{name}" and all its mirrors? This can\'t be undone.': (
         "Usunąć „{name}” i wszystkie jego odbicia? Tego nie da się cofnąć."
     ),
