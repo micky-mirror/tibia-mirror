@@ -131,6 +131,7 @@ FontSpec = tuple[str, int] | tuple[str, int, str]
 FONT: FontSpec = ("Segoe UI", 10)
 FONT_SMALL: FontSpec = ("Segoe UI", 9)
 FONT_BOLD: FontSpec = ("Segoe UI Semibold", 10)
+FONT_HEADING: FontSpec = ("Segoe UI Semibold", 11)
 FONT_CAPTION: FontSpec = ("Segoe UI Semibold", 9)
 FONT_BUTTON: FontSpec = ("Segoe UI", 11, "bold")
 FONT_TITLE: FontSpec = ("Segoe UI Semibold", 16)

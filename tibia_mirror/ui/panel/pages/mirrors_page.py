@@ -11,6 +11,7 @@ from tibia_mirror.ui.base.render import RaisedStyle, shadow_margins
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.raised_button import RaisedButton
 from tibia_mirror.ui.panel.controls.scroll_list import ScrollList
+from tibia_mirror.ui.panel.mirrors.help_step import HelpStep, HintLine
 from tibia_mirror.ui.panel.mirrors.mirror_card.card import MirrorCard
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
@@ -207,8 +208,7 @@ class MirrorsPage(tk.Frame):
             return
 
         if not self._mirrors:
-            hint = tr("Click Add by drag, then drag a box over the part of the game to mirror.")
-            self._add_hint(hint)
+            self._add_help_steps()
             return
 
         for mirror in self._mirrors:
@@ -248,6 +248,43 @@ class MirrorsPage(tk.Frame):
         # The card is still handling the click, so it cannot be destroyed yet.
         # after_idle draws the list again when the card has finished.
         self.after_idle(self._redraw_mirror_list)
+
+    def _add_help_steps(self) -> None:
+        """The help steps, in place of the cards."""
+        steps = (
+            (
+                tr("Mirror creation"),
+                (
+                    HintLine(tr("Drag a box over the game."), tr("Add by drag"), theme.ACCENT),
+                    HintLine(
+                        tr(
+                            "Click the point where the area starts. "
+                            "You can change the area size in the settings."
+                        ),
+                        tr("Add by click"),
+                        theme.MAUVE,
+                    ),
+                ),
+            ),
+            (
+                tr("Place it"),
+                (
+                    HintLine(tr("Drag the mirror where you want it.")),
+                    HintLine(tr("Drag its bottom-right corner to resize it.")),
+                ),
+            ),
+            (
+                tr("Lock it"),
+                (
+                    HintLine(tr("Click the lock on its card.")),
+                    HintLine(tr("Clicks then pass through it to the game.")),
+                ),
+            ),
+        )
+
+        for number, (title, hint_lines) in enumerate(steps, start=1):
+            step = HelpStep(self._mirror_list, self._width, number, title, hint_lines)
+            step.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
 
     def _add_hint(self, text: str) -> None:
         """A grey sentence in the list, in place of the cards."""
