@@ -3,7 +3,7 @@
 import json
 from typing import get_type_hints
 
-from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY
+from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY, ZOOM_RANGE
 from tibia_mirror.settings.app_settings import AppSettings, AppSettingsUpdate
 
 # Settings where every value is different from its default.
@@ -119,6 +119,22 @@ def test_opacity_outside_the_range_is_moved_into_it() -> None:
 def test_wrong_opacity_becomes_the_default() -> None:
     assert AppSettings.from_json({"new_opacity": True}).new_mirror_opacity == DEFAULT_OPACITY
     assert AppSettings.from_json({"new_opacity": "half"}).new_mirror_opacity == DEFAULT_OPACITY
+
+
+def test_saved_zoom_of_new_mirrors_is_read() -> None:
+    settings = AppSettings.from_json({"new_zoom": 2.5})
+
+    assert settings.new_mirror_zoom == 2.5
+
+
+def test_zoom_outside_the_range_is_moved_into_it() -> None:
+    assert AppSettings.from_json({"new_zoom": 0}).new_mirror_zoom == ZOOM_RANGE[0]
+    assert AppSettings.from_json({"new_zoom": 9}).new_mirror_zoom == ZOOM_RANGE[1]
+
+
+def test_wrong_zoom_becomes_the_default() -> None:
+    assert AppSettings.from_json({"new_zoom": True}).new_mirror_zoom == 1.0
+    assert AppSettings.from_json({"new_zoom": "big"}).new_mirror_zoom == 1.0
 
 
 def test_saved_profile_and_character_are_read() -> None:
