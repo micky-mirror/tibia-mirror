@@ -49,6 +49,7 @@ NEW_KEYS = {
     "new_zoom": 1.0,
     "click_box_size": [32, 32],
     "click_box_direction": "bottom-right",
+    "profile_keys": {},
 }
 
 
