@@ -14,6 +14,7 @@ from tibia_mirror.ui.panel.controls.scroll_list import ScrollList
 from tibia_mirror.ui.panel.mirrors.help_step import HelpStep, HintLine
 from tibia_mirror.ui.panel.mirrors.mirror_card.card import MirrorCard
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.select_area_callback import SelectAreaCallback
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 from tibia_mirror.ui.panel.profiles.profile_picker import ProfilePicker
 
@@ -46,8 +47,7 @@ class MirrorsPage(tk.Frame):
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
-        on_select_area: Callable[[str | None], None],
-        on_add_by_click: Callable[[], None],
+        on_select_area: SelectAreaCallback,
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
@@ -64,7 +64,6 @@ class MirrorsPage(tk.Frame):
         self._on_mirror_removed = on_mirror_removed  # gets the mirror id after a card removed it
         # gets the id of the mirror whose area is selected again, None for a new mirror
         self._on_select_area = on_select_area
-        self._on_add_by_click = on_add_by_click  # starts adding a new mirror of the set size
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
@@ -115,14 +114,14 @@ class MirrorsPage(tk.Frame):
         drag_button = self._get_add_button(
             row,
             "+  " + tr("Add by drag"),
-            partial(self._on_select_area, None),
+            partial(self._on_select_area, None, is_by_click=False),
             theme.PRIMARY_BUTTON,
             theme.ACCENT_HI,
         )
         click_button = self._get_add_button(
             row,
             "+  " + tr("Add by click"),
-            self._on_add_by_click,
+            partial(self._on_select_area, None, is_by_click=True),
             theme.MAUVE_BUTTON,
             theme.MAUVE_HI,
         )

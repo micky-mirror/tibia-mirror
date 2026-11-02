@@ -294,7 +294,7 @@ class App:
         else:
             self._on_profile_selected(self.profile_manager.active_name)
 
-    def _on_select_area(self, mirror_id: str | None, *, is_by_click: bool = False) -> None:
+    def _on_select_area(self, mirror_id: str | None, *, is_by_click: bool) -> None:
         if self._is_selecting:
             return  # a cover is already open, maybe on another monitor than the panel
 
@@ -414,7 +414,6 @@ class App:
             self.mirror_manager.update_mirror,
             self.profile_manager.remove_mirror,
             self._on_select_area,
-            partial(self._on_select_area, None, is_by_click=True),
         )
         self.panel.pack(fill="both", expand=True)
         self._show_hidden_note()
