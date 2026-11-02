@@ -108,6 +108,8 @@ POLISH = {
         "Usunąć „{name}” i wszystkie jego odbicia? Tego nie da się cofnąć."
     ),
     "Select area again": "Zaznacz obszar ponownie",
+    "By drag": "Przeciągając",
+    "By click": "Klikając",
     # Profile names
     "Enter a name": "Wpisz nazwę",
     "A name can't contain < > : \" / \\ | ? *": 'Nazwa nie może zawierać < > : " / \\ | ? *',

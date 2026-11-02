@@ -33,7 +33,6 @@ from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base.text import key_combo_name
 from tibia_mirror.ui.overlay.selection_overlay import (
     ClickRegionOverlay,
-    NewRegionOverlay,
     SelectionOverlay,
 )
 from tibia_mirror.ui.panel.panel import Panel
@@ -295,7 +294,7 @@ class App:
         else:
             self._on_profile_selected(self.profile_manager.active_name)
 
-    def _on_select_area(self, mirror_id: str | None, *, is_by_click: bool = False) -> None:
+    def _on_select_area(self, mirror_id: str | None, *, is_by_click: bool) -> None:
         if self._is_selecting:
             return  # a cover is already open, maybe on another monitor than the panel
 
@@ -311,13 +310,12 @@ class App:
         self._is_selecting = True
         self._show_mirrors()
         on_selected = partial(self._on_area_selected, mirror_id)
+        suggested_name: str | None = None  # an area selected again keeps its mirror's name
 
-        if mirror_id is not None:
-            SelectionOverlay(self.window, game_window, on_selected, self._on_selection_cancelled)
-            return
-
-        names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
-        suggested_name = regions.next_default_name(names, stem=tr("Region"))
+        if mirror_id is None:
+            mirrors = self.profile_manager.current.mirrors
+            names = [mirror_settings.name for mirror_settings in mirrors]
+            suggested_name = regions.next_default_name(names, stem=tr("Region"))
 
         if is_by_click:
             current_settings = self.settings.current
@@ -332,7 +330,7 @@ class App:
             )
             return
 
-        NewRegionOverlay(
+        SelectionOverlay(
             self.window,
             game_window,
             suggested_name,
@@ -346,7 +344,7 @@ class App:
         self._show_mirrors()
         self._open_waiting_profile()
 
-    def _on_area_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
+    def _on_area_selected(self, mirror_id: str | None, area: Rect, name: str) -> None:
         self._is_selecting = False
 
         if self.connection.game_window is None:
@@ -416,7 +414,6 @@ class App:
             self.mirror_manager.update_mirror,
             self.profile_manager.remove_mirror,
             self._on_select_area,
-            partial(self._on_select_area, None, is_by_click=True),
         )
         self.panel.pack(fill="both", expand=True)
         self._show_hidden_note()

@@ -45,7 +45,7 @@ def get_set_fields(cls):
 def test_widget_classes_are_found():
     names = {cls.__name__ for cls in get_widget_classes()}
 
-    assert {"AppWindow", "NameDialog", "NewRegionOverlay", "RowCard"} <= names
+    assert {"AppWindow", "NameDialog", "RowCard", "SelectionOverlay"} <= names
 
 
 def test_custom_widgets_do_not_overwrite_tkinter_internals():
