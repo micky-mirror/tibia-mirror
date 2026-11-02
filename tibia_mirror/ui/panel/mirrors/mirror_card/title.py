@@ -17,6 +17,7 @@ from tibia_mirror.ui.panel.mirrors.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel.mirrors.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel.mirrors.mirror_card.text_link import TextLink
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.select_again_dialog import SelectAgainDialog
 from tibia_mirror.ui.panel.mirrors.select_area_callback import SelectAreaCallback
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -197,7 +198,11 @@ class MirrorCardTitle:
         self._on_changed(replace(self._mirror, colour=colour))
 
     def _select_area_again(self) -> None:
-        self._on_select_area(self._mirror.mirror_id, is_by_click=False)
+        SelectAgainDialog(
+            self._canvas.winfo_toplevel(),
+            self._mirror.mirror_id,
+            self._on_select_area,
+        )
 
     def _ask_new_name(self) -> None:
         NameDialog(
