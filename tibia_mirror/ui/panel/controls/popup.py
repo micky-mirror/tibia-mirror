@@ -13,6 +13,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import shadow_margins
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.raised_button import RaisedButton
+from tibia_mirror.ui.panel.controls.scrim import Scrim
 from tibia_mirror.winapi import dwm, win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -120,6 +121,7 @@ class Popup(tk.Toplevel, ABC):
         height = self.winfo_reqheight()
         position_x, position_y = self._get_position(width, height)
 
+        Scrim(self, self._window)
         self.geometry(f"{width}x{height}+{position_x}+{position_y}")
         self.deiconify()
         self.grab_set()  # the rest of the app takes no clicks or keys until the popup closes

@@ -21,6 +21,8 @@ DWM_TNP_VISIBLE = 0x8
 DWM_TNP_SOURCECLIENTAREAONLY = 0x10
 # Dark title bar: attribute 20 on Windows 10 20H1+ and 11, 19 on older Windows 10 builds.
 DWMWA_USE_IMMERSIVE_DARK_MODE = (20, 19)
+# The part of a window that is seen, without its invisible resize border.
+DWMWA_EXTENDED_FRAME_BOUNDS = 9
 # Windows 11 corner rounding and window border.
 DWMWA_WINDOW_CORNER_PREFERENCE = 33
 DWMWA_BORDER_COLOR = 34
@@ -57,6 +59,14 @@ win32.set_signature(
 )
 win32.set_signature(dwmapi.DwmUnregisterThumbnail, HRESULT, wintypes.HANDLE)
 win32.set_signature(
+    dwmapi.DwmGetWindowAttribute,
+    HRESULT,
+    wintypes.HWND,
+    wintypes.DWORD,
+    ctypes.c_void_p,
+    wintypes.DWORD,
+)
+win32.set_signature(
     dwmapi.DwmSetWindowAttribute,
     HRESULT,
     wintypes.HWND,
@@ -92,6 +102,28 @@ def set_rounded_corners(hwnd: Hwnd, rounded: bool) -> None:
     """
     for attribute, value in (
         (DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUNDSMALL if rounded else DWMWCP_DONOTROUND),
+        (DWMWA_BORDER_COLOR, DWMWA_COLOR_NONE),
+    ):
+        dword = wintypes.DWORD(value)
+        dwmapi.DwmSetWindowAttribute(hwnd, attribute, ctypes.byref(dword), ctypes.sizeof(dword))
+
+
+def visible_rect(hwnd: Hwnd) -> Rect:
+    """The part of the window that is seen on the screen, in screen coordinates."""
+    bounds = RECT()
+    _check(
+        dwmapi.DwmGetWindowAttribute(
+            hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, ctypes.byref(bounds), ctypes.sizeof(bounds)
+        ),
+        "DwmGetWindowAttribute",
+    )
+    return Rect(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top)
+
+
+def round_like_window(hwnd: Hwnd) -> None:
+    """Give the window the rounded corners of a normal window, with no border."""
+    for attribute, value in (
+        (DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND),
         (DWMWA_BORDER_COLOR, DWMWA_COLOR_NONE),
     ):
         dword = wintypes.DWORD(value)
