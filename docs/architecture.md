@@ -69,6 +69,7 @@ Each mirror (`ui/overlay/mirror_window.py`) is a borderless, always-on-top windo
 - **Opacity** is the window's alpha, which also applies to the copied image.
 - **Locked** mirrors are click-through, so clicks reach the game.
 - **The frame** is the window's own background, around the copied image.
+  A mirror with no frame (`NO_FRAME`) is only the copied image.
 - **Rounded corners** use Windows 11's own rounding, the only kind that also clips the image.
   The frame is then a second window behind the image (`ui/overlay/mirror_frame.py`), cut into a rounded ring.
 - **A tint** uses that second window too: it stays solid in the frame colour, so the colour shows through the see-through image.
