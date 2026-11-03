@@ -99,7 +99,7 @@ class MirrorCardTitle:
     def set_mirror(self, mirror: MirrorInfo) -> None:
         """Show the dot and the name for the new state of the mirror."""
         self._mirror = mirror
-        self._colour_dot.set_colour(theme.frame_color(mirror.colour))
+        self._colour_dot.set_colour(self._get_frame_colour(mirror.colour))
         self._canvas.itemconfigure(self._name_item, fill=self._get_name_colour())
 
     def _draw_colour_dot(self) -> None:
@@ -107,7 +107,7 @@ class MirrorCardTitle:
 
         A click on it opens the choice of colours.
         """
-        colour = theme.frame_color(self._mirror.colour)
+        colour = self._get_frame_colour(self._mirror.colour)
         tip = Tip(tr("Frame colour"))
 
         self._colour_dot = ColourDot(
