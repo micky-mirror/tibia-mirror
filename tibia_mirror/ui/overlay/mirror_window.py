@@ -10,6 +10,7 @@ from tibia_mirror.config import (
     COLOR_BORDER,
     FRAME_COLORS,
     MIRROR_BORDER,
+    NO_FRAME,
     RESIZE_GRIP,
     ZOOM_RANGE,
 )
@@ -252,6 +253,9 @@ class MirrorWindow(tk.Toplevel):
 
     def _get_border_width(self) -> int:
         """The width of the frame around the picture."""
+        if self._mirror_settings.colour == NO_FRAME:
+            return 0
+
         if self._is_coloured():
             return px(COLOR_BORDER)
 
@@ -287,7 +291,7 @@ class MirrorWindow(tk.Toplevel):
 
     def _is_coloured(self) -> bool:
         """Whether the mirror has a frame colour of its own."""
-        return self._mirror_settings.colour != FRAME_COLORS[0]
+        return self._mirror_settings.colour not in (FRAME_COLORS[0], NO_FRAME)
 
     def _get_layout(self) -> Layout | None:
         """The saved layout for this size of the game. None if there is none."""
