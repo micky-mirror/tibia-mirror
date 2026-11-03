@@ -68,6 +68,7 @@ class App:
         self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
         self._is_selecting = False  # True while the user selects or names a part of the game
         self._is_login_waiting = False  # True while a login waits for the selection to end
+        self._is_profile_opening = False  # True while a profile key opens a profile
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
         self.input_watcher = InputWatcher(self.window, self._on_click, self._on_key)
         # use the saved language for every text
@@ -196,12 +197,23 @@ class App:
     def _open_profile_by_key(self, name: str) -> None:
         """Open the profile `name`, whose key was pressed in Tibia.
 
-        Nothing happens while the user selects a part of the game, or when it is already open.
+        Nothing happens while the user selects an area or a profile opens, or when it is open.
         """
-        if self._is_selecting or name == self.profile_manager.active_name:
+        is_open = name == self.profile_manager.active_name
+
+        if self._is_selecting or self._is_profile_opening or is_open:
             return
 
-        self._on_profile_selected(name)
+        self._is_profile_opening = True
+
+        try:
+            self._on_profile_selected(name)
+        finally:
+            # Tk handles the keys pressed during the opening before it is idle, so they are ignored
+            self.window.after_idle(self._end_profile_opening)
+
+    def _end_profile_opening(self) -> None:
+        self._is_profile_opening = False
 
     # It plans its next run first, so an error in one run cannot stop it for good.
     def _tick_timers(self) -> None:
