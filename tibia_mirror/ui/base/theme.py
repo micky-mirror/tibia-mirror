@@ -151,7 +151,7 @@ FRAME_COLOR_HEX = {
     "teal": "#94e2d5",
     "blue": "#89b4fa",
     "purple": "#cba6f7",
-    "white": "#ffffff",
+    "white": "#e0e0e0",
     "deep_red": "#d20f39",
     "deep_orange": "#fe640b",
     "deep_yellow": "#df8e1d",

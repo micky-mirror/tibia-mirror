@@ -1,10 +1,11 @@
 """Reading the settings of a mirror from a profile file, and writing them back."""
 
 import json
+from dataclasses import replace
 
 import pytest
 
-from tibia_mirror.config import ZOOM_RANGE
+from tibia_mirror.config import NO_FRAME, ZOOM_RANGE
 from tibia_mirror.core.geometry import Rect
 from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
 from tibia_mirror.core.mirrors.mirror_timer import MirrorTimer
@@ -148,6 +149,14 @@ def test_written_settings_are_read_back_the_same() -> None:
     file_content = json.loads(json.dumps(CHANGED_MIRROR.to_json()))
 
     assert MirrorSettings.from_json(file_content) == CHANGED_MIRROR
+
+
+def test_a_mirror_without_a_frame_is_written_and_read_back() -> None:
+    mirror = replace(CHANGED_MIRROR, colour=NO_FRAME)
+    file_content = json.loads(json.dumps(mirror.to_json()))
+
+    assert file_content["color"] == "none"
+    assert MirrorSettings.from_json(file_content) == mirror
 
 
 def test_a_mirror_of_v1_0_0_is_read() -> None:

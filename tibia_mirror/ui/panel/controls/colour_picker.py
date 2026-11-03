@@ -27,7 +27,7 @@ class ColourPicker(tk.Toplevel):
     def __init__(
         self,
         window: tk.Misc,
-        colours: dict[str, str],
+        colours: dict[str, str | None],
         selected: str,
         per_row: int,
         on_pick: Callable[[str], None],
@@ -35,7 +35,8 @@ class ColourPicker(tk.Toplevel):
         super().__init__(window, bg=theme.SURFACE)
         self.withdraw()  # hidden until it has a place
         self._window = window  # the window under the picker; it gets the focus back
-        self._colours = colours  # the name and the hex code of each colour, in the order shown
+        # the name and the hex code of each colour, in the order shown; None shows an outline
+        self._colours = colours
         self._selected = selected  # the name of the chosen colour
         self._per_row = per_row  # how many swatches one row holds
         self._on_pick = on_pick  # called with the name of the colour the user picks
@@ -89,23 +90,41 @@ class ColourPicker(tk.Toplevel):
 
             self._draw_swatch(box, colour)
 
-    def _draw_swatch(self, box: Box, colour: str) -> None:
-        size = px(SWATCH_SIZE)
-        image = rounded_image(
-            self._canvas,
-            width=size,
-            height=size,
-            radius=px(SWATCH_RADIUS),
-            colour=colour,
-            background=theme.SURFACE,
-        )
+    def _draw_swatch(self, box: Box, colour: str | None) -> None:
+        image = self._get_swatch_image(colour)
         left, top, _right, _bottom = box
 
         self._swatch_images.append(image)
         self._canvas.create_image(left, top, anchor="nw", image=image)
 
-    def _draw_ring(self, box: Box, colour: str) -> None:
+    def _get_swatch_image(self, colour: str | None) -> tk.PhotoImage:
+        """A square in `colour`. Without a colour, only its outline."""
+        size = px(SWATCH_SIZE)
+        radius = px(SWATCH_RADIUS)
+
+        if colour is None:
+            return outlined_image(
+                self._canvas,
+                width=size,
+                height=size,
+                radius=radius,
+                colour=theme.SURFACE,
+                border=theme.SUBTEXT,
+                background=theme.SURFACE,
+            )
+
+        return rounded_image(
+            self._canvas,
+            width=size,
+            height=size,
+            radius=radius,
+            colour=colour,
+            background=theme.SURFACE,
+        )
+
+    def _draw_ring(self, box: Box, colour: str | None) -> None:
         """A thin ring in `colour` around the swatch of the chosen colour."""
+        border = theme.SUBTEXT if colour is None else colour
         room = px(RING_GAP) + 1  # from the swatch to the outside of the 1px ring
         size = px(SWATCH_SIZE) + 2 * room
         left, top, _right, _bottom = box
@@ -116,7 +135,7 @@ class ColourPicker(tk.Toplevel):
             height=size,
             radius=px(SWATCH_RADIUS) + room,  # the corners curve like the swatch's
             colour=theme.SURFACE,
-            border=colour,
+            border=border,
             background=theme.SURFACE,
         )
         self._canvas.create_image(left - room, top - room, anchor="nw", image=self._ring_image)
