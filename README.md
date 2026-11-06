@@ -24,8 +24,6 @@
 
 <p align="center">
   <img src="docs/images/mirror_1.jpg" height="640" alt="The Mirrors page: a profile with its regions, each with its colour, size, timer, visibility, lock and opacity">
-  &nbsp;
-  <img src="docs/images/mirror_2.jpg" height="640" alt="The Settings page: language, theme, keeping the panel on top, profile per character and mirror options">
 </p>
 
 ---
