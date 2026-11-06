@@ -12,6 +12,7 @@ from tibia_mirror.ui.panel.mirrors.mirror_card.button_bar import MirrorCardButto
 from tibia_mirror.ui.panel.mirrors.mirror_card.slider import MirrorCardSlider
 from tibia_mirror.ui.panel.mirrors.mirror_card.title import MirrorCardTitle
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.select_area_callback import SelectAreaCallback
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 HEIGHT = 62
@@ -28,7 +29,7 @@ class MirrorCard(tk.Canvas):
         mirror: MirrorInfo,
         on_changed: Callable[[MirrorInfo], None],
         on_removed: Callable[[str], None],
-        on_select_area: Callable[[str], None],
+        on_select_area: SelectAreaCallback,
         on_renamed: Callable[[MirrorInfo], None],
     ) -> None:
         # No focus ring and no border: Tk adds both to a canvas.

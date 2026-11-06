@@ -14,6 +14,7 @@ from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.base.text import elide
 from tibia_mirror.ui.panel.footer import Footer
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.select_area_callback import SelectAreaCallback
 from tibia_mirror.ui.panel.nav import NavRail
 from tibia_mirror.ui.panel.pages.about_page import AboutPage
 from tibia_mirror.ui.panel.pages.mirrors_page import MirrorsPage
@@ -68,7 +69,7 @@ class Panel(tk.Frame):
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
-        on_select_area: Callable[[str | None], None],
+        on_select_area: SelectAreaCallback,
     ) -> None:
         super().__init__(window, bg=theme.BG)
         self._settings = settings
@@ -222,6 +223,7 @@ class Panel(tk.Frame):
             self._content,
             content_width(),
             px(SIDE_PAD),
+            self._profile_manager,
             self._profile_info,
             self._on_profile_selected,
             self._on_new_profile,

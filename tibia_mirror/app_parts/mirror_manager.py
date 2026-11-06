@@ -7,8 +7,8 @@ from dataclasses import replace
 from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.app_parts.tibia_connection import TibiaConnection
 from tibia_mirror.app_parts.timer_manager import TimerManager
-from tibia_mirror.config import NEW_MIRROR_GAP
-from tibia_mirror.core.geometry import Point, Rect, place_beside
+from tibia_mirror.config import NEW_MIRROR_GAP, ZOOM_STEP
+from tibia_mirror.core.geometry import Point, Rect, fitting_zoom, place_beside, scaled_size
 from tibia_mirror.core.mirrors.mirror_look import MirrorLook
 from tibia_mirror.core.mirrors.mirror_settings import MirrorSettings
 from tibia_mirror.core.mirrors.regions import Layout, new_id, size_key
@@ -156,12 +156,14 @@ class MirrorManager:
             return
 
         client_area = game_window.client_area
-        layout = Layout(area, self._get_new_mirror_offset(area, client_area))
+        zoom = self._get_new_mirror_zoom(area, client_area)
+        layout = Layout(area, self._get_new_mirror_offset(area, client_area, zoom))
         mirror_settings = MirrorSettings(
             mirror_id=new_id(),
             name=name,
             layouts={size_key(client_area.w, client_area.h): layout},
             opacity=self._settings.current.new_mirror_opacity,
+            zoom=zoom,
         )
 
         self._profile_manager.add_mirror(mirror_settings)
@@ -178,7 +180,11 @@ class MirrorManager:
         game_size_key = size_key(client_area.w, client_area.h)
         layout = mirror_settings.layouts.get(game_size_key)
         # the mirror stays where it is; without a place for this size it goes beside the area
-        offset = self._get_new_mirror_offset(area, client_area) if layout is None else layout.offset
+        offset = (
+            self._get_new_mirror_offset(area, client_area, mirror_settings.zoom)
+            if layout is None
+            else layout.offset
+        )
         layouts = {**mirror_settings.layouts, game_size_key: Layout(area, offset)}
 
         self._profile_manager.update_mirror(replace(mirror_settings, layouts=layouts))
@@ -221,15 +227,35 @@ class MirrorManager:
         self._timer_manager.stop(mirror_settings.mirror_id)
         self.update_timer_badges(time.monotonic())
 
-    def _get_new_mirror_offset(self, area: Rect, client_area: Rect) -> Point:
+    def _get_new_mirror_zoom(self, area: Rect, client_area: Rect) -> float:
+        """The zoom from the settings, lowered until the mirror fits on its screen."""
+        zoom = self._settings.current.new_mirror_zoom
+        work_area = self._get_work_area(self._get_area_on_screen(area, client_area))
+
+        return fitting_zoom(area.w, area.h, zoom, work_area, ZOOM_STEP)
+
+    def _get_new_mirror_offset(self, area: Rect, client_area: Rect, zoom: float) -> Point:
         """Where a new mirror sits: beside the part of the game it shows, on the same screen."""
-        area_on_screen = Rect(client_area.x + area.x, client_area.y + area.y, area.w, area.h)
-        center = (area_on_screen.x + area.w // 2, area_on_screen.y + area.h // 2)
-        work_area = win32.work_area_at(center)
+        area_on_screen = self._get_area_on_screen(area, client_area)
+        work_area = self._get_work_area(area_on_screen)
+        mirror_width, mirror_height = scaled_size(area.w, area.h, zoom)
         gap = px(NEW_MIRROR_GAP)
 
-        mirror_x, mirror_y = place_beside(area_on_screen, area.w, area.h, work_area, gap)
+        mirror_x, mirror_y = place_beside(
+            area_on_screen, mirror_width, mirror_height, work_area, gap
+        )
         return mirror_x - client_area.x, mirror_y - client_area.y
+
+    def _get_area_on_screen(self, area: Rect, client_area: Rect) -> Rect:
+        return Rect(client_area.x + area.x, client_area.y + area.y, area.w, area.h)
+
+    def _get_work_area(self, area_on_screen: Rect) -> Rect:
+        """The screen space without the taskbar, on the screen that shows the area."""
+        center = (
+            area_on_screen.x + area_on_screen.w // 2,
+            area_on_screen.y + area_on_screen.h // 2,
+        )
+        return win32.work_area_at(center)
 
     def _get_mirror(self, mirror_id: str) -> MirrorSettings | None:
         """The kept mirror with this id. None if there is none."""

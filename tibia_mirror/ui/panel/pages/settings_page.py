@@ -3,14 +3,16 @@
 import tkinter as tk
 from collections.abc import Callable
 
-from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP
+from tibia_mirror.config import MIN_OPACITY, OPACITY_STEP, ZOOM_RANGE, ZOOM_STEP
 from tibia_mirror.i18n import tr
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.text import percent
 from tibia_mirror.ui.panel.controls.confirm_dialog import ConfirmDialog
 from tibia_mirror.ui.panel.rows.choice_row import ChoiceRow
+from tibia_mirror.ui.panel.rows.hint_choice_row import HintChoiceRow
 from tibia_mirror.ui.panel.rows.scroll_cards import ScrollCards
+from tibia_mirror.ui.panel.rows.size_row import SizeRow
 from tibia_mirror.ui.panel.rows.slider_row import SliderRow
 from tibia_mirror.ui.panel.rows.toggle_row import ToggleRow
 
@@ -31,6 +33,7 @@ class SettingsPage(tk.Frame):
         self._add_general_group()
         self._add_profiles_group()
         self._add_mirrors_group()
+        self._add_click_group()
 
     def _add_scroll_cards(self) -> None:
         """The scrolling column that holds the groups of the page."""
@@ -92,6 +95,17 @@ class SettingsPage(tk.Frame):
             value_text=percent,
             on_change=lambda opacity: self._settings.update(new_mirror_opacity=opacity),
         )
+        zoom_row = SliderRow(
+            tr("Zoom of new mirrors"),
+            tr("Each mirror can still be resized at its corner."),
+            value=current_settings.new_mirror_zoom,
+            start=ZOOM_RANGE[0],
+            end=ZOOM_RANGE[1],
+            step=ZOOM_STEP,
+            lowest=ZOOM_RANGE[0],
+            value_text=percent,
+            on_change=lambda zoom: self._settings.update(new_mirror_zoom=zoom),
+        )
         frame_row = ToggleRow(
             tr("Mirror frame"),
             tr("Grey outline on mirrors without a colour."),
@@ -110,7 +124,33 @@ class SettingsPage(tk.Frame):
             is_on=current_settings.is_rounded_corners_on,
             on_change=lambda is_on: self._settings.update(is_rounded_corners_on=is_on),
         )
-        self._scroll_cards.add_card([opacity_row, frame_row, tint_row, corners_row])
+        self._scroll_cards.add_card([opacity_row, zoom_row, frame_row, tint_row, corners_row])
+
+    def _add_click_group(self) -> None:
+        """The fourth group: the box that Add by click places."""
+        current_settings = self._settings.current
+
+        self._scroll_cards.add_caption(tr("ADD BY CLICK"))
+        size_row = SizeRow(
+            tr("Box size"),
+            tr("The part of the game a new mirror shows."),
+            size=current_settings.click_box_size,
+            on_change=lambda size: self._settings.update(click_box_size=size),
+        )
+        direction_row = HintChoiceRow(
+            tr("Direction"),
+            tr("Where the box grows from the click."),
+            options=(
+                ("bottom-right", "\u2198"),  # an arrow to the bottom right
+                ("top-right", "\u2197"),  # to the top right
+                ("top-left", "\u2196"),  # to the top left
+                ("bottom-left", "\u2199"),  # to the bottom left
+            ),
+            selected=current_settings.click_box_direction,
+            on_change=lambda direction: self._settings.update(click_box_direction=direction),
+            font=theme.FONT_SYMBOL,
+        )
+        self._scroll_cards.add_card([size_row, direction_row])
 
     def _on_language_chosen(self, language: str) -> None:
         self._ask_restart(

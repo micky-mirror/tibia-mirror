@@ -58,14 +58,24 @@ POLISH = {
         "Odbicia z tego profilu pojawią się po połączeniu z Tibią."
     ),
     # Mirrors page
-    "Add region": "Dodaj region",
+    "Add by drag": "Dodaj przeciągając",
+    "Add by click": "Dodaj klikając",
     "REGIONS": "REGIONY",
-    "Click Add region, then drag a box over the part of the game to mirror.": (
-        "Kliknij Dodaj region, a potem zaznacz fragment gry do odbicia."
+    "Mirror creation": "Tworzenie odbicia",
+    "Drag a box over the game.": "Zaznacz obszar gry.",
+    "Click the point where the area starts. You can change the area size in the settings.": (
+        "Kliknij w punkt, od którego zaznaczyć obszar. Rozmiar obszaru zmienisz w ustawieniach."
     ),
+    "Place it": "Ustaw je",
+    "Drag the mirror where you want it.": "Przeciągnij odbicie w wybrane miejsce.",
+    "Drag its bottom-right corner to resize it.": "Rozmiar zmienisz, ciągnąc za prawy dolny róg.",
+    "Lock it": "Zablokuj je",
+    "Click the lock on its card.": "Kliknij kłódkę na jego karcie.",
+    "Clicks then pass through it to the game.": "Kliknięcia będą przez nie przechodzić.",
     "New profile…": "Nowy profil…",
     "Duplicate…": "Duplikuj…",
     "Rename…": "Zmień nazwę…",
+    "Add key…": "Dodaj klawisz…",
     "Delete profile": "Usuń profil",
     # Region cards and mirrors
     "Remove region": "Usuń region",
@@ -92,10 +102,14 @@ POLISH = {
     "New profile": "Nowy profil",
     "Duplicate profile": "Duplikuj profil",
     "Rename profile": "Zmień nazwę profilu",
+    'Key for "{name}"': "Klawisz dla „{name}”",
+    "Assign profile to the key.": "Przypisz profil do klawisza.",
     'Delete "{name}" and all its mirrors? This can\'t be undone.': (
         "Usunąć „{name}” i wszystkie jego odbicia? Tego nie da się cofnąć."
     ),
     "Select area again": "Zaznacz obszar ponownie",
+    "By drag": "Przeciągając",
+    "By click": "Klikając",
     # Profile names
     "Enter a name": "Wpisz nazwę",
     "A name can't contain < > : \" / \\ | ? *": 'Nazwa nie może zawierać < > : " / \\ | ? *',
@@ -169,12 +183,21 @@ POLISH = {
     "Stays above other windows.": "Pozostaje nad innymi oknami.",
     "Opacity of new mirrors": "Krycie nowych odbić",
     "Each mirror can still be set on its card.": "Każde odbicie ustawisz też na jego karcie.",
+    "Zoom of new mirrors": "Powiększenie nowych odbić",
+    "Each mirror can still be resized at its corner.": (
+        "Każde odbicie wciąż można powiększyć w standardowy sposób."
+    ),
     "Mirror frame": "Ramka odbicia",
     "Grey outline on mirrors without a colour.": "Szara obwódka wokół odbić bez koloru.",
     "Tint with frame colour": "Barwienie kolorem ramki",
     "Shades coloured mirrors in their colour.": "Barwi kolorowe odbicia kolorem ramki.",
     "Rounded corners": "Zaokrąglone rogi",
     "Clips a few pixels at each corner.": "Ucina kilka pikseli w rogach.",
+    "ADD BY CLICK": "DODAJ KLIKAJĄC",
+    "Box size": "Rozmiar obszaru",
+    "The part of the game a new mirror shows.": "Część gry, którą pokaże nowe odbicie.",
+    "Direction": "Kierunek",
+    "Where the box grows from the click.": "W którą stronę obszar rośnie od kliknięcia.",
     "Hide all mirrors": "Ukryj wszystkie odbicia",
     "Press again to bring them back. Works while Tibia is active.": (
         "Naciśnij ponownie, aby je przywrócić. Działa, gdy Tibia jest aktywna."

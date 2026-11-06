@@ -1,5 +1,6 @@
 """Pure coordinate math: no Win32 or Tk, so it is unit-testable anywhere."""
 
+import math
 from dataclasses import dataclass
 
 # An (x, y) position in pixels.
@@ -106,6 +107,28 @@ def zoom_for_width(width: int, region_width: int, zoom_range: tuple[float, float
     """The zoom that makes a region `region_width` wide show `width` wide, in whole percent."""
     lo, hi = zoom_range
     return min(hi, max(lo, round(width / region_width, 2)))
+
+
+def box_from_corner(corner: Point, width: int, height: int, direction: str) -> Rect:
+    """The box of this size that grows from the pixel at `corner` in `direction`."""
+    corner_x, corner_y = corner
+    is_growing_right = direction in ("bottom-right", "top-right")
+    is_growing_down = direction in ("bottom-right", "bottom-left")
+
+    # the pixel at the corner is always inside the box
+    left = corner_x if is_growing_right else corner_x - width + 1
+    top = corner_y if is_growing_down else corner_y - height + 1
+    return Rect(left, top, width, height)
+
+
+def fitting_zoom(width: int, height: int, zoom: float, bounds: Rect, step: float) -> float:
+    """The zoom, lowered in steps until a region of this size fits in `bounds`."""
+    largest_zoom = min(bounds.w / width, bounds.h / height)
+
+    if zoom <= largest_zoom:
+        return zoom
+
+    return max(step, math.floor(largest_zoom / step) * step)
 
 
 def scroll_thumb(first: float, last: float, track: int, min_size: int) -> tuple[int, int] | None:

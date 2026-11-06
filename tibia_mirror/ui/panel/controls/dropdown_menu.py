@@ -21,6 +21,7 @@ ROW_HEIGHT = 32  # of one option
 CHECK_X = 16  # from PAD to the middle of the check mark
 TEXT_X = 32  # from PAD to the start of the text
 TEXT_ROOM = 8  # kept free after the longest text, before PAD
+SIDE_TEXT_GAP = 16  # at least this much between the text and the side text
 HIGHLIGHT_RADIUS = 6  # of the rounded corners of the highlight behind a hovered option
 HIGHLIGHT_GAP = 1  # above and below the highlight, so two rows never touch
 DIVIDER_HEIGHT = 9  # of the row of a dividing line
@@ -37,14 +38,27 @@ class MenuOption:
     key: str  # what the menu hands over when the option is picked
     text: str
     text_colour: str | None = None  # a theme colour; None draws the text in theme.TEXT
+    side_text: str | None = None  # a mauve text at the right end, such as a key
 
 
 def get_menu_width(options: Sequence[MenuOption | None]) -> int:
     """The width the menu needs for its longest option."""
     font = tkfont.Font(font=theme.FONT)
-    longest = max(font.measure(option.text) for option in options if option is not DIVIDER)
+    longest = max(
+        font.measure(option.text) + get_side_room(option, font)
+        for option in options
+        if option is not DIVIDER
+    )
 
     return px(PAD + TEXT_X) + longest + px(TEXT_ROOM + PAD)
+
+
+def get_side_room(option: MenuOption, font: tkfont.Font) -> int:
+    """The width the side text of `option` takes from its text. 0 without a side text."""
+    if option.side_text is None:
+        return 0
+
+    return px(SIDE_TEXT_GAP) + font.measure(option.side_text)
 
 
 class DropdownMenu(tk.Toplevel):
@@ -122,14 +136,19 @@ class DropdownMenu(tk.Toplevel):
                 self._draw_divider(middle_y, width)
             else:
                 self._draw_text(option, middle_y, width)
+                self._draw_side_text(option, middle_y, width)
 
                 if option.key == self._selected:
                     self._draw_check(middle_y)
 
     def _draw_text(self, option: MenuOption, middle_y: int, width: int) -> None:
-        """The text of the option, cut short with "…" when it is too long for the menu."""
+        """The text of the option, cut short with "…" when it is too long for the menu.
+
+        The side text keeps its room.
+        """
         text_x = px(PAD + TEXT_X)
-        text = elide(option.text, self._font, width - text_x - px(TEXT_ROOM + PAD))
+        room = width - text_x - get_side_room(option, self._font) - px(TEXT_ROOM + PAD)
+        text = elide(option.text, self._font, room)
 
         self._canvas.create_text(
             text_x,
@@ -138,6 +157,20 @@ class DropdownMenu(tk.Toplevel):
             anchor="w",
             font=theme.FONT,
             fill=option.text_colour or theme.TEXT,
+        )
+
+    def _draw_side_text(self, option: MenuOption, middle_y: int, width: int) -> None:
+        """The mauve side text, at the right end of the option. Nothing without one."""
+        if option.side_text is None:
+            return
+
+        self._canvas.create_text(
+            width - px(TEXT_ROOM + PAD),
+            middle_y,
+            text=option.side_text,
+            anchor="e",
+            font=theme.FONT,
+            fill=theme.MAUVE,
         )
 
     def _draw_check(self, middle_y: int) -> None:

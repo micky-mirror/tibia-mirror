@@ -31,7 +31,10 @@ from tibia_mirror.i18n import tr, tr_n
 from tibia_mirror.settings.app_settings import AppSettings
 from tibia_mirror.settings.app_settings_store import AppSettingsStore
 from tibia_mirror.ui.base.text import key_combo_name
-from tibia_mirror.ui.overlay.selection_overlay import NewRegionOverlay, SelectionOverlay
+from tibia_mirror.ui.overlay.selection_overlay import (
+    ClickRegionOverlay,
+    SelectionOverlay,
+)
 from tibia_mirror.ui.panel.panel import Panel
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 from tibia_mirror.winapi import win32
@@ -65,6 +68,7 @@ class App:
         self._is_all_hidden = False  # True while the hide-all key keeps every mirror hidden
         self._is_selecting = False  # True while the user selects or names a part of the game
         self._is_login_waiting = False  # True while a login waits for the selection to end
+        self._is_profile_opening = False  # True while a profile key opens a profile
         # hear the keys and clicks of the whole computer, to act on those meant for Tibia
         self.input_watcher = InputWatcher(self.window, self._on_click, self._on_key)
         # use the saved language for every text
@@ -170,7 +174,7 @@ class App:
         self.timer_manager.start_by_click(game_window, position_x, position_y, pressed_at)
 
     def _on_key(self, key_code: int, modifiers: tuple[str, ...], pressed_at: float) -> None:
-        """Act on a key pressed in Tibia: the hide-all key, or the key of a timer."""
+        """Act on a key pressed in Tibia: the hide-all key, the key of a profile or of a timer."""
         game_window = self.connection.game_window
         hide_all_key = self.settings.current.hide_all_key
 
@@ -182,7 +186,34 @@ class App:
             self._toggle_all_hidden()
             return
 
+        profile_name = self.profile_manager.find_name_by_key(key_code, modifiers)
+
+        if profile_name is not None:
+            self._open_profile_by_key(profile_name)
+            return
+
         self.timer_manager.start_by_key(key_code, modifiers, pressed_at)
+
+    def _open_profile_by_key(self, name: str) -> None:
+        """Open the profile `name`, whose key was pressed in Tibia.
+
+        Nothing happens while the user selects an area or a profile opens, or when it is open.
+        """
+        is_open = name == self.profile_manager.active_name
+
+        if self._is_selecting or self._is_profile_opening or is_open:
+            return
+
+        self._is_profile_opening = True
+
+        try:
+            self._on_profile_selected(name)
+        finally:
+            # Tk handles the keys pressed during the opening before it is idle, so they are ignored
+            self.window.after_idle(self._end_profile_opening)
+
+    def _end_profile_opening(self) -> None:
+        self._is_profile_opening = False
 
     # It plans its next run first, so an error in one run cannot stop it for good.
     def _tick_timers(self) -> None:
@@ -275,7 +306,7 @@ class App:
         else:
             self._on_profile_selected(self.profile_manager.active_name)
 
-    def _on_select_area(self, mirror_id: str | None) -> None:
+    def _on_select_area(self, mirror_id: str | None, *, is_by_click: bool) -> None:
         if self._is_selecting:
             return  # a cover is already open, maybe on another monitor than the panel
 
@@ -291,14 +322,27 @@ class App:
         self._is_selecting = True
         self._show_mirrors()
         on_selected = partial(self._on_area_selected, mirror_id)
+        suggested_name: str | None = None  # an area selected again keeps its mirror's name
 
-        if mirror_id is not None:
-            SelectionOverlay(self.window, game_window, on_selected, self._on_selection_cancelled)
+        if mirror_id is None:
+            mirrors = self.profile_manager.current.mirrors
+            names = [mirror_settings.name for mirror_settings in mirrors]
+            suggested_name = regions.next_default_name(names, stem=tr("Region"))
+
+        if is_by_click:
+            current_settings = self.settings.current
+            ClickRegionOverlay(
+                self.window,
+                game_window,
+                suggested_name,
+                current_settings.click_box_size,
+                current_settings.click_box_direction,
+                on_selected,
+                self._on_selection_cancelled,
+            )
             return
 
-        names = [mirror_settings.name for mirror_settings in self.profile_manager.current.mirrors]
-        suggested_name = regions.next_default_name(names, stem=tr("Region"))
-        NewRegionOverlay(
+        SelectionOverlay(
             self.window,
             game_window,
             suggested_name,
@@ -312,7 +356,7 @@ class App:
         self._show_mirrors()
         self._open_waiting_profile()
 
-    def _on_area_selected(self, mirror_id: str | None, area: Rect, name: str = "") -> None:
+    def _on_area_selected(self, mirror_id: str | None, area: Rect, name: str) -> None:
         self._is_selecting = False
 
         if self.connection.game_window is None:

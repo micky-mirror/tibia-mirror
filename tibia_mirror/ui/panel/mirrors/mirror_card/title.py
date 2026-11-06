@@ -5,7 +5,7 @@ import tkinter.font as tkfont
 from collections.abc import Callable
 from dataclasses import replace
 
-from tibia_mirror.config import FRAME_COLORS, FRAME_COLORS_PER_ROW
+from tibia_mirror.config import FRAME_COLORS, FRAME_COLORS_PER_ROW, NO_FRAME
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
@@ -17,6 +17,8 @@ from tibia_mirror.ui.panel.mirrors.mirror_card.colour_dot import ColourDot
 from tibia_mirror.ui.panel.mirrors.mirror_card.layout import BUTTONS_ROOM, TOP_ROW_Y
 from tibia_mirror.ui.panel.mirrors.mirror_card.text_link import TextLink
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.select_again_dialog import SelectAgainDialog
+from tibia_mirror.ui.panel.mirrors.select_area_callback import SelectAreaCallback
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 DOT_X = 18  # from the left side of the card to the middle of the colour dot
@@ -37,7 +39,7 @@ class MirrorCardTitle:
         width: int,
         mirror: MirrorInfo,
         on_changed: Callable[[MirrorInfo], None],
-        on_select_area: Callable[[str], None],
+        on_select_area: SelectAreaCallback,
         on_renamed: Callable[[MirrorInfo], None],
     ) -> None:
         self._canvas = canvas
@@ -97,7 +99,7 @@ class MirrorCardTitle:
     def set_mirror(self, mirror: MirrorInfo) -> None:
         """Show the dot and the name for the new state of the mirror."""
         self._mirror = mirror
-        self._colour_dot.set_colour(theme.frame_color(mirror.colour))
+        self._colour_dot.set_colour(self._get_frame_colour(mirror.colour))
         self._canvas.itemconfigure(self._name_item, fill=self._get_name_colour())
 
     def _draw_colour_dot(self) -> None:
@@ -105,7 +107,7 @@ class MirrorCardTitle:
 
         A click on it opens the choice of colours.
         """
-        colour = theme.frame_color(self._mirror.colour)
+        colour = self._get_frame_colour(self._mirror.colour)
         tip = Tip(tr("Frame colour"))
 
         self._colour_dot = ColourDot(
@@ -177,7 +179,7 @@ class MirrorCardTitle:
 
     def _pick_colour(self) -> None:
         """Open the choice of colours for the mirror's frame."""
-        colours = {name: theme.frame_color(name) for name in FRAME_COLORS}
+        colours = {name: self._get_frame_colour(name) for name in FRAME_COLORS}
 
         picker = ColourPicker(
             self._canvas.winfo_toplevel(),
@@ -188,6 +190,13 @@ class MirrorCardTitle:
         )
         picker.open(self._colour_dot.get_screen_box())
 
+    def _get_frame_colour(self, name: str) -> str | None:
+        """The hex code of a frame colour. None for a mirror without a frame."""
+        if name == NO_FRAME:
+            return None
+
+        return theme.frame_color(name)
+
     def _on_colour_picked(self, colour: str) -> None:
         """Hand up the mirror with its new frame colour. Do nothing when it is the same colour."""
         if colour == self._mirror.colour:
@@ -196,7 +205,11 @@ class MirrorCardTitle:
         self._on_changed(replace(self._mirror, colour=colour))
 
     def _select_area_again(self) -> None:
-        self._on_select_area(self._mirror.mirror_id)
+        SelectAgainDialog(
+            self._canvas.winfo_toplevel(),
+            self._mirror.mirror_id,
+            self._on_select_area,
+        )
 
     def _ask_new_name(self) -> None:
         NameDialog(

@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 from tibia_mirror.core.geometry import Box
 from tibia_mirror.ui.base import theme
-from tibia_mirror.ui.base.images import rounded_image
+from tibia_mirror.ui.base.images import outlined_image, rounded_image
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.tooltip import Tip, Tooltip
 
@@ -26,14 +26,14 @@ class ColourDot:
         canvas: tk.Canvas,
         middle_x: int,
         middle_y: int,
-        colour: str,
+        colour: str | None,
         tip: Tip,
         on_click: Callable[[], None],
     ) -> None:
         self._canvas = canvas
         self._middle_x = middle_x
         self._middle_y = middle_y
-        self._colour = colour
+        self._colour = colour  # None draws only the outline of the dot
         self._tip = tip  # the hint that opens while the pointer rests on the dot
         self._tooltip = Tooltip(canvas.winfo_toplevel())
         self._on_click = on_click  # what the dot does when it is clicked
@@ -66,7 +66,7 @@ class ColourDot:
         """Do what the dot is for."""
         self._on_click()
 
-    def set_colour(self, colour: str) -> None:
+    def set_colour(self, colour: str | None) -> None:
         """Draw the dot in a new colour. Do nothing when the colour is the same."""
         if colour == self._colour:
             return
@@ -101,11 +101,24 @@ class ColourDot:
     def _get_dot_image(self, background: str) -> tk.PhotoImage:
         """The dot as an image, with its smooth edge made for the given colour behind it."""
         size = px(self.DOT_SIZE)
+        radius = size // 2  # half of the size: a full circle
+
+        if self._colour is None:
+            return outlined_image(
+                self._canvas,
+                width=size,
+                height=size,
+                radius=radius,
+                colour=background,
+                border=theme.SUBTEXT,
+                background=background,
+            )
+
         return rounded_image(
             self._canvas,
             width=size,
             height=size,
-            radius=size // 2,  # half of the size: a full circle
+            radius=radius,
             colour=self._colour,
             background=background,
         )

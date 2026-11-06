@@ -2,17 +2,28 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
-from tibia_mirror.config import DEFAULT_OPACITY, DEFAULT_PROFILE, LANGUAGES, THEMES
+from tibia_mirror.config import (
+    CLICK_BOX_DIRECTIONS,
+    DEFAULT_OPACITY,
+    DEFAULT_PROFILE,
+    LANGUAGES,
+    MIN_SELECTION_SIDE,
+    THEMES,
+)
 from tibia_mirror.core.keys import KeyCombo, canonical_modifiers, parse_key
-from tibia_mirror.core.mirrors.regions import clamp_opacity
+from tibia_mirror.core.mirrors.regions import clamp_opacity, clamp_zoom
 from tibia_mirror.core.mirrors.timers import Pauses, pauses_from_json, pauses_to_json
 
 # The place and the size of the panel on the screen: (x, y, width, height).
 PanelRect = tuple[int, int, int, int]
+# The size of a box in game pixels: (width, height).
+BoxSize = tuple[int, int]
+# The key that opens each profile: (profile name, key), sorted by name.
+ProfileKeys = tuple[tuple[str, KeyCombo], ...]
 
 
 @dataclass(frozen=True)
@@ -23,14 +34,19 @@ class AppSettings:
     # Logging in opens the profile of the character, and creates one the first time.
     is_profile_per_character_on: bool = False
     new_mirror_opacity: float = DEFAULT_OPACITY  # the opacity a new mirror starts with
+    new_mirror_zoom: float = 1.0  # the zoom a new mirror starts with, if it fits on the screen
     is_mirror_frame_on: bool = True  # a grey outline on mirrors without a colour
     is_frame_tint_on: bool = False  # coloured mirrors are also shaded with their colour
     is_rounded_corners_on: bool = False
+    # Add by click: the size of the box one click places, and where it grows from the click.
+    click_box_size: BoxSize = (32, 32)
+    click_box_direction: str = CLICK_BOX_DIRECTIONS[0]
     last_profile: str = DEFAULT_PROFILE  # the profile that was open, opened again at the start
     # Who logged in last. Their paused timers are shown while nobody is logged in.
     last_character: str = ""
     # The key combination that hides every mirror and brings them back. None: no key is set.
     hide_all_key: KeyCombo | None = None
+    profile_keys: ProfileKeys = ()  # profiles without a key are not in the list
     # Where the panel was when the app closed, to open it there again.
     # None: nothing is saved, and the panel opens in the middle of the screen.
     panel_rect: PanelRect | None = None
@@ -46,6 +62,7 @@ class AppSettings:
             # choices
             theme=saved.get_choice("theme", THEMES),
             language=saved.get_choice("language", LANGUAGES),
+            click_box_direction=saved.get_choice("click_box_direction", CLICK_BOX_DIRECTIONS),
             # on/off settings
             is_panel_on_top=saved.get_bool("panel_on_top", default=cls.is_panel_on_top),
             is_profile_per_character_on=saved.get_bool(
@@ -57,12 +74,19 @@ class AppSettings:
                 "rounded_corners", default=cls.is_rounded_corners_on
             ),
             # numbers
-            new_mirror_opacity=saved.get_opacity("new_opacity", default=cls.new_mirror_opacity),
+            new_mirror_opacity=saved.get_number(
+                "new_opacity", default=cls.new_mirror_opacity, clamp=clamp_opacity
+            ),
+            new_mirror_zoom=saved.get_number(
+                "new_zoom", default=cls.new_mirror_zoom, clamp=clamp_zoom
+            ),
+            click_box_size=saved.get_box_size("click_box_size", default=cls.click_box_size),
             # texts
             last_profile=saved.get_text("profile", default=cls.last_profile),
             last_character=saved.get_text("last_character", default=cls.last_character),
             # keys
             hide_all_key=saved.get_key_combo("hide_all_key", "hide_all_modifiers"),
+            profile_keys=saved.get_profile_keys("profile_keys"),
             # the place of the panel
             panel_rect=saved.get_panel_rect("panel_rect"),
             # lists the app keeps by itself
@@ -78,6 +102,7 @@ class AppSettings:
             # choices
             "theme": self.theme,
             "language": self.language,
+            "click_box_direction": self.click_box_direction,
             # on/off settings
             "panel_on_top": self.is_panel_on_top,
             "profile_per_character": self.is_profile_per_character_on,
@@ -86,12 +111,18 @@ class AppSettings:
             "rounded_corners": self.is_rounded_corners_on,
             # numbers
             "new_opacity": round(self.new_mirror_opacity, 2),
+            "new_zoom": round(self.new_mirror_zoom, 2),
+            "click_box_size": list(self.click_box_size),
             # texts
             "profile": self.last_profile,
             "last_character": self.last_character,
             # keys
             "hide_all_key": hide_all_key,
             "hide_all_modifiers": list(hide_all_modifiers),
+            "profile_keys": {
+                name: {"key": key, "modifiers": list(modifiers)}
+                for name, (key, modifiers) in self.profile_keys
+            },
             # the place of the panel
             "panel_rect": panel_rect,
             # lists the app keeps by itself
@@ -107,12 +138,16 @@ class AppSettingsUpdate(TypedDict, total=False):
     is_panel_on_top: bool
     is_profile_per_character_on: bool
     new_mirror_opacity: float
+    new_mirror_zoom: float
     is_mirror_frame_on: bool
     is_frame_tint_on: bool
     is_rounded_corners_on: bool
+    click_box_size: BoxSize
+    click_box_direction: str
     last_profile: str
     last_character: str
     hide_all_key: KeyCombo | None
+    profile_keys: ProfileKeys
     panel_rect: PanelRect | None
     timer_pauses: Pauses
 
@@ -145,14 +180,27 @@ class _SavedData:
 
         return default
 
-    def get_opacity(self, name: str, *, default: float) -> float:
-        """The saved number, moved into the allowed range. If it is not a number, the default."""
+    def get_number(self, name: str, *, default: float, clamp: Callable[[float], float]) -> float:
+        """The saved number, moved into its range by `clamp`. If it is not a number, the default."""
         value = self._data.get(name)
 
         if isinstance(value, bool) or not isinstance(value, int | float):
             return default
 
-        return clamp_opacity(value)
+        return clamp(value)
+
+    def get_box_size(self, name: str, *, default: BoxSize) -> BoxSize:
+        """The saved width and height, if both are whole numbers big enough. If not, the default."""
+        value = self._data.get(name)
+
+        if not isinstance(value, list) or len(value) != 2:
+            return default
+
+        if not all(type(side) is int and side >= MIN_SELECTION_SIDE for side in value):
+            return default
+
+        width, height = value
+        return width, height
 
     def get_text(self, name: str, *, default: str) -> str:
         """The saved text if it is a text and not empty. If not, the default."""
@@ -176,6 +224,26 @@ class _SavedData:
             return None
 
         return key, modifiers
+
+    def get_profile_keys(self, name: str) -> ProfileKeys:
+        """The saved key of each profile. Entries without a name or a key are left out.
+
+        The file keeps them as {"profile name": {"key": code, "modifiers": [...]}}.
+        """
+        value = self._data.get(name)
+
+        if not isinstance(value, dict):
+            return ()
+
+        profile_keys: list[tuple[str, KeyCombo]] = []
+
+        for profile_name, saved_key in value.items():
+            key = _SavedData(saved_key).get_key_combo("key", "modifiers")
+
+            if profile_name != "" and key is not None:
+                profile_keys.append((profile_name, key))
+
+        return tuple(sorted(profile_keys))
 
     def get_panel_rect(self, name: str) -> PanelRect | None:
         """The saved place and size of the panel. None if they are missing or wrong.

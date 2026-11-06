@@ -23,6 +23,8 @@ DEFAULT_PROFILE = "Default"
 
 # Mirror zoom limits (1.0 = actual size).
 ZOOM_RANGE = (0.25, 4.0)
+# The "Zoom of new mirrors" slider moves in steps of this size.
+ZOOM_STEP = 0.25
 # How close to a mirror's bottom-right corner the pointer must be to resize it.
 RESIZE_GRIP = 14
 # A new mirror is placed this far from the area it mirrors.
@@ -36,12 +38,15 @@ OPACITY_STEP = 0.05
 # Frame colours ("default" is the theme's grey), shown in rows: soft shades, deep ones,
 # neon ones and dark ones, with one colour family per column.
 # Coloured frames are COLOR_BORDER wide, to read at a glance.
+# A mirror with NO_FRAME has no frame at all; it comes last, on a row of its own.
+NO_FRAME = "none"
 FRAME_COLORS = (
     *("default", "red", "orange", "yellow", "green", "teal", "blue", "purple"),
     *("white", "deep_red", "deep_orange", "deep_yellow"),
     *("deep_green", "deep_teal", "deep_blue", "deep_purple"),
     *("silver", "neon_pink", "coral", "gold", "neon_green", "cyan", "indigo", "magenta"),
     *("black", "maroon", "brown", "olive", "forest", "dark_teal", "navy", "plum"),
+    NO_FRAME,
 )
 FRAME_COLORS_PER_ROW = 8
 COLOR_BORDER = 2
@@ -66,6 +71,8 @@ MAX_NAME_LENGTH = 40
 
 # Drags smaller than this (on either axis) are treated as accidental clicks.
 MIN_SELECTION_SIDE = 5
+# Add by click: where the box grows from the click; the first one is the default.
+CLICK_BOX_DIRECTIONS = ("bottom-right", "top-right", "top-left", "bottom-left")
 
 # Saves wait for edits to settle, so a dragged slider doesn't write every step.
 SETTINGS_SAVE_DELAY_MS = 300

@@ -3,7 +3,7 @@
 import json
 from typing import get_type_hints
 
-from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY
+from tibia_mirror.config import DEFAULT_OPACITY, MIN_OPACITY, ZOOM_RANGE
 from tibia_mirror.settings.app_settings import AppSettings, AppSettingsUpdate
 
 # Settings where every value is different from its default.
@@ -44,6 +44,13 @@ V1_FILE_CONTENT = {
 }
 # only v1.0.0 has fade animations, the autosave setting and character links
 V1_ONLY_KEYS = ("autosave", "fades", "characters")
+# keys that v1.0.0 does not write, with the values CHANGED_SETTINGS gives them
+NEW_KEYS = {
+    "new_zoom": 1.0,
+    "click_box_size": [32, 32],
+    "click_box_direction": "bottom-right",
+    "profile_keys": {},
+}
 
 
 def test_empty_file_content_gives_the_defaults() -> None:
@@ -65,6 +72,18 @@ def test_wrong_theme_and_language_become_the_first_choice() -> None:
     settings = AppSettings.from_json({"theme": "pink", "language": 5})
 
     assert settings == AppSettings()
+
+
+def test_saved_click_box_direction_is_read() -> None:
+    settings = AppSettings.from_json({"click_box_direction": "top-left"})
+
+    assert settings.click_box_direction == "top-left"
+
+
+def test_wrong_click_box_direction_becomes_bottom_right() -> None:
+    settings = AppSettings.from_json({"click_box_direction": "left"})
+
+    assert settings.click_box_direction == "bottom-right"
 
 
 def test_saved_panel_on_top_is_read() -> None:
@@ -119,6 +138,41 @@ def test_wrong_opacity_becomes_the_default() -> None:
     assert AppSettings.from_json({"new_opacity": "half"}).new_mirror_opacity == DEFAULT_OPACITY
 
 
+def test_saved_zoom_of_new_mirrors_is_read() -> None:
+    settings = AppSettings.from_json({"new_zoom": 2.5})
+
+    assert settings.new_mirror_zoom == 2.5
+
+
+def test_zoom_outside_the_range_is_moved_into_it() -> None:
+    assert AppSettings.from_json({"new_zoom": 0}).new_mirror_zoom == ZOOM_RANGE[0]
+    assert AppSettings.from_json({"new_zoom": 9}).new_mirror_zoom == ZOOM_RANGE[1]
+
+
+def test_wrong_zoom_becomes_the_default() -> None:
+    assert AppSettings.from_json({"new_zoom": True}).new_mirror_zoom == 1.0
+    assert AppSettings.from_json({"new_zoom": "big"}).new_mirror_zoom == 1.0
+
+
+def test_saved_click_box_size_is_read() -> None:
+    settings = AppSettings.from_json({"click_box_size": [64, 5]})
+
+    assert settings.click_box_size == (64, 5)
+
+
+def test_wrong_click_box_size_becomes_the_default() -> None:
+    wrong_values = (
+        "32x32",  # not a list
+        [32],  # too short
+        [32, 32.5],  # not a whole number
+        [True, 32],  # true is not a number here
+        [32, 4],  # smaller than a drag may be
+    )
+
+    for value in wrong_values:
+        assert AppSettings.from_json({"click_box_size": value}).click_box_size == (32, 32)
+
+
 def test_saved_profile_and_character_are_read() -> None:
     settings = AppSettings.from_json({"profile": "Knight", "last_character": "Bubble"})
 
@@ -145,6 +199,42 @@ def test_saved_hide_all_key_without_modifiers_is_read() -> None:
 def test_missing_or_wrong_hide_all_key_means_no_key() -> None:
     assert AppSettings.from_json({"hide_all_modifiers": ["ctrl"]}).hide_all_key is None
     assert AppSettings.from_json({"hide_all_key": "F9"}).hide_all_key is None
+
+
+def test_saved_profile_keys_are_read_sorted_by_name() -> None:
+    data = {
+        "profile_keys": {
+            "EK PvP": {"key": 117, "modifiers": ["ctrl"]},
+            "EK PvE": {"key": 116},
+        }
+    }
+
+    assert AppSettings.from_json(data).profile_keys == (
+        ("EK PvE", (116, ())),
+        ("EK PvP", (117, ("ctrl",))),
+    )
+
+
+def test_wrong_profile_keys_are_left_out() -> None:
+    data = {
+        "profile_keys": {
+            "": {"key": 116},  # no profile name
+            "Knight": {"key": "F5"},  # not a key code
+            "Druid": 116,  # not a key with its modifiers
+            "EK PvP": {"key": 117},
+        }
+    }
+
+    assert AppSettings.from_json(data).profile_keys == (("EK PvP", (117, ())),)
+    assert AppSettings.from_json({"profile_keys": ["EK PvP", 117]}).profile_keys == ()
+
+
+def test_profile_keys_are_written_by_profile_name() -> None:
+    settings = AppSettings(profile_keys=(("EK PvP", (117, ("ctrl",))),))
+
+    assert settings.to_json()["profile_keys"] == {
+        "EK PvP": {"key": 117, "modifiers": ["ctrl"]},
+    }
 
 
 def test_saved_panel_place_is_read() -> None:
@@ -193,7 +283,7 @@ def test_written_settings_keep_the_format_of_v1_0_0() -> None:
         key: value for key, value in V1_FILE_CONTENT.items() if key not in V1_ONLY_KEYS
     }
 
-    assert CHANGED_SETTINGS.to_json() == shared_content
+    assert CHANGED_SETTINGS.to_json() == {**shared_content, **NEW_KEYS}
 
 
 def test_update_type_has_every_setting_with_the_same_type() -> None:

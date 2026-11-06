@@ -24,8 +24,6 @@
 
 <p align="center">
   <img src="docs/images/mirror_1.jpg" height="640" alt="The Mirrors page: a profile with its regions, each with its colour, size, timer, visibility, lock and opacity">
-  &nbsp;
-  <img src="docs/images/mirror_2.jpg" height="640" alt="The Settings page: language, theme, keeping the panel on top, profile per character and mirror options">
 </p>
 
 ---
@@ -85,7 +83,7 @@ Hover any icon on it for a short explanation.
 
 | On the card | What it does |
 |---|---|
-| Colour dot | Pick the frame colour, to tell similar mirrors apart |
+| Colour dot | Pick the frame colour, to tell similar mirrors apart, or no frame |
 | Name | Double-click to rename |
 | Size, e.g. `77×83` | Select its area again (see below) |
 | Stopwatch | Set up a timer (blue while on) |
@@ -108,6 +106,7 @@ Zoom goes from 25% to 400%.
 **Frame colours**: the picker has soft, deep, neon and dark shades, with white, silver and black.
 Coloured frames are a bit thicker and always show.
 Only the frame is coloured, unless **Tint with frame colour** is on in Settings.
+The empty square at the bottom is **no frame**: the mirror shows only the game, with no frame and no tint, whatever the Settings say.
 
 ### Selecting the area again
 

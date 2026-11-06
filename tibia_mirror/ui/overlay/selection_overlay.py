@@ -10,12 +10,14 @@ from tibia_mirror.config import MIN_SELECTION_SIDE
 from tibia_mirror.core.geometry import (
     Point,
     Rect,
+    box_from_corner,
     nudged_point,
     overlay_to_client,
     rect_from_drag,
 )
 from tibia_mirror.core.tibia.game_window import GameWindow
 from tibia_mirror.i18n import tr
+from tibia_mirror.settings.app_settings import BoxSize
 from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.overlay.loupe import Loupe
@@ -36,12 +38,15 @@ class SelectionOverlay(tk.Toplevel):
         self,
         parent: tk.Misc,
         game_window: GameWindow,
-        on_selected: Callable[[Rect], None],
+        suggested_name: str | None,
+        on_selected: Callable[[Rect, str], None],
         on_cancel: Callable[[], None],
     ) -> None:
         super().__init__(parent)
+        self._parent = parent  # the name popup opens over it
         self._game_window = game_window
-        self._on_selected = on_selected  # gets the selected part, in game coordinates
+        self._suggested_name = suggested_name  # what the name field starts with, None for no name
+        self._on_selected = on_selected  # gets the selected part, in game coordinates, and its name
         self._on_cancel = on_cancel  # called when the cover closes without a selection
         self._monitor_area = win32.monitor_rect(game_window.handle)  # on the screen
         # basic window configuration
@@ -111,8 +116,7 @@ class SelectionOverlay(tk.Toplevel):
             self._cancel()
             return
 
-        self.destroy()
-        self._on_selected(self._get_game_area(selection))
+        self._select(selection)
 
     def _on_arrow_key(self, event: tk.Event[tk.Misc]) -> None:
         step_x, step_y = NUDGE_STEPS[event.keysym]
@@ -149,33 +153,78 @@ class SelectionOverlay(tk.Toplevel):
         self.destroy()
         self._on_cancel()
 
+    def _select(self, selection: Rect) -> None:
+        """Close the cover and hand up the selected part, with a name for a new mirror."""
+        self.destroy()
+        area = self._get_game_area(selection)
+
+        if self._suggested_name is None:
+            self._on_selected(area, "")
+            return
+
+        NameDialog(
+            self._parent,
+            tr("Name this region"),
+            self._suggested_name,
+            on_ok=partial(self._on_selected, area),
+            on_cancel=self._on_cancel,
+        )
+
     def _get_game_area(self, selection: Rect) -> Rect:
         monitor_origin = self._monitor_area.x, self._monitor_area.y
         client_origin = self._game_window.client_area.x, self._game_window.client_area.y
         return overlay_to_client(selection, monitor_origin, client_origin)
 
 
-class NewRegionOverlay(SelectionOverlay):
-    """The cover for a new mirror: it also asks for the name of the selected part."""
+class ClickRegionOverlay(SelectionOverlay):
+    """The cover for a box of a set size: the box follows the point, a click places it."""
 
     def __init__(
         self,
         parent: tk.Misc,
         game_window: GameWindow,
-        suggested_name: str,
-        on_named: Callable[[Rect, str], None],
+        suggested_name: str | None,
+        box_size: BoxSize,
+        direction: str,
+        on_selected: Callable[[Rect, str], None],
         on_cancel: Callable[[], None],
     ) -> None:
-        super().__init__(parent, game_window, self._ask_name, on_cancel)
-        self._parent = parent
-        self._suggested_name = suggested_name  # what the name field starts with
-        self._on_named = on_named  # gets the selected part, in game coordinates, and its name
+        # kept first: the cover shows the box while it is built
+        self._box_size = box_size  # in game pixels
+        self._direction = direction  # where the box grows from the point
+        super().__init__(parent, game_window, suggested_name, on_selected, on_cancel)
+        self._is_pressed = False  # True from a press on the cover until the button goes up
 
-    def _ask_name(self, area: Rect) -> None:
-        NameDialog(
-            self._parent,
-            tr("Name this region"),
-            self._suggested_name,
-            on_ok=partial(self._on_named, area),
-            on_cancel=self._on_cancel,
-        )
+    def _on_mouse_down(self, event: tk.Event[tk.Misc]) -> None:
+        self._pointer = (event.x, event.y)
+        self._is_pressed = True
+        self._show_point()
+
+    def _on_mouse_up(self, event: tk.Event[tk.Misc]) -> None:
+        if not self._is_pressed:
+            return  # the press was before the cover opened
+
+        self._pointer = (event.x, event.y)
+        self._select(self._get_box())
+
+    def _show_point(self) -> None:
+        """Show the point in the loupe, and the box of the set size at it."""
+        point_x, point_y = self._get_point()
+        monitor = self._monitor_area
+        point_on_screen = (monitor.x + point_x, monitor.y + point_y)
+        box = self._get_box()
+        box_corners = (box.x, box.y, box.right, box.bottom)
+
+        if self._box is None:
+            self._box = self._canvas.create_rectangle(
+                *box_corners, outline=theme.ACCENT, width=px(BOX_OUTLINE)
+            )
+        else:
+            self._canvas.coords(self._box, *box_corners)
+
+        self._loupe.show_at(point_on_screen, (box.w, box.h))
+
+    def _get_box(self) -> Rect:
+        """The box of the set size at the point, on the cover."""
+        width, height = self._box_size
+        return box_from_corner(self._get_point(), width, height, self._direction)

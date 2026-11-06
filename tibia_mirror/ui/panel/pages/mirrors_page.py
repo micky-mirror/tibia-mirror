@@ -4,22 +4,26 @@ import tkinter as tk
 from collections.abc import Callable, Sequence
 from functools import partial
 
+from tibia_mirror.app_parts.profile_manager import ProfileManager
 from tibia_mirror.i18n import tr
 from tibia_mirror.ui.base import theme
+from tibia_mirror.ui.base.render import RaisedStyle, shadow_margins
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.raised_button import RaisedButton
 from tibia_mirror.ui.panel.controls.scroll_list import ScrollList
+from tibia_mirror.ui.panel.mirrors.help_step import HelpStep, HintLine
 from tibia_mirror.ui.panel.mirrors.mirror_card.card import MirrorCard
 from tibia_mirror.ui.panel.mirrors.mirror_info import MirrorInfo
+from tibia_mirror.ui.panel.mirrors.select_area_callback import SelectAreaCallback
 from tibia_mirror.ui.panel.profiles.profile_info import ProfileInfo
 from tibia_mirror.ui.panel.profiles.profile_picker import ProfilePicker
 
 # Sizes at 100% display scaling; px() scales them where they are used.
 TOP_PAD = 18  # above the profile picker
 CAPTION_TOP_PAD = 20  # between the profile picker and the caption
-CAPTION_BOTTOM_PAD = 7  # between the caption and the Add region button
+CAPTION_BOTTOM_PAD = 7  # between the caption and the add buttons
 ADD_BUTTON_HEIGHT = 42
-LIST_TOP_PAD = 2  # between the shadow of the Add region button and the list
+LIST_TOP_PAD = 2  # between the shadow of the add buttons and the list
 LIST_BOTTOM_PAD = 8  # below the list
 HINT_TOP_PAD = 10  # above the sentence that shows in place of the cards
 CARD_GAP = 6  # under each mirror card
@@ -33,6 +37,7 @@ class MirrorsPage(tk.Frame):
         parent: tk.Misc,
         width: int,
         side_pad: int,
+        profile_manager: ProfileManager,
         profile_info: ProfileInfo,
         on_profile_selected: Callable[[str], None],
         on_new_profile: Callable[[str], None],
@@ -42,11 +47,12 @@ class MirrorsPage(tk.Frame):
         mirrors: Sequence[MirrorInfo] | None,
         on_mirror_changed: Callable[[MirrorInfo], None],
         on_mirror_removed: Callable[[str], None],
-        on_select_area: Callable[[str | None], None],
+        on_select_area: SelectAreaCallback,
     ) -> None:
         super().__init__(parent, bg=theme.BG)
         self._width = width
         self._side_pad = side_pad
+        self._profile_manager = profile_manager  # the profile menu sets profile keys with it
         self._profile_info = profile_info
         self._on_profile_selected = on_profile_selected  # gets the name picked in the menu
         self._on_new_profile = on_new_profile  # gets the name typed for a new profile
@@ -61,7 +67,7 @@ class MirrorsPage(tk.Frame):
         # add the parts of the page, from top to bottom
         self._add_profile_picker()
         self._add_regions_caption()
-        self._add_region_button()
+        self._add_buttons()
         self._add_mirror_list()
         self._show_mirrors()
 
@@ -70,6 +76,7 @@ class MirrorsPage(tk.Frame):
         self._profile_picker = ProfilePicker(
             self,
             self._width,
+            self._profile_manager,
             self._profile_info.active_name,
             self._profile_info.names,
             self._on_profile_selected,
@@ -86,7 +93,7 @@ class MirrorsPage(tk.Frame):
         )
 
     def _add_regions_caption(self) -> None:
-        """The small grey title above the Add region button and the list of mirrors."""
+        """The small grey title above the add buttons and the list of mirrors."""
         caption = tk.Label(
             self,
             text=tr("REGIONS"),
@@ -101,28 +108,59 @@ class MirrorsPage(tk.Frame):
             pady=(px(CAPTION_TOP_PAD), 0),
         )
 
-    def _add_region_button(self) -> None:
-        """The big button that starts the adding of a new mirror."""
-        button = RaisedButton(
-            self,
-            "+  " + tr("Add region"),
-            partial(self._on_select_area, None),
-            width=self._width,
-            height=px(ADD_BUTTON_HEIGHT),
-            style=theme.PRIMARY_BUTTON,
-            hover_fill=theme.ACCENT_HI,
-            font=theme.FONT_BUTTON,
-            text_colour=theme.ON_ACCENT,
-            background=theme.BG,
+    def _add_buttons(self) -> None:
+        """The two big buttons that start the adding of a new mirror, side by side."""
+        row = tk.Frame(self, bg=theme.BG)
+        drag_button = self._get_add_button(
+            row,
+            "+  " + tr("Add by drag"),
+            partial(self._on_select_area, None, is_by_click=False),
+            theme.PRIMARY_BUTTON,
+            theme.ACCENT_HI,
         )
-        # The widget is bigger than the button we see: it has room for the shadow around it.
-        # The spaces are made smaller by that room, so the button itself lands in line.
-        shadow = button.shadow_margins
-        button.pack(
+        click_button = self._get_add_button(
+            row,
+            "+  " + tr("Add by click"),
+            partial(self._on_select_area, None, is_by_click=True),
+            theme.MAUVE_BUTTON,
+            theme.MAUVE_HI,
+        )
+        drag_button.pack(side="left")
+        click_button.pack(side="left")
+        # The widgets are bigger than the buttons we see: they have room for the shadow around
+        # them. The spaces are made smaller by that room, so the buttons themselves land in line.
+        shadow = drag_button.shadow_margins
+        row.pack(
             side="top",
             anchor="w",
             padx=(self._side_pad - shadow.left, 0),
             pady=(max(0, px(CAPTION_BOTTOM_PAD) - shadow.top), 0),
+        )
+
+    def _get_add_button(
+        self,
+        row: tk.Frame,
+        text: str,
+        command: Callable[[], None],
+        style: RaisedStyle,
+        hover_fill: str,
+    ) -> RaisedButton:
+        """One of the two add buttons, half as wide as the page."""
+        shadow = shadow_margins(style)
+        # the two buttons and the shadows between them fill the width of the page
+        width = (self._width - shadow.right - shadow.left) // 2
+
+        return RaisedButton(
+            row,
+            text,
+            command,
+            width=width,
+            height=px(ADD_BUTTON_HEIGHT),
+            style=style,
+            hover_fill=hover_fill,
+            font=theme.FONT_BUTTON,
+            text_colour=theme.ON_ACCENT,
+            background=theme.BG,
         )
 
     def _add_mirror_list(self) -> None:
@@ -169,8 +207,7 @@ class MirrorsPage(tk.Frame):
             return
 
         if not self._mirrors:
-            hint = tr("Click Add region, then drag a box over the part of the game to mirror.")
-            self._add_hint(hint)
+            self._add_help_steps()
             return
 
         for mirror in self._mirrors:
@@ -210,6 +247,43 @@ class MirrorsPage(tk.Frame):
         # The card is still handling the click, so it cannot be destroyed yet.
         # after_idle draws the list again when the card has finished.
         self.after_idle(self._redraw_mirror_list)
+
+    def _add_help_steps(self) -> None:
+        """The help steps, in place of the cards."""
+        steps = (
+            (
+                tr("Mirror creation"),
+                (
+                    HintLine(tr("Drag a box over the game."), tr("Add by drag"), theme.ACCENT),
+                    HintLine(
+                        tr(
+                            "Click the point where the area starts. "
+                            "You can change the area size in the settings."
+                        ),
+                        tr("Add by click"),
+                        theme.MAUVE,
+                    ),
+                ),
+            ),
+            (
+                tr("Place it"),
+                (
+                    HintLine(tr("Drag the mirror where you want it.")),
+                    HintLine(tr("Drag its bottom-right corner to resize it.")),
+                ),
+            ),
+            (
+                tr("Lock it"),
+                (
+                    HintLine(tr("Click the lock on its card.")),
+                    HintLine(tr("Clicks then pass through it to the game.")),
+                ),
+            ),
+        )
+
+        for number, (title, hint_lines) in enumerate(steps, start=1):
+            step = HelpStep(self._mirror_list, self._width, number, title, hint_lines)
+            step.pack(side="top", anchor="w", pady=(0, px(CARD_GAP)))
 
     def _add_hint(self, text: str) -> None:
         """A grey sentence in the list, in place of the cards."""

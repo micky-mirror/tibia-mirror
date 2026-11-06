@@ -13,6 +13,7 @@ from tibia_mirror.ui.base import theme
 from tibia_mirror.ui.base.render import shadow_margins
 from tibia_mirror.ui.base.scale import px
 from tibia_mirror.ui.panel.controls.raised_button import RaisedButton
+from tibia_mirror.ui.panel.controls.scrim import Scrim
 from tibia_mirror.winapi import dwm, win32
 
 # Sizes at 100% display scaling; px() scales them where they are used.
@@ -59,6 +60,13 @@ class Popup(tk.Toplevel, ABC):
 
         The OK button says `ok_text`. A danger one is red, for a step that can't be undone.
         """
+        row = self._add_button_row()
+
+        self._add_button(row, tr("Cancel"), self._cancel, kind="secondary")
+        self._add_button(row, ok_text, self._confirm, kind="danger" if is_danger else "primary")
+
+    def _add_button_row(self) -> tk.Frame:
+        """The row at the bottom for the buttons."""
         # The button widgets are bigger than the buttons we see: they hold the shadows.
         shadow = shadow_margins(theme.SECONDARY_BUTTON)
         row = tk.Frame(self, bg=theme.BG)
@@ -67,22 +75,28 @@ class Popup(tk.Toplevel, ABC):
             padx=(px(PAD) - shadow.left, 0),
             pady=(px(BUTTONS_TOP_PAD) - shadow.top, px(PAD) - shadow.bottom),
         )
-
-        self._add_button(row, tr("Cancel"), self._cancel, kind="secondary")
-        self._add_button(row, ok_text, self._confirm, kind="danger" if is_danger else "primary")
+        return row
 
     def _add_button(
-        self, row: tk.Frame, text: str, command: Callable[[], None], *, kind: str
+        self,
+        row: tk.Frame,
+        text: str,
+        command: Callable[[], None],
+        *,
+        kind: str,
+        count: int = 2,
     ) -> None:
-        """One of two buttons of the same width, with the room for their shadows between them.
+        """One of `count` buttons of the same width, with the room for their shadows between them.
 
-        `kind` is "secondary", "primary" or "danger".
+        `kind` is "secondary", "primary", "mauve" or "danger".
         """
         shadow = shadow_margins(theme.SECONDARY_BUTTON)
-        width = (self._content_width - shadow.left - shadow.right) // 2
+        gaps = (count - 1) * (shadow.left + shadow.right)
+        width = (self._content_width - gaps) // count
         fill, hover_fill, text_colour = {
             "secondary": (theme.SURFACE, theme.SURFACE_HI, theme.TEXT),
             "primary": (theme.ACCENT, theme.ACCENT_HI, theme.ON_ACCENT),
+            "mauve": (theme.MAUVE, theme.MAUVE_HI, theme.ON_ACCENT),
             "danger": (theme.RED, theme.RED_HI, theme.ON_ACCENT),
         }[kind]
 
@@ -107,6 +121,7 @@ class Popup(tk.Toplevel, ABC):
         height = self.winfo_reqheight()
         position_x, position_y = self._get_position(width, height)
 
+        Scrim(self, self._window)
         self.geometry(f"{width}x{height}+{position_x}+{position_y}")
         self.deiconify()
         self.grab_set()  # the rest of the app takes no clicks or keys until the popup closes

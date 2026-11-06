@@ -1,4 +1,4 @@
-from tibia_mirror.config import FRAME_COLORS
+from tibia_mirror.config import FRAME_COLORS, NO_FRAME
 from tibia_mirror.core.mirrors.regions import next_default_name
 from tibia_mirror.ui.base.theme import FRAME_COLOR_HEX
 
@@ -14,5 +14,5 @@ def test_next_default_name_takes_a_stem_and_ignores_case():
 
 
 def test_every_frame_colour_has_a_colour_to_draw():
-    assert set(FRAME_COLORS) - {"default"} == set(FRAME_COLOR_HEX)
+    assert set(FRAME_COLORS) - {"default", NO_FRAME} == set(FRAME_COLOR_HEX)
     assert len(FRAME_COLORS) == len(set(FRAME_COLORS))
