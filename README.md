@@ -42,7 +42,7 @@ Tibia Mirror runs on **Windows 11**, where it is tested.
 1. Download `Tibia Mirror.exe` with the button above.
 2. Start Tibia.
 3. Double-click `Tibia Mirror.exe`.
-4. Click **Add region**, drag a box over the part of the game you want, and name it.
+4. Click **Add by drag**, drag a box over the part of the game you want, and name it.
 5. Drag the new mirror wherever you like.
 
 > [!TIP]
@@ -63,10 +63,14 @@ Every change is saved right away.
 ### Adding a region
 
 1. Make sure the part of Tibia you want is in view (Tibia must not be minimized).
-2. Click **Add region** and drag a box over the game.
+2. Click **Add by drag** and drag a box over the game, or click **Add by click** and click the point where the area starts.
 3. Name the region and press **OK** (or <kbd>Enter</kbd>).
 
 A mirror of that region appears right next to it, ready to be dragged into place.
+When you have no mirrors yet, the Mirrors page shows a short guide.
+
+**Add by click** always selects an area of the same size.
+You can change its size and direction in Settings.
 
 > [!TIP]
 > While you select, a magnifier beside the pointer shows the game enlarged, with the exact pixel framed and the size of your box below it.
@@ -100,7 +104,7 @@ Hover any icon on it for a short explanation.
 | Resize it | Drag its bottom-right corner (the cursor changes there); proportions are kept |
 | Remove it | Click ✕ on its card |
 
-New mirrors start at actual size and 50% opacity, with a thin grey frame.
+New mirrors start at the zoom and opacity set in Settings, with a thin grey frame.
 Zoom goes from 25% to 400%.
 
 **Frame colours**: the picker has soft, deep, neon and dark shades, with white, silver and black.
@@ -110,8 +114,8 @@ The empty square at the bottom is **no frame**: the mirror shows only the game, 
 
 ### Selecting the area again
 
-Click the size on a card to select that mirror's area again.
-It works like adding a region: drag a box over the game, with the same magnifier and keys.
+Click the size on a card to select that mirror's area again, by drag or by click.
+It works like adding a region, with the same magnifier and keys.
 The mirror keeps its name, opacity, timer and place; only the part of the game it shows changes.
 
 ## Timers
@@ -127,7 +131,7 @@ Click the stopwatch on a card to give that mirror a timer.
 | **Start** | Left-click the region in the game, or press the mirror's key. The next click or key press restarts it. |
 | **Time** | Counts down (or up) to an alert time from 0:01 to 59:59, on a small badge just below the mirror. |
 | **Time's up** | Plays the sound you picked (or none) and stays on its final value in red. A hidden mirror makes no sound. |
-| **Key** | Can include <kbd>Ctrl</kbd>, <kbd>Shift</kbd> and <kbd>Alt</kbd>, like <kbd>Shift</kbd>+<kbd>F9</kbd>. It must match exactly, so <kbd>F9</kbd> alone doesn't start a <kbd>Shift</kbd>+<kbd>F9</kbd> timer. If another timer or the hide-all key has it, it moves to this timer. |
+| **Key** | Can include <kbd>Ctrl</kbd>, <kbd>Shift</kbd> and <kbd>Alt</kbd>, like <kbd>Shift</kbd>+<kbd>F9</kbd>. It must match exactly, so <kbd>F9</kbd> alone doesn't start a <kbd>Shift</kbd>+<kbd>F9</kbd> timer. If another timer, the hide-all key or a profile has it, it moves to this timer. |
 
 Clicks only count when they land on Tibia, and keys only while Tibia is the active window.
 Timers keep running while a mirror is hidden, and start fresh when the app restarts.
@@ -176,9 +180,16 @@ Click the box at the top of the Mirrors page to switch profiles or manage them.
 | New profile | Starts empty |
 | Duplicate | Copies the active profile and switches to it |
 | Rename | Renames the active profile |
+| Add key | Sets a key that opens the active profile |
 | Delete profile | Asks first; the last profile can't be deleted |
 
 To move your mirrors to another PC, copy their profile files (see [Your data](#your-data)).
+
+### Profile keys
+
+Pick **Add key…** in the profile menu to set a key for the active profile.
+Press it while Tibia is active, and that profile opens.
+The menu shows each profile's key next to its name.
 
 ### Profile per character
 
@@ -206,9 +217,12 @@ Settings apply immediately, except **Language** and **Theme**: they are used aft
 | Keep this panel on top | The panel stays above other windows | Off |
 | Profile per character | Logging in opens the character's profile | Off |
 | Opacity of new mirrors | Starting opacity of new mirrors | 50% |
+| Zoom of new mirrors | Starting zoom of new mirrors | 100% |
 | Mirror frame | Thin grey outline around mirrors without a colour | On |
 | Tint with frame colour | Coloured mirrors are also shaded with their colour | Off |
 | Rounded corners | Windows 11's rounded corners (clips a few pixels, adds a faint shadow) | Off |
+| Box size | The area size for **Add by click** | 32×32 |
+| Direction | Where the area grows from your click | ↘ |
 
 ## Shortcuts
 
@@ -217,7 +231,7 @@ Settings apply immediately, except **Language** and **Theme**: they are used aft
 | Hide all mirrors | Hides every mirror, and brings them back | None |
 
 Click the field and press the keys together; ✕ clears it.
-If a timer has that key, it moves here and the timer loses it.
+A key can be used only once: if a timer or a profile already has it, it moves here.
 
 > [!TIP]
 > Tibia receives the key too, so pick one it doesn't use.
